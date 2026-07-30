@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kemence Akadémia — Telepítési útmutató</title>
+<style>
+  :root{
+    --bg:#faf6f0; --card:#fff; --ink:#241a12; --muted:#7a6a58; --line:#e7ddd0;
+    --accent:#e4571b; --accent-2:#b8430f; --ok:#2f7d4f; --warn:#b8860b; --code:#f3ece2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif; line-height:1.6; font-size:16px}
+  .wrap{max-width:860px; margin:0 auto; padding:32px 22px 80px}
+  header h1{font-size:28px; margin:0 0 6px}
+  header p.sub{color:var(--muted); margin:0 0 4px}
+  .updated{color:var(--muted); font-size:13px}
+  .callout{border-left:4px solid var(--accent); background:#fff4ee; padding:12px 16px; border-radius:8px; margin:20px 0}
+  .callout.warn{border-color:var(--warn); background:#fdf7e3}
+  .callout.ok{border-color:var(--ok); background:#eef7f0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin:18px 0;
+    box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:21px; margin:0 0 4px; padding-bottom:8px; border-bottom:2px solid var(--line)}
+  h2 .num{color:var(--accent); font-weight:800}
+  h3{font-size:16px; margin:18px 0 6px}
+  code,kbd{background:var(--code); padding:2px 6px; border-radius:5px; font-family:"Cascadia Code",Consolas,monospace; font-size:14px}
+  pre{background:var(--code); padding:12px 14px; border-radius:8px; overflow:auto; font-size:14px}
+  table{border-collapse:collapse; width:100%; margin:10px 0}
+  th,td{border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top}
+  th{background:#f6efe6; font-size:14px}
+  ol,ul{margin:8px 0 8px 4px; padding-left:22px}
+  li{margin:4px 0}
+  a{color:var(--accent-2)}
+  .toc a{display:block; padding:3px 0; text-decoration:none; color:var(--accent-2)}
+  .todo{list-style:none; padding-left:0}
+  .todo li{padding:4px 0}
+  .todo li::before{content:"☐ "; color:var(--muted)}
+  .done li::before{content:"☑ "; color:var(--ok)}
+  .tag{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em}
+  .tag.kesz{background:#eef7f0; color:var(--ok)} .tag.terv{background:#f3ece2; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🔥 Kemence Akadémia — Telepítési útmutató</h1>
+  <p class="sub">Az <b>éles (production) telepítéshez</b> szükséges beállítások, hogy semmi ne maradjon ki. Ezt a dokumentumot <b>folyamatosan bővítjük</b>.</p>
+  <p class="updated">Utolsó frissítés: 2026-07-30</p>
+</header>
+
+<div class="callout warn">
+  <b>⚠️ Titkok:</b> ez a fájl <b>felkerül a GitHubra</b>, ezért <b>nem tartalmaz tényleges kulcsokat</b> — csak a lépéseket és a beállítás-neveket.
+  A valódi értékek (pl. a Resend API-kulcs) a <b>gitignore-olt</b> <code>secrets/titkok.txt</code> fájlban vannak.
+</div>
+
+<div class="card">
+  <h2>Tartalom</h2>
+  <nav class="toc">
+    <a href="#resend">1. E-mail küldés — Resend API-kulcs + Supabase secretek <span class="tag kesz">aktív</span></a>
+    <a href="#tervezett">Tervezett szakaszok (bővítjük) <span class="tag terv">terv</span></a>
+  </nav>
+</div>
+
+<!-- ============================ 1. RESEND ============================ -->
+<div class="card" id="resend">
+  <h2><span class="num">1.</span> E-mail küldés — Resend API-kulcs + Supabase secretek</h2>
+  <p>A rendszer a <b>Resend</b> szolgáltatáson át küldi a leveleket. Ehhez egy <b>API-kulcs</b> kell, amit a Supabase <b>secretjeként</b> tárolunk.
+     (Fogalmi magyarázat: <code>docs/email.md</code>; teszt-lépések: <code>docs/email-kuldes-setup.md</code>.)</p>
+
+  <h3>1.1 — Resend API-kulcs létrehozása</h3>
+  <ol>
+    <li>Menj a <a href="https://resend.com" target="_blank">resend.com</a> oldalra és jelentkezz be.</li>
+    <li>Bal menü: <b>API Keys</b> → <b>Create API Key</b>.</li>
+    <li>Név: pl. <code>Kemence Akademia</code> (élesre lehet <code>Kemence Akademia - eles</code>).</li>
+    <li>Jogosultság: elég a <b>Sending access</b> (küldés). </li>
+    <li><b>Create</b> → a kulcs <code>re_</code>-vel kezdődik → <b>másold ki azonnal</b> (csak egyszer látszik!).</li>
+    <li>Mentsd a <code>secrets/titkok.txt</code> fájlba (ez gitignore-olt, nem kerül GitHubra).</li>
+  </ol>
+
+  <h3>1.2 — Supabase secretek beállítása</h3>
+  <p>Supabase → a projekt → <b>Edge Functions → Secrets</b> (Manage secrets) → <b>Add new secret</b>. Két secret kell:</p>
+  <table>
+    <tr><th>Secret neve</th><th>Érték</th></tr>
+    <tr>
+      <td><code>RESEND_API_KEY</code></td>
+      <td>a Resend <code>re_…</code> kulcs (lásd <code>secrets/titkok.txt</code>)</td>
+    </tr>
+    <tr>
+      <td><code>MAIL_FROM</code></td>
+      <td>
+        <b>Fejlesztés:</b> <code>Kemence Akadémia &lt;onboarding@resend.dev&gt;</code><br>
+        <b>Éles:</b> a saját, igazolt domained címe, pl. <code>Kemence Akadémia &lt;noreply@kemence-akademia.xyz&gt;</code>
+      </td>
+    </tr>
+  </table>
+  <div class="callout ok">
+    <b>✔ Automatikus:</b> a <code>SUPABASE_URL</code> és a <code>SUPABASE_SERVICE_ROLE_KEY</code> a függvényben <b>magától elérhető</b> — ezeket NEM kell hozzáadni.
+  </div>
+
+  <h3>1.3 — Éles telepítéskor (EZT NE FELEJTSD!)</h3>
+  <ul>
+    <li>Az ügyfél <b>saját Supabase-projektjében</b> is be kell állítani ugyanezt a két secretet: <code>RESEND_API_KEY</code>, <code>MAIL_FROM</code>.</li>
+    <li>Az éles feladóhoz a <b>domaint igazolni kell a Resendben</b> (DNS: SPF/DKIM a Hostingeren) — lásd a lenti tervezett DNS-szakaszt.</li>
+    <li>A <code>send-email</code> Edge Function-t <b>deploy</b>-olni kell az ügyfél projektjébe is.</li>
+    <li>A válaszcím (Reply-To) a <b>Csapat e-mail cím</b> (admin → Beállítások); élesben pl. <code>akademia@mobilkemence.xyz</code>.</li>
+    <li>Ha később <b>Google-küldésre</b> váltotok: a secretek <code>GMAIL_USER</code> / <code>GMAIL_APP_PASSWORD</code> lesznek, és a függvény <code>kuld()</code> részét kell átírni.</li>
+  </ul>
+</div>
+
+<!-- ============================ TERVEZETT ============================ -->
+<div class="card" id="tervezett">
+  <h2>Tervezett szakaszok <span class="tag terv">bővítjük</span></h2>
+  <p>Ezeket menet közben töltjük fel részletes lépésekkel, ahogy elkészülnek:</p>
+  <ul class="todo">
+    <li>Supabase projekt létrehozása + <code>db/01-schema.sql</code> futtatása (SQL Editor)</li>
+    <li>Storage bucket létrehozása: <code>program-fotok</code></li>
+    <li><code>web/js/config.js</code> kitöltése (Project URL + anon kulcs)</li>
+    <li>Admin fiók létrehozása a Supabase Auth-ban (nincs önregisztráció)</li>
+    <li><code>send-email</code> Edge Function deploy</li>
+    <li>Domain igazolása a Resendben + DNS-rekordok (SPF/DKIM) a Hostingeren</li>
+    <li>pg_cron: napi emlékeztető a másnapi <b>jóváhagyott</b> foglalásoknak</li>
+    <li>Keep-alive ping (hogy az ingyenes Supabase ne aludjon el)</li>
+    <li>Hostinger hosting + DNS élesítés (A-rekord a domainhez)</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>

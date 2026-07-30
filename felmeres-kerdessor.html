@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kemence Akadémia — Felmérés · Kérdéssor</title>
+<meta name="description" content="Felmérő kérdéssor: mit kell leváltani és mire — a Kemence Akadémia foglalási rendszeréhez.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#FAF6EE; --paper-warm:#FBF7F0;
+  --ink:#211C18; --ink-2:#4C443D; --muted:#8B8075;
+  --terra:#9D4A25; --terra-2:#B4551F; --ember:#C8641F;
+  --line:#EAE2D5; --line-2:#DDD2C1;
+  --maxw:920px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink-2);
+  font-family:"Public Sans",system-ui,sans-serif; font-size:17px; line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px; position:relative}
+a{color:var(--terra); text-decoration:none}
+h1,h2,h3,h4{font-family:"Instrument Serif",Georgia,serif; margin:0; font-weight:400;
+  line-height:1.08; letter-spacing:0; color:var(--ink)}
+p{margin:0 0 14px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:12px;
+  font-family:"Public Sans"; font-size:12px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--terra); margin:0 0 16px}
+.eyebrow::before{content:""; width:26px; height:1.5px; background:var(--terra); opacity:.65}
+
+header{position:sticky; top:0; z-index:60; background:rgba(255,255,255,.86);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+.hd{display:flex; align-items:center; justify-content:space-between; padding:16px 0}
+.brand .bt{font-family:"Instrument Serif"; font-size:23px; line-height:1; color:var(--ink); letter-spacing:.01em}
+.brand .bt small{display:block; font-family:"Public Sans"; font-weight:600; font-size:9px;
+  letter-spacing:.28em; text-transform:uppercase; color:var(--muted); margin-top:4px}
+.hd .doc{font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+
+.hero{border-bottom:1px solid var(--line); background:var(--paper-warm)}
+.hero .wrap{padding-top:56px; padding-bottom:52px}
+.hero h1{font-size:clamp(38px,6vw,60px)}
+.hero h1 em{color:var(--terra); font-style:italic}
+.hero .tagline{font-family:"Instrument Serif"; font-style:italic; font-size:clamp(20px,2.6vw,26px);
+  color:var(--ink-2); margin:20px 0 0; max-width:640px}
+.hero .how{margin:22px 0 0; font-size:15px; color:var(--ink-2); max-width:660px}
+
+/* blocks */
+.block{padding:40px 0; border-bottom:1px solid var(--line)}
+.block:last-of-type{border-bottom:0}
+.block-head{display:flex; gap:18px; align-items:baseline; margin-bottom:8px; flex-wrap:wrap}
+.block-head .num{font-family:"Instrument Serif"; font-size:34px; color:var(--terra); line-height:1; flex:0 0 auto; min-width:44px}
+.block-head h2{font-size:clamp(24px,3.4vw,32px)}
+.flag{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:#FCF7F0; background:var(--terra); border-radius:999px; padding:5px 13px; align-self:center}
+.why{margin:0 0 20px 62px; font-style:italic; color:var(--muted); font-size:15px; max-width:680px}
+@media(max-width:640px){ .why{margin-left:0} }
+
+/* key block emphasis */
+.block.key{background:var(--paper-2); border:1px solid var(--line-2); border-radius:10px;
+  padding:34px 30px; margin:34px 0}
+.block.key .why{margin-left:62px}
+@media(max-width:640px){ .block.key{padding:26px 20px} .block.key .why{margin-left:0} }
+
+/* checklist */
+ul.qs{list-style:none; margin:0 0 0 62px; padding:0}
+@media(max-width:640px){ ul.qs{margin-left:0} }
+ul.qs li{position:relative; padding:11px 0 11px 34px; border-top:1px solid var(--line); font-size:16px; line-height:1.5}
+ul.qs li:first-child{border-top:0}
+ul.qs li::before{content:""; position:absolute; left:0; top:14px; width:17px; height:17px;
+  border:1.5px solid var(--line-2); border-radius:4px; background:var(--paper)}
+ul.qs li b{color:var(--ink)}
+ul.qs li .sub{display:block; margin-top:4px; font-size:13.5px; color:var(--muted); line-height:1.45}
+ul.qs li .sub b{color:var(--ink-2)}
+/* nested (sub-questions) */
+ul.qs li ul{list-style:none; margin:10px 0 2px; padding:0}
+ul.qs li ul li{padding:8px 0 8px 30px; border-top:0; font-size:15px}
+ul.qs li ul li::before{top:11px; width:14px; height:14px; border-radius:3px; border-color:var(--line-2)}
+
+/* key note */
+.note{margin:20px 0 0 62px; border-left:3px solid var(--terra); background:var(--paper-2);
+  padding:16px 20px; border-radius:0 6px 6px 0; font-size:15px}
+.note b{color:var(--ink)}
+.block.key .note{background:var(--paper); margin-left:62px}
+@media(max-width:640px){ .note, .block.key .note{margin-left:0} }
+
+/* confirmed-facts box (answers we already have) */
+.facts{margin:6px 0 22px 62px; border:1px solid var(--line-2); background:var(--paper); border-radius:10px; padding:18px 22px}
+.facts .fh{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--terra); margin:0 0 8px}
+.facts ul{list-style:none; margin:0; padding:0}
+.facts li{position:relative; padding:9px 0 9px 22px; font-size:15px; line-height:1.5; border-top:1px solid var(--line)}
+.facts li:first-child{border-top:0}
+.facts li::before{content:"›"; position:absolute; left:2px; top:8px; color:var(--terra); font-weight:700; font-size:16px}
+.facts b{color:var(--ink)}
+.facts .warn{color:var(--terra); font-weight:700}
+@media(max-width:640px){ .facts{margin-left:0} }
+
+/* answer-line for print */
+.ans{margin:20px 0 0 62px; font-size:13px; color:var(--muted)}
+@media(max-width:640px){ .ans{margin-left:0} }
+
+footer{padding:40px 0 56px; background:var(--ink)}
+footer .wrap{color:#C9BEB0}
+footer .bt{font-family:"Instrument Serif"; font-size:22px; color:#F7F1E8}
+footer .bt small{display:block; font-family:"Public Sans"; font-weight:600; font-size:9px;
+  letter-spacing:.28em; text-transform:uppercase; color:#9C8F7E; margin-top:5px}
+footer p{font-size:14px; margin:14px 0 0; color:#9C8F7E}
+
+@media print{
+  @page{ margin:15mm 13mm }
+  html,body{ -webkit-print-color-adjust:exact; print-color-adjust:exact }
+  header{ position:static }
+  .hero .wrap{ padding-top:26px; padding-bottom:26px }
+  .block{ break-inside:avoid; padding:22px 0 }
+  .block.key, .facts, .note, .block-head{ break-inside:avoid }
+  ul.qs li{ break-inside:avoid }
+  a{ color:var(--ink) }
+  footer{ break-inside:avoid }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div class="brand">
+      <div class="bt">Kemence Akadémia<small>Felmérés</small></div>
+    </div>
+    <div class="doc">Kérdéssor</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">A felmérés célja</div>
+    <h1>Mit kell <em>leváltani</em> — és <em>mire?</em></h1>
+    <p class="tagline">Végigkérdezhető lista: a mostani két oldal és a minup.io foglaló felmérése, hogy semmi ne maradjon ki a saját rendszer építésekor.</p>
+    <p class="how">A négyzeteket ki lehet pipálni menet közben. Minden blokk elején ott a <b>miért</b> — hogy lásd, melyik választ mire használjuk. <b>A sorrend szándékos:</b> elöl a hozzáférés és a domain/DNS, mert az egész élesítés ezen múlik.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- 1 -->
+<section class="block">
+  <div class="block-head"><div class="num">1</div><h2>A jelenlegi helyzet — az öröklött rendszer</h2></div>
+  <p class="why">Miért: itt derül ki, mihez van egyáltalán hozzáférés, mibe kerül most a működés, és kihez kötődik. Sokszor ez a legfontosabb blokk.</p>
+  <ul class="qs">
+    <li><b>Ki készítette</b> a mostani oldalakat (mobilkemence.xyz, kemence-akademia.xyz)? Fejlesztő, ügynökség, ismerős?</li>
+    <li>Van-e velük <b>élő szerződés vagy kapcsolat</b>? El lehet-e érni őket, ha kell?</li>
+    <li>Megvannak-e a <b>fiókok és jelszavak</b> (tárhely, admin, e-mail), vagy valami a fejlesztőnél maradt?</li>
+    <li><b>Hogyan fizet</b> most a működésért? Egyszeri díj, havidíj, tárhelydíj, minup-előfizetés?</li>
+    <li><b>Mennyit fizet</b> összesen havonta/évente? (oldal + tárhely + minup + domain külön-külön)</li>
+    <li><b>MEGERŐSÍTVE: a mostani oldalak a Hostingeren futnak</b> (DNS + tárhely + regisztráció; lásd 2. blokk) — a hozzáféréshez a Hostinger-fiók kell.</li>
+    <li>Van-e bármi, amihez <b>nincs hozzáférése</b> — és tudja-e, kinél van?</li>
+  </ul>
+  <div class="ans">Jegyzet: ______________________________________________________________________</div>
+</section>
+
+<!-- 2 — KIEMELT -->
+<section class="block key">
+  <div class="block-head"><div class="num">2</div><h2>Domainek, e-mail, DNS</h2><span class="flag">Ezzel kezdd — ezen múlik minden</span></div>
+  <p class="why">Miért: az élesítés (a domain új oldalra állítása) teljesen ezen múlik. Ha itt nincs hozzáférés, az egész projekt csúszik — ezért került előre. És itt lehet véletlenül „elszállítani" a levelezést is.</p>
+
+  <div class="facts">
+    <p class="fh">Már tudjuk — WHOIS &amp; DNS-lekérdezésből (2026-07-28)</p>
+    <ul>
+      <li><b>Megerősített tény:</b> a két .xyz domain (mobilkemence.xyz, kemence-akademia.xyz) <b>regisztrátora, DNS-e és tárhelye is a Hostinger</b>. Minden egy fiókban → a felmérés kulcsa: <b>kié ez a Hostinger-fiók, és van-e hozzá belépés?</b></li>
+      <li><b>Élesítési teendő:</b> a váltás előtt <b>DNS-mentés</b> — Hostinger zone-export + képernyőkép a teljes rekordlistáról, hogy bármi visszaállítható legyen.</li>
+      <li><b class="warn">⚠ Lejárat:</b> a <b>mobilkemence.xyz 2026-11-23-án lejár</b> (~4 hónap múlva) — ellenőrizni, hogy be van-e kapcsolva az <b>automatikus megújítás</b>, nehogy a fő domain lejárjon a projekt közben. (A kemence-akademia.xyz 2027-01-20-ig él.)</li>
+    </ul>
+  </div>
+
+  <ul class="qs">
+    <li>A <b>Hostinger-fiók</b> (ahol a regisztráció, a DNS és a tárhely is van) <b>kinek a nevén / e-mailjén</b> áll — tényleg az ügyfélé?</li>
+    <li>Van-e az ügyfélnek <b>belépése ehhez a Hostinger-fiókhoz</b> (felhasználónév + jelszó)?</li>
+    <li>A DNS-t az ügyfél <b>maga tudja szerkeszteni</b> a Hostinger felületén, vagy más (pl. a korábbi fejlesztő) kezeli?</li>
+    <li>Van-e a domaineken <b>e-mail/levelezés</b>?
+      <span class="sub">→ Ha igen, az MX-rekordhoz <b>nem nyúlunk</b> — csak a web-beállítást írjuk át, különben elszáll a levelezés. A domain a weboldalt és az e-mailt <b>külön rekordokon</b> kezeli; élesítéskor csak a web-rekordot állítjuk át.</span></li>
+    <li><b>MEGERŐSÍTVE (DNS-lekérdezésből): az info@mobilkemence.xyz a Google-nél van (Google Workspace).</b>
+      A mobilkemence.xyz élesítésekor az MX-et (Google) és a hozzá tartozó SPF/DKIM/TXT-t <b>változatlanul megőrizzük</b> — csak a web-rekordot állítjuk át.
+      <span class="sub">→ Kérdés az ügyfélhez: hogyan olvassa (közvetlen Google-belépés vagy átirányítva egy másik Gmailbe/Outlookba)? Fizetős Workspace vagy régi/ingyenes konstrukció?</span></li>
+    <li><b>MEGERŐSÍTVE: a kemence-akademia.xyz-en nincs levelezés (nincs MX)</b> — itt a DNS szabadon állítható, nincs levelezés, amit félteni kellene.</li>
+    <li><b>MEGERŐSÍTVE: a kandallo-futar.hu-nak nincs fogadó címe (nincs MX), csak Rackhost-küldés (SPF).</b>
+      Valószínű, hogy a webshop kapcsolati/válasz-címe is az <b>info@mobilkemence.xyz</b> (Google) — vagyis a „közös postaláda". Ezt a mobilkemence Google MX-e szolgálja ki, amit nem bántunk → biztonságos.
+      <span class="sub">→ Megerősítendő: a kandallo-futar.hu és a kemence-akademia.xyz melyik e-mail címet mutatja kapcsolatként?</span></li>
+    <li>Be van-e kapcsolva az <b>automatikus megújítás</b>? <span class="sub">→ A lejáratokat már tudjuk (lásd fent): mobilkemence.xyz 2026-11-23, kemence-akademia.xyz 2027-01-20.</span></li>
+    <li>Ki állítja majd át a <b>DNS-t</b> — az ügyfél a megadott értékekkel, vagy hozzáférést ad?</li>
+    <li>Ha <b>nincs hozzáférése</b> a domainhez/DNS-hez: tudja-e, <b>kinél van</b>, és el tudja-e kérni?</li>
+    <li>A <b>kandallo-futar.hu</b> webshophoz tényleg nem nyúlunk, ugye?</li>
+  </ul>
+  <div class="note"><b>Ha az ügyfél nem rendelkezik a domain- és DNS-beállítások hozzáférésével — teendő:</b>
+    ez blokkoló tétel, mert hozzáférés nélkül a domain nem állítható az új oldalra, tehát <b>élesíteni sem lehet</b>.
+    Ilyenkor a hozzáférést <b>be kell szerezni attól, aki jelenleg kezeli</b> (a korábbi fejlesztő, a regisztrátor
+    vagy az, aki a domaint annak idején megvette). Két járható út: (1) az ügyfél kap <b>belépést a regisztrátori fiókhoz</b>
+    a DNS-felülettel, vagy (2) ha ez nem megoldható, akkor <b>a kezelő írja át a DNS-rekordokat</b> a mi által pontosan
+    megadott értékekre. Fontos: ezt <b>időben, még a fejlesztés alatt</b> indítsuk el — külső féltől függ, és napokat csúszhat.</div>
+</section>
+
+<!-- 3 -->
+<section class="block">
+  <div class="block-head"><div class="num">3</div><h2>A minup.io foglaló felmérése</h2></div>
+  <p class="why">Miért: ez a fő leváltandó — pontosan tudni kell, mit tud most, hogy semmi funkció ne vesszen el a saját rendszerre váltáskor.</p>
+  <ul class="qs">
+    <li>Hány <b>program / workshop</b> van most fent a minupban?</li>
+    <li>Melyik <b>minup-csomag</b> (ingyenes / Pro / Business), és mennyi érte a <b>havidíj</b>?</li>
+    <li>A vendég a foglaláskor <b>pontosan milyen adatokat</b> ad meg? (név, e-mail, telefon, létszám, ételérzékenység, megjegyzés…)</li>
+    <li>Van-e <b>létszámkorlát / szabad hely</b> kezelés? Lehet-e túlfoglalni?</li>
+    <li>Be van-e kapcsolva <b>Google Naptár szinkron</b>?
+      <span class="sub">→ Mit jelent: a foglalások <b>automatikusan megjelennek a Google Naptárban</b> (nem kell külön beírni); és ha te elfoglaltságot írsz be a naptárba, azt az időpontot a rendszer <b>kiveszi a foglalhatók közül</b> — így nincs ütközés. Nálunk nem kötelező, de ha megszokta, később hozzátehető.</span></li>
+    <li>Kap-e a vendég <b>visszaigazoló e-mailt</b>? És te kapsz-e <b>értesítőt</b> új jelentkezésről?
+      <span class="sub">→ Mit jelent: <b>visszaigazoló</b> = <b>azonnal</b>, jelentkezéskor megy a vendégnek („megkaptuk"). <b>Értesítő neked</b> = te kapsz jelzést, hogy új jelentkezés érkezett. A saját rendszerben ez a 4. fázis opcionális extrája.</span></li>
+    <li>Használtok-e <b>emlékeztetőt</b> (pl. workshop előtt)?
+      <span class="sub">→ Mit jelent: egy e-mail/SMS, ami a <b>workshop ELŐTT</b> megy a vendégnek (pl. 1 nappal korábban: „holnap 10:00-kor várunk…"), hogy ne felejtse el — kevesebb a meg-nem-jelenés. <b>Nem</b> keverendő a visszaigazolóval, ami azonnal megy.</span></li>
+    <li>Le lehet-e <b>mondani / átfoglalni</b>, és ki intézi ezt ma?</li>
+    <li>Hova futnak be a jelentkezések — csak a minup felületére, vagy <b>e-mailbe / táblázatba</b> is?</li>
+  </ul>
+</section>
+
+<!-- 4 -->
+<section class="block">
+  <div class="block-head"><div class="num">4</div><h2>A vendégfiók funkciói (ha van regisztráció)</h2></div>
+  <p class="why">Miért: ha a vendégek ma be tudnak lépni, tudni kell, mit csinálnak ott — különben egy funkció csendben „eltűnik" a váltáskor. Ez dönti el, kell-e nekünk egyáltalán belépés, vagy elég az űrlap.</p>
+  <ul class="qs">
+    <li>A vendég <b>valóban regisztrál/belép</b> ma, vagy csak űrlapot tölt (a minup a háttérben csinál profilt)?</li>
+    <li>Ha belép, <b>mit tud csinálni</b> a fiókjában?
+      <ul>
+        <li><b>Foglalás</b> — lát elérhető időpontokat és jelentkezik?</li>
+        <li><b>Lemondás</b> — le tudja mondani a saját foglalását? Van-e rá határidő?</li>
+        <li><b>Módosítás</b> — átfoglal másik időpontra, adatot módosít?</li>
+        <li><b>Előzmények</b> — látja a korábbi/jövőbeli foglalásait?</li>
+      </ul>
+    </li>
+    <li>Kap-e <b>automatikus e-mailt</b> foglaláskor/lemondáskor?</li>
+    <li><b>Használják-e egyáltalán</b> a vendégek a belépést, vagy a legtöbben csak egyszer foglalnak?</li>
+    <li>Ha kiesik a belépés: <b>kinek okoz gondot</b>, és mi a minimum, ami hiányozna?</li>
+  </ul>
+  <div class="note"><b>Kulcskérdés a fiókhoz:</b> ha a lemondást/módosítást ma úgyis <b>te intézed</b> (a vendég csak jelez), akkor a belépés fölösleges — marad az űrlap + admin. Ha viszont elvárás, hogy a vendég <b>önállóan</b> lemondjon/átfoglaljon, akkor kell a Supabase-belépés.</div>
+</section>
+
+<!-- 5 -->
+<section class="block">
+  <div class="block-head"><div class="num">5</div><h2>Mobilalkalmazás</h2></div>
+  <p class="why">Miért: a minupnak van appja, ezért az ügyfél kérheti — de a mi oldalunk reszponzív lesz, tehát tisztázni kell, hogy natív app tényleg nem kell.</p>
+  <ul class="qs">
+    <li>Használ-e most bárki <b>natív telefonos appot</b> (te vagy a vendégek), vagy mindenki böngészőből?</li>
+    <li>Elvárás-e a <b>natív app</b> (App Store / Play áruház), vagy elég, ha a weboldal telefonon is jól működik?</li>
+    <li>Elég-e, ha az admin <b>PWA-ként a kezdőképernyőre tehető</b> (ikon, app-érzés, de nem külön fejlesztés)?
+      <span class="sub">→ Mi az a PWA (Progressive Web App): egy <b>sima weboldal, amit „telepíteni" lehet</b> a telefonra. Ikon kerül a kezdőképernyőre, és rákoppintva <b>teljes képernyőn, app-ként nyílik meg</b> (böngésző-címsor nélkül). De ez <b>ugyanaz a weboldal</b> — csak egy apró beállítás (ikon + „manifest" fájl) kell hozzá: <b>nincs külön kód, nincs App Store/Play, nincs extra karbantartás</b>. A natív app előnyeinek nagy része, annak költsége nélkül.</span></li>
+  </ul>
+  <div class="note"><b>A javasolt alternatíva a natív app helyett:</b> natív app helyett a <b>PWA-t</b> kínáljuk — a publikus és az admin oldal is <b>reszponzív</b>, telefonon ugyanúgy megy, mint gépen, és <b>a kezdőképernyőre tehető</b> (ikon + app-érzés). Külön natív app csak fölösleges költség és karbantartás lenne; a PWA <b>ugyanazt az app-élményt adja alternatívaként</b>, ingyen.</div>
+</section>
+
+<!-- 6 -->
+<section class="block">
+  <div class="block-head"><div class="num">6</div><h2>A programok / workshopok adatai</h2></div>
+  <p class="why">Miért: ezekből lesznek az adatbázis-táblák mezői.</p>
+  <ul class="qs">
+    <li>Egy programnál milyen adatok tartoznak össze? <span class="sub">cím, leírás, ár, időtartam, helyszín, max. létszám, fotó, nehézségi szint…</span></li>
+    <li><b>Fix áras</b> minden, vagy van csoport-/kedvezményes ár, előleg?</li>
+    <li>Egy programhoz <b>több időpont</b> tartozik (ismétlődő), vagy egyszeri?</li>
+    <li>Vannak <b>kategóriák</b>? (pizza, burek, kovász, lánybúcsú, csili…)</li>
+    <li>Van-e <b>„hamarosan" státusz</b> (mint a bejgli-workshop) — látszik, de még nem foglalható?</li>
+    <li>Helyszín(ek): mindig ugyanott, vagy változó?</li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section class="block">
+  <div class="block-head"><div class="num">7</div><h2>A jelentkezési folyamat (publikus oldal)</h2></div>
+  <p class="why">Miért: ez a vendég élménye — a 2. fázis magja.</p>
+  <ul class="qs">
+    <li>Mi történjen <b>beküldés után</b>? (köszönő üzenet, e-mail, „felvesszük a kapcsolatot"…)</li>
+    <li>Milyen <b>kötelező mezők / validáció</b> kell? (valós e-mail, telefon)</li>
+    <li>Kell-e <b>adatvédelmi checkbox</b> („elfogadom a tájékoztatót")?</li>
+    <li>Lehet-e <b>egyszerre több főre</b> jelentkezni egy űrlappal?</li>
+    <li>Lássa-e a vendég a <b>szabad helyek számát</b>?</li>
+    <li>Kell-e a vendégnek <b>automatikus visszaigazoló e-mail</b> jelentkezéskor? („megkaptuk a jelentkezésed")</li>
+    <li>Kell-e <b>emlékeztető e-mail a workshop előtt</b>? Ha igen, <b>mennyivel korábban</b> (pl. 1 nappal, néhány órával)?
+      <span class="sub">→ Csökkenti a meg-nem-jelenést; a saját rendszer az időzítővel automatikusan küldi. Ez a minup „emlékeztető” funkciójának megfelelője.</span></li>
+    <li>A levelek a <b>saját címetekről</b> menjenek (pl. info@kemence-akademia.xyz)?
+      <span class="sub">→ Ehhez pár <b>DNS-rekord</b> kell (SPF/DKIM) — lásd a 2. blokkot. Enélkül a levél egy általános címről menne, vagy könnyen spambe eshet. A levélküldő szolgáltatás (pl. Resend/Brevo) ingyenes kerete ezt a forgalmat bőven fedi.</span></li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section class="block">
+  <div class="block-head"><div class="num">8</div><h2>Az admin felület — az ügyfél napi munkája</h2></div>
+  <p class="why">Miért: ez a 3. fázis. Azt kell tudnia, amit ma a minupban csinál — se többet, se kevesebbet.</p>
+  <ul class="qs">
+    <li>Ki fogja <b>napi szinten kezelni</b>? (te, az ügyfél, többen?)</li>
+    <li>Milyen <b>műveletek</b> kellenek? <span class="sub">új program, szerkesztés, ár-módosítás, törlés, időpont hozzáadása, fotó feltöltés</span></li>
+    <li>Hogyan legyenek <b>láthatók a foglalások</b> az admin felületen?
+      <span class="sub">→ pl. <b>programonként/időpontonként</b> listázva, a jelentkező adataival (név, e-mail, telefon, létszám, ételérzékenység), a <b>foglalt/szabad helyek</b> számával. Kell-e <b>keresés/szűrés</b> (pl. névre, időpontra)?</span></li>
+    <li>Az admin <b>törölhet / módosíthat egy foglalást</b>?
+      <span class="sub">→ pl. jelentkezőt <b>törölni</b>, adatait <b>javítani</b>, <b>másik időpontra átrakni</b>, vagy <b>lemondottra</b> állítani. (Ez a vendég-önkiszolgálás helyett történik — lásd a 4. blokk vendégfiók-kérdését.)</span></li>
+    <li>A jelentkezőknél kell-e <b>státusz</b>? (új / visszaigazolt / lemondott / fizetett)</li>
+    <li>Kell-e <b>CSV/Excel export</b> a jelentkezőkről?</li>
+    <li>Kell-e <b>e-mail értesítő</b> neki új jelentkezésről?</li>
+    <li>Telefonról is akarja használni? <span class="sub">→ reszponzív admin / PWA</span></li>
+    <li>Melyik funkció <b>hiányzik ma</b> a minupból, amit szívesen látna?</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="block">
+  <div class="block-head"><div class="num">9</div><h2>A két marketing oldal</h2></div>
+  <p class="why">Miért: ezt „csak" újraépítjük — tudni kell, mi maradjon és mi változzon. (mobilkemence.xyz + kemence-akademia.xyz)</p>
+  <ul class="qs">
+    <li>A <b>mostani tartalom</b> (szövegek, képek) átjöhet, vagy frissítitek?</li>
+    <li>Melyik legyen a <b>fő domain</b>: a <b>mobilkemence.xyz</b> vagy a <b>kemence-akademia.xyz</b>? <b>(még nincs eldöntve)</b>
+      <span class="sub">→ Jelenlegi elképzelés: a <b>fő domain a mobilkemence.xyz</b>, a <b>kemence-akademia.xyz pedig átirányít rá</b> (301-es átirányítás), és az akadémia pl. a mobilkemence.xyz egy <b>aloldalaként</b> él tovább. Eldöntendő / megerősítendő a felmérésen.</span></li>
+    <li>Ehhez kapcsolódó forma: <b>két külön oldal</b> marad, vagy <b>egy fő oldal + aloldal + átirányítás</b>?
+      <span class="sub">→ Az átirányító domain <b>nem szűnik meg</b> — évente meg kell újítani, amíg átirányít. Cserébe a régi linkek és a keresőben felépített helyezés nem vész el.</span></li>
+    <li>Milyen <b>gombok/hívások</b> legyenek? (webshopra terelés, foglalás, kapcsolat)</li>
+    <li>Van-e <b>Google-értékelés, Facebook-csoport, galéria</b>, amit be kell kötni?
+      <span class="sub">→ „Bekötni" = egy máshol létező dolgot beépíteni/összekapcsolni az új oldallal — <b>linkként</b> (gomb, ami átvisz), <b>beágyazva</b> (a tartalom az oldalon jelenik meg) vagy <b>élő feedként</b> (automatikusan frissül). Konkrétan: <b>Google-értékelés</b> = a vásárlók csillagos véleményei (bizalomépítés, „Ezt mondják rólunk"); <b>Facebook-csoport</b> = a közösségi csoporthoz vezető gomb/link; <b>galéria</b> = a mostani fotógaléria átemelése. A cél: eldönteni, melyik külső dolgot visszük át az új oldalra, hogy egy funkció se vesszen el.</span></li>
+    <li>Kell-e <b>több nyelv</b>?</li>
+  </ul>
+</section>
+
+<!-- 10 -->
+<section class="block">
+  <div class="block-head"><div class="num">10</div><h2>Üzemeltetés és tulajdon</h2></div>
+  <p class="why">Miért: ez a terv „1. vs 2. modell" döntése — kinek a nevén álljanak a fiókok, és ki fizet.</p>
+  <ul class="qs">
+    <li><b>Kié legyenek a fiókok</b> (Netlify, Supabase, domain) — az ügyfélé (átadás) vagy a tiéd (havidíj)?</li>
+    <li>Ki fizeti a <b>domain éves díját</b>?</li>
+    <li>Kell-e később <b>feltétel nélküli átadhatóság</b>?</li>
+    <li>Egyszeri fejlesztési díj vagy <b>havidíjas üzemeltetés</b> a cél?</li>
+  </ul>
+</section>
+
+<!-- 11 -->
+<section class="block">
+  <div class="block-head"><div class="num">11</div><h2>Design, tartalom, képek</h2></div>
+  <p class="why">Miért: az egységes kinézet a projekt egyik fő értéke.</p>
+  <ul class="qs">
+    <li>A <b>mostani design</b> marad az alap, vagy új arculat?</li>
+    <li>Ki adja a <b>szövegeket és a fotókat</b>? Van-e logó, színek, betűtípus rögzítve?</li>
+    <li><b>RÖGZÍTVE: a program-fotókat az admin választja ki / tölti fel</b> (Supabase Storage) — nem fix, beégetett képek.
+      <span class="sub">→ Az admin bármikor cserélhet program-fotót, kódhoz nyúlni nem kell. (A design-elemek — logó, háttér, ikonok — továbbra is fix, statikus fájlok.)</span></li>
+  </ul>
+</section>
+
+<!-- 12 -->
+<section class="block">
+  <div class="block-head"><div class="num">12</div><h2>Jog és adatvédelem (GDPR)</h2></div>
+  <p class="why">Miért: személyes adatot gyűjtötök (jelentkezők) — kell hozzá pár alapdolog.</p>
+  <ul class="qs">
+    <li>Van-e <b>adatvédelmi tájékoztató</b>, vagy készítünk?</li>
+    <li>Meddig <b>tároljátok</b> a jelentkezők adatait, és ki fér hozzá?</li>
+    <li>Kell-e <b>hozzájárulás</b> hírlevélhez / marketinghez, vagy csak a foglaláshoz?</li>
+  </ul>
+</section>
+
+<!-- 13 -->
+<section class="block">
+  <div class="block-head"><div class="num">13</div><h2>Ütemezés és prioritás</h2></div>
+  <p class="why">Miért: eldönti, mi az MVP (minimum, amivel élesbe lehet menni) és mi a „később".</p>
+  <ul class="qs">
+    <li>Van-e <b>határidő</b>? (pl. szezon, konkrét workshop dátuma)</li>
+    <li>Mi a <b>minimum, amivel élesbe mehet</b>? (pl. csak a foglalás működjön)</li>
+    <li>Mi mehet <b>későbbre</b>? (online fizetés, vendégfiók, értesítők, második oldal)</li>
+  </ul>
+</section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="bt">Kemence Akadémia<small>Felmérés · Kérdéssor</small></div>
+    <p>Belső dokumentum · A válaszok az árajánlat és a fejlesztési terv alapja.</p>
+  </div>
+</footer>
+
+</body>
+</html>

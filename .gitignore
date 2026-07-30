@@ -1,0 +1,36 @@
+# =====================================================================
+#  .gitignore — Kemence Akadémia
+#  A titkokat és a helyi/IDE fájlokat kizárjuk a verziókövetésből.
+# =====================================================================
+
+# --- TITKOK / hitelesítő adatok (SOHA ne kerüljön fel!) ---
+secrets/
+akademia@mobilkemence.xyz.txt
+.env
+.env.*
+*.key
+*.pem
+
+# --- IDE / szerkesztő ---
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Claude Code helyi beállítás ---
+.claude/settings.local.json
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Node (ha később lenne) ---
+node_modules/
+npm-debug.log*
+
+# ---------------------------------------------------------------------
+# Megjegyzés: a web/js/config.js SZÁNDÉKOSAN feltöltésre kerül — csak a
+# PUBLIKUS Supabase URL + anon kulcs van benne (a böngészőbe való, RLS véd).
+# Ha valaha ide service_role kulcs kerülne, AZT ki kell zárni!
+# ---------------------------------------------------------------------

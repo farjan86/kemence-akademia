@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kemence Akadémia — Foglalási rendszer · Terv és működés</title>
+<meta name="description" content="A Kemence Akadémia foglalási rendszerének egyszerű magyarázata és fejlesztési terve.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#FAF6EE; --paper-warm:#FBF7F0;
+  --ink:#211C18; --ink-2:#4C443D; --muted:#8B8075;
+  --terra:#9D4A25; --terra-2:#B4551F; --ember:#C8641F;
+  --line:#EAE2D5; --line-2:#DDD2C1;
+  --maxw:960px; --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink-2);
+  font-family:"Public Sans",system-ui,sans-serif; font-size:17px; line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px; position:relative}
+a{color:var(--terra); text-decoration:none}
+h1,h2,h3,h4{font-family:"Instrument Serif",Georgia,serif; margin:0; font-weight:400;
+  line-height:1.06; letter-spacing:0; color:var(--ink)}
+p{margin:0 0 16px}
+
+/* eyebrow */
+.eyebrow{display:inline-flex; align-items:center; gap:12px;
+  font-family:"Public Sans"; font-size:12px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--terra); margin:0 0 18px}
+.eyebrow::before{content:""; width:26px; height:1.5px; background:var(--terra); opacity:.65}
+
+/* header */
+header{position:sticky; top:0; z-index:60; background:rgba(255,255,255,.86);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+.hd{display:flex; align-items:center; justify-content:space-between; padding:16px 0}
+.brand .bt{font-family:"Instrument Serif"; font-size:23px; line-height:1; color:var(--ink); letter-spacing:.01em}
+.brand .bt small{display:block; font-family:"Public Sans"; font-weight:600; font-size:9px;
+  letter-spacing:.28em; text-transform:uppercase; color:var(--muted); margin-top:4px}
+.hd .doc{font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+
+/* hero */
+.hero{border-bottom:1px solid var(--line); background:var(--paper-warm)}
+.hero .wrap{padding-top:64px; padding-bottom:64px}
+.hero h1{font-size:clamp(40px,6vw,66px)}
+.hero h1 em{color:var(--terra); font-style:italic}
+.hero .tagline{font-family:"Instrument Serif"; font-style:italic; font-size:clamp(21px,2.6vw,28px);
+  color:var(--ink-2); margin:22px 0 0; max-width:640px}
+
+/* sections */
+section{padding:66px 0; border-bottom:1px solid var(--line)}
+.sec-head{margin-bottom:38px; max-width:680px}
+.sec-head h2{font-size:clamp(30px,4vw,44px)}
+.sec-head h2 em{color:var(--terra); font-style:italic}
+.sec-head p{color:var(--ink-2); font-size:18px; margin:18px 0 0}
+
+/* lead paragraph inside sections */
+.lead{max-width:720px}
+.lead strong{color:var(--ink)}
+
+/* actor table */
+.tbl{width:100%; border-collapse:collapse; margin:8px 0 4px; font-size:16px}
+.tbl th,.tbl td{text-align:left; padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top}
+.tbl thead th{font-family:"Public Sans"; font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); border-bottom:1.5px solid var(--line-2)}
+.tbl td:first-child{font-weight:700; color:var(--ink); white-space:nowrap}
+.tbl .em{color:var(--terra); font-style:italic; font-family:"Instrument Serif"; font-size:18px}
+
+/* actor cards */
+.actors{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:10px}
+.actor{border:1px solid var(--line); border-radius:6px; padding:26px 24px; background:var(--paper)}
+.actor .ic{font-family:"Instrument Serif"; font-size:34px; color:var(--terra); line-height:1}
+.actor h3{font-size:24px; margin:14px 0 8px}
+.actor p{font-size:15px; margin:0; color:var(--ink-2)}
+.actor .role{display:inline-block; margin-top:14px; font-size:11px; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; width:100%}
+
+/* flow diagram */
+.flow{border:1px solid var(--line-2); border-radius:8px; background:var(--paper-2); padding:34px 30px; margin-top:8px}
+.flow-step{display:flex; gap:20px; align-items:flex-start; padding:16px 0}
+.flow-step + .flow-step{border-top:1px dashed var(--line-2)}
+.flow-step .n{flex:0 0 auto; width:38px; height:38px; border-radius:999px; background:var(--terra);
+  color:#FCF7F0; font-family:"Instrument Serif"; font-size:20px; display:flex; align-items:center; justify-content:center}
+.flow-step .txt{padding-top:5px}
+.flow-step .txt b{color:var(--ink)}
+
+/* schematic boxes */
+.schema{margin-top:26px; text-align:center}
+.box{display:inline-block; border:1.5px solid var(--terra); border-radius:8px; background:var(--paper);
+  padding:20px 26px; min-width:260px}
+.box.wide{border-color:var(--line-2); background:var(--paper-warm); min-width:300px}
+.box .bx-t{font-family:"Instrument Serif"; font-size:22px; color:var(--ink); display:block}
+.box .bx-s{font-size:13px; color:var(--muted); display:block; margin-top:4px}
+.arrow{font-size:22px; color:var(--terra); margin:12px 0; line-height:1}
+.pair{display:flex; gap:22px; justify-content:center; flex-wrap:wrap; margin-top:6px}
+.hostnote{font-size:13px; color:var(--muted); margin-top:16px; font-style:italic}
+
+/* callout */
+.callout{border-left:3px solid var(--terra); background:var(--paper-2); padding:18px 22px; border-radius:0 6px 6px 0; margin:24px 0}
+.callout p{margin:0}
+.callout b{color:var(--ink)}
+
+/* plan phases */
+.phase{display:flex; gap:24px; padding:26px 0; border-bottom:1px solid var(--line)}
+.phase:last-child{border-bottom:0}
+.phase .tag{flex:0 0 auto}
+.phase .tag .lab{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--terra); border:1px solid var(--line-2); border-radius:999px; padding:6px 14px; white-space:nowrap}
+.phase .body h3{font-size:26px; margin:0 0 6px}
+.phase .body ul{margin:10px 0 0; padding-left:20px}
+.phase .body li{margin:5px 0; font-size:16px}
+.phase .body .goal{font-size:14px; color:var(--muted); margin-top:12px}
+
+/* stack grid */
+.stack{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:6px}
+.stk{border:1px solid var(--line); border-radius:6px; padding:20px 22px; background:var(--paper)}
+.stk h4{font-size:20px; color:var(--ink); margin:0 0 6px}
+.stk p{font-size:14px; margin:0; color:var(--ink-2)}
+.stk .k{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--terra); display:block; margin-bottom:8px}
+
+/* cost strip */
+.cost{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; background:var(--paper-2);
+  border:1px solid var(--line); border-radius:8px; padding:26px 28px}
+.cost .big{font-family:"Instrument Serif"; font-size:44px; color:var(--terra); line-height:1}
+.cost .lbl{color:var(--ink-2)}
+
+/* business models */
+.models{display:grid; grid-template-columns:repeat(2,1fr); gap:22px; margin-top:8px}
+.model{border:1px solid var(--line); border-radius:8px; background:var(--paper); padding:30px 28px; display:flex; flex-direction:column}
+.model.mine{border-color:var(--line-2); background:var(--paper-2)}
+.model .badge{display:inline-block; align-self:flex-start; font-size:11px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--terra); border:1px solid var(--line-2); border-radius:999px; padding:6px 14px; margin-bottom:16px}
+.model h3{font-size:27px; margin:0 0 6px}
+.model .who{font-family:"Instrument Serif"; font-style:italic; font-size:19px; color:var(--ink-2); margin:0 0 18px}
+.model ul{list-style:none; margin:0 0 4px; padding:0}
+.model li{position:relative; padding:9px 0 9px 26px; font-size:15px; border-top:1px solid var(--line)}
+.model li:first-child{border-top:0}
+.model li::before{content:"›"; position:absolute; left:6px; top:8px; color:var(--terra); font-size:17px; font-weight:700}
+.model li b{color:var(--ink)}
+.model .foot{margin-top:16px; padding-top:16px; border-top:1.5px solid var(--line-2); font-size:14px; color:var(--muted); font-style:italic}
+.handoff{margin-top:26px; border:1px solid var(--line-2); border-radius:8px; background:var(--paper); padding:30px 28px}
+.handoff-head{margin-bottom:20px}
+.handoff-head .eyebrow{margin-bottom:12px}
+.handoff-head p{margin:0; max-width:680px}
+.handoff-head b{color:var(--ink)}
+.handoff .flow{margin-top:0}
+.handoff-note{margin:18px 0 0; font-size:14px; color:var(--muted); font-style:italic}
+
+/* domains */
+.domns{display:grid; grid-template-columns:1fr; gap:14px; margin-top:8px}
+.domn{display:flex; gap:20px; align-items:flex-start; border:1px solid var(--line); border-radius:8px; background:var(--paper); padding:22px 24px}
+.domn .url{flex:0 0 200px; font-family:"Instrument Serif"; font-size:22px; color:var(--terra); word-break:break-all}
+.domn .desc{font-size:15px; color:var(--ink-2)}
+.domn .desc b{color:var(--ink)}
+.domn .kv{display:inline-block; margin-top:8px; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.domn.stay{border-color:var(--line-2); background:var(--paper-2)}
+.domn.stay .url{color:var(--ink)}
+/* anatomy of a domain name */
+.anat{display:flex; justify-content:center; gap:0; margin:20px 0 6px; flex-wrap:wrap}
+.anat .part{text-align:center; padding:0 4px}
+.anat .part .big{font-family:"Instrument Serif"; font-size:clamp(26px,4vw,40px); color:var(--ink); line-height:1.1}
+.anat .part.tld .big{color:var(--terra)}
+.anat .part .lbl2{display:block; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:8px}
+@media(max-width:760px){
+  .domn{flex-direction:column; gap:6px}
+  .domn .url{flex:auto}
+}
+
+/* footer */
+footer{padding:44px 0 60px; background:var(--ink)}
+footer .wrap{color:#C9BEB0}
+footer .bt{font-family:"Instrument Serif"; font-size:22px; color:#F7F1E8}
+footer .bt small{display:block; font-family:"Public Sans"; font-weight:600; font-size:9px;
+  letter-spacing:.28em; text-transform:uppercase; color:#9C8F7E; margin-top:5px}
+footer p{font-size:14px; margin:16px 0 0; color:#9C8F7E}
+
+@media(max-width:760px){
+  .actors{grid-template-columns:1fr}
+  .stack{grid-template-columns:1fr}
+  .phase{flex-direction:column; gap:12px}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block; width:100%}
+  .tbl td{border:0; padding:2px 0}
+  .tbl tr{border-bottom:1px solid var(--line); padding:14px 0}
+  .tbl td:first-child{font-size:18px; margin-bottom:4px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div class="brand">
+      <div class="bt">Kemence Akadémia<small>Foglalási rendszer</small></div>
+    </div>
+    <div class="doc">Terv &amp; működés</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Amit építünk</div>
+    <h1>Egy saját <em>foglalási rendszer</em><br>a marketing oldal mögé</h1>
+    <p class="tagline">Programokra lehet jelentkezni, az árakat és időpontokat egy admin felületen kezeljük — külső szolgáltató nélkül, egységes kinézetben.</p>
+  </div>
+</div>
+
+<!-- AMIT KIVÁLTUNK -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Amit kiváltunk</div>
+      <h2>A kemence-akadémia oldal és a foglalás <em>egy saját rendszerbe</em></h2>
+      <p>Ma az edukációs oldal csak bemutat, a foglalás pedig egy <b>külső szolgáltatón (minup.io)</b> fut. Ezt a kettőt váltjuk ki — a mobilkemence.xyz és a webshop <b>marad</b>.</p>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Ami most fut</th><th>Mi ez ma</th><th>Mi lesz vele</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>kemence-akademia.xyz</td>
+          <td>A workshopok bemutató oldala — itt csak nézni lehet, foglalni nem.</td>
+          <td class="em">Újraépítjük, beépített foglalással</td>
+        </tr>
+        <tr>
+          <td>app.minup.io/book/…</td>
+          <td>Külső foglalási szolgáltatás (minup.io), <b>182 €/év</b> díjjal. Ma a jelentkezés ide vezet át — másik kinézet, másik rendszer.</td>
+          <td class="em">Saját, az oldalba épített foglalás — megszűnik a havidíj</td>
+        </tr>
+        <tr>
+          <td>mobilkemence.xyz</td>
+          <td>A fő márka marketing oldala.</td>
+          <td class="em">Marad, nem nyúlunk hozzá — csak linkelünk rá</td>
+        </tr>
+        <tr>
+          <td>kandallo-futar.hu</td>
+          <td>A webshop (PrestaShop).</td>
+          <td class="em">Marad, nem nyúlunk hozzá</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><b>A minup.io a kulcs:</b> ma a jelentkezés egy <b>külső oldalra</b> visz át (idegen design, külső szolgáltató, <b>182 €/év</b>). A saját rendszerben a foglalás <b>ott marad az oldalon</b>, ugyanabban a kinézetben — külső szolgáltató és havidíj nélkül. Mivel a minup.io-t <b>csak jelentkezés-gyűjtésre</b> használjátok (online fizetés nincs), ezt a saját rendszer teljes egészében kiváltja.</p>
+    </div>
+  </div>
+</section>
+
+<!-- A MINUP FUNKCIÓI -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A minup funkciói — mi lesz velük?</div>
+      <h2>Minden mostani funkciónak <em>van megfelelője</em></h2>
+      <p>Végigvesszük, mit tud most a minup.io, és a saját rendszerben mi lesz a helyén — hogy semmi ne maradjon ki véletlenül.</p>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Funkció</th><th>A minup.io-nál most</th><th>A saját rendszerben</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Jelentkezés</td>
+          <td>Külső oldalon, űrlap kitöltésével.</td>
+          <td class="em">A saját oldalon, ugyanabban a designban — név, e-mail, telefon, létszám, ételérzékenység</td>
+        </tr>
+        <tr>
+          <td>Online fizetés</td>
+          <td>Elérhető lenne (Stripe/SimplePay), de ti nem használjátok — a fizetés külön történik.</td>
+          <td class="em">Nincs — nem is kell. Később opcionálisan hozzáadható</td>
+        </tr>
+        <tr>
+          <td>Vendég fiók / belépés</td>
+          <td>A vendég regisztrálhat, hogy lássa a foglalásait.</td>
+          <td class="em">Nincs belépés — az adatok az űrlapból így is mentődnek. A fiók opcionális, később a Supabase auth-tal</td>
+        </tr>
+        <tr>
+          <td>Ügyfél-adatbázis</td>
+          <td>Automatikusan gyűjti a jelentkezők adatait.</td>
+          <td class="em">Ugyanez — az admin a jelentkezők teljes listáját látja, CSV-exporttal</td>
+        </tr>
+        <tr>
+          <td>Mobil app</td>
+          <td>Külön telefonos app az üzemeltetőnek a foglalások kezeléséhez.</td>
+          <td class="em">Nincs natív app — a reszponzív admin telefonon böngészőből megy, igény esetén PWA-ként a kezdőképernyőre tehető</td>
+        </tr>
+        <tr>
+          <td>Értesítő</td>
+          <td>Emlékeztető / értesítő e-mailek.</td>
+          <td class="em">Opcionális e-mail értesítő új jelentkezésről (4. fázis)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><b>A vendégfiókról:</b> egy alkalmi workshopnál a vendég ritkán akar külön fiókot — inkább <b>egyszer kitölt egy űrlapot</b>. A fiók fő haszna (az ügyféladatok gyűjtése) enélkül is megvan, mert a jelentkezés adatai az adatbázisban tárolódnak. Így a belépés csak <b>fölösleges súrlódás</b> lenne — ezért kihagyjuk, és ha valaha kell, a Supabase-szel bármikor hozzátehető.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOGYAN MŰKÖDIK -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Hogyan működik</div>
+      <h2>Három szereplő van — és <em>mindegyik mást csinál</em></h2>
+      <p>Egyszerűen, egy étterem hasonlatával. A rendszer nem egy nagy gép, hanem három, egymással beszélgető rész.</p>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Fogalom</th><th>Mi ez</th><th>Étterem-hasonlat</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Frontend</td>
+          <td>Amit a látogató lát a böngészőben — a weboldal és a design.</td>
+          <td class="em">Az étterem terme, amit a vendég lát</td>
+        </tr>
+        <tr>
+          <td>Adatbázis</td>
+          <td>Ahol az adatok tárolódnak: programok, árak, időpontok, jelentkezők.</td>
+          <td class="em">A füzet a konyhában a mai ételekkel és foglalásokkal</td>
+        </tr>
+        <tr>
+          <td>Backend</td>
+          <td>A közvetítő, ami az oldal és az adatbázis közt szállítja az adatot.</td>
+          <td class="em">A pincér, aki a füzetből kihozza, és felírja az újat</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SUPABASE SZEREPE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A Supabase szerepe</div>
+      <h2>A Supabase egyszerre az <em>adatbázis</em> és a <em>backend</em></h2>
+      <p>Régen külön kellett programozni egy backendet. A Supabase ezt megspórolja: egy kész, felhőben futó rendszer.</p>
+    </div>
+
+    <div class="actors">
+      <div class="actor">
+        <div class="ic">▤</div>
+        <h3>Adatbázis</h3>
+        <p>A „füzet”, amiben a programok, árak, időpontok és jelentkezők sorai tárolódnak.</p>
+        <span class="role">A Supabase adja</span>
+      </div>
+      <div class="actor">
+        <div class="ic">⇄</div>
+        <h3>Backend</h3>
+        <p>A „pincér”, ami kiszolgálja az adatot és felveszi az új jelentkezést — ezt nem kell megírnunk.</p>
+        <span class="role">A Supabase adja</span>
+      </div>
+      <div class="actor">
+        <div class="ic">✦</div>
+        <h3>Hosztolás</h3>
+        <p>A Supabase a saját szerverein tárolja mindezt. Neked nem kell adatbázis-szervert üzemeltetned.</p>
+        <span class="role">Ingyenes csomaggal indul</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>A lényeg:</b> nem a saját gépeden fut az adatbázis. A Supabase a felhőben tárolja, és az interneten keresztül éred el — ezért nem baj, hogy a weboldal máshol (a <b>Hostingeren</b>) van hostolva.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOGYAN TALÁLKOZIK HOSTINGER + SUPABASE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A kapcsolat</div>
+      <h2>Ha a weboldal a Hostingeren van, <em>hogyan lesz mögötte adatbázis?</em></h2>
+      <p>Nem kell egy helyen lenniük. Az interneten keresztül beszélgetnek — pontosan ez történik, amikor valaki megnyitja az oldalt:</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <div class="txt">A böngésző letölti az oldalt a <b>Hostingerről</b> — itt van a HTML és a design.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <div class="txt">Az oldalban lévő kis kód azt mondja: „add ide a programok listáját” — és felhívja a <b>Supabase-t</b> az interneten át.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <div class="txt">A <b>Supabase visszaküldi</b> a programokat (nevek, árak, időpontok) a böngészőbe.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">4</div>
+        <div class="txt">A böngésző <b>kirajzolja</b> őket az oldalon — a látogató friss adatot lát.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>A kapcsolat maga:</b> a weboldalba beírunk egy Supabase-címet és egy kulcsot (mint egy telefonszám + PIN). Ennyi. A böngésző ezzel „hívja fel” a Supabase-t. <b>Igen — a programok a Supabase adatbázisból töltődnek</b>, minden betöltéskor frissen, nem beégetve a HTML-be.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOL VESZEM FEL A PROGRAMOKAT -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Az admin felület</div>
+      <h2>Akkor <em>hol veszem fel</em> a programokat?</h2>
+      <p>Egy külön, jelszóval védett admin oldalon. Ez is egy weboldal — csak nem a látogatóknak szól.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">A</div>
+        <div class="txt">Az <b>admin oldalon</b> beírod: „Nápolyi pizza workshop — 25 000 Ft, szombat 10:00, 8 fő”.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">B</div>
+        <div class="txt">Az admin oldal <b>elküldi a Supabase-nek</b>, ami eltárolja egy új sorban a „programok” táblában.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">C</div>
+        <div class="txt">Mivel a <b>publikus oldal is ugyanabból a Supabase-ből olvas</b>, a következő látogató már látja az új programot.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>Ez az egész kulcsa:</b> egy közös adatbázis, amibe az <b>admin ír</b> (program, ár, időpont), és amiből a <b>publikus oldal olvas</b>. Ár módosítása, új program, törlés — mind itt történik, kattintással, kód nélkül.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AZ EGÉSZ KÖR -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Az egész kör egyben</div>
+      <h2>Így néz ki a <em>teljes rendszer</em></h2>
+    </div>
+
+    <div class="schema">
+      <div class="box wide">
+        <span class="bx-t">Supabase</span>
+        <span class="bx-s">adatbázis + backend, a felhőben · programok / időpontok / jelentkezők</span>
+      </div>
+      <div class="arrow">▲&nbsp;&nbsp;ír&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;olvas&nbsp;&nbsp;▲</div>
+      <div class="pair">
+        <div class="box">
+          <span class="bx-t">Admin oldal</span>
+          <span class="bx-s">jelszavas · programot vesz fel, árat módosít, jelentkezőt lát</span>
+        </div>
+        <div class="box">
+          <span class="bx-t">Publikus oldal</span>
+          <span class="bx-s">a látogató · programokat böngész, jelentkezik</span>
+        </div>
+      </div>
+      <p class="hostnote">Mindkét oldal statikus fájl — a Hostinger szolgálja ki őket.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MIBŐL ÁLL -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A technológia</div>
+      <h2>Miből áll a rendszer</h2>
+      <p>Négy egyszerű összetevő — mindegyik a saját dolgát végzi.</p>
+    </div>
+
+    <div class="stack">
+      <div class="stk">
+        <span class="k">Frontend</span>
+        <h4>A meglévő design</h4>
+        <p>A mostani egyedi HTML/CSS marad, kiegészítve a foglalási felülettel — így a kinézet egységes.</p>
+      </div>
+      <div class="stk">
+        <span class="k">Adatbázis + backend</span>
+        <h4>Supabase</h4>
+        <p>Postgres adatbázis, kész API és bejelentkezés. Nem kell backendet írni, se szervert üzemeltetni.</p>
+      </div>
+      <div class="stk">
+        <span class="k">Hosztolás</span>
+        <h4>Hostinger</h4>
+        <p>A statikus oldalt szolgálja ki, saját domainnel — itt van a domain és a tárhely is.</p>
+      </div>
+      <div class="stk">
+        <span class="k">Admin</span>
+        <h4>Jelszavas kezelőfelület</h4>
+        <p>Program- és időpont-kezelés, jelentkezők listája — ugyanabban a designban.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KÉPEK -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A képek helye</div>
+      <h2>Hova kerülnek a <em>képek</em>?</h2>
+      <p>Fontos elv: a képeket nem égetjük bele a HTML-be (a mostani minta csak látványterv volt). Két típust érdemes szétválasztani.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <div class="txt">Az admin <b>feltölt egy program-fotót</b> → a <b>Supabase Storage</b> (a Supabase fájltárolója) eltárolja a fájlt.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <div class="txt">A Storage <b>visszaad egy linket</b> (URL-t) — és az adatbázisba <b>csak ez a link kerül</b>, nem maga a kép.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <div class="txt">A publikus oldal a link alapján <b>megjeleníti a képet</b>. Az admin bármikor cserélhet fotót, kódhoz nyúlni nem kell.</div>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Kép típusa</th><th>Hova kerül</th><th>Ki kezeli</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Program-fotók<br><small style="color:var(--muted);font-weight:400">változó tartalom</small></td>
+          <td><b>Supabase Storage</b> — a link az adatbázisban</td>
+          <td class="em">Admin, feltöltéssel</td>
+        </tr>
+        <tr>
+          <td>Logó, háttér, ikonok<br><small style="color:var(--muted);font-weight:400">fix design</small></td>
+          <td>Statikus fájl a Hostingeren (<code>/images/</code>)</td>
+          <td class="em">Fejlesztő</td>
+        </tr>
+        <tr>
+          <td>Beégetett base64</td>
+          <td>Sehova — ezt elhagyjuk</td>
+          <td class="em">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><b>A kulcs:</b> az adatbázisban nem a kép van, hanem a képre mutató <b>link</b>. A tényleges fájl a Storage-ban él — így az admin önállóan cserélhet program-fotót, a design-elemek pedig a statikus oldallal maradnak.</p>
+    </div>
+  </div>
+</section>
+
+<!-- E-MAILEK -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Az értesítő e-mailek</div>
+      <h2>A levelek a <em>saját címetekről</em> mennek</h2>
+      <p>A rendszer több ponton küld e-mailt — visszaigazolást, emlékeztetőt, értesítőt. Ezek a <b>saját címetekről</b> érkeznek: <b>akademia@mobilkemence.xyz</b>.</p>
+    </div>
+
+    <p class="lead">Fontos elv: <b>a Supabase maga nem levelező.</b> Ő a kiváltó — ő tudja, mikor kell levelet küldeni (új foglalás érkezett, holnap van a workshop). Magát a levelet a <b>domainhez tartozó Google-postafiókon</b> át küldi ki.</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <div class="txt">Történik valami: <b>új foglalás érkezik</b> (→ visszaigazoló + csapat-értesítő), <b>státuszváltás</b> (→ értesítő a vendégnek), vagy <b>közeleg a workshop</b> (→ emlékeztető). A Supabase időzítője / eseménye ezt észleli.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <div class="txt">Egy Supabase <b>Edge Function</b> elküldi a levelet a <b>Google-postafiókon</b> keresztül (akademia@mobilkemence.xyz), a fiók biztonságos „App Password"-jével.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <div class="txt">Mivel a mobilkemence.xyz-nek <b>már van Google-hitelesítése (SPF)</b>, a levél megbízhatóan kézbesül — és <b>nem kell DNS-t módosítani</b> hozzá.</div>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Levél típusa</th><th>Mikor megy</th><th>Kinek / tartalom</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Visszaigazoló</td>
+          <td>Azonnal, foglaláskor</td>
+          <td class="em">A foglaló vendégnek</td>
+        </tr>
+        <tr>
+          <td>Csapat-értesítő</td>
+          <td>Azonnal, foglaláskor</td>
+          <td class="em">Nektek — melyik workshop, milyen dátummal, hány fő</td>
+        </tr>
+        <tr>
+          <td>Emlékeztető</td>
+          <td>A workshop előtti napon</td>
+          <td class="em">A foglaló vendégnek</td>
+        </tr>
+        <tr>
+          <td>Státusz-értesítő</td>
+          <td>Jóváhagyás / elutasítás / módosítás után</td>
+          <td class="em">A vendégnek — módosításnál a változás tartalmával</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><b>Miért így a legegyszerűbb:</b> a levelek a meglévő <b>akademia@mobilkemence.xyz</b> Google-postafiókból mennek, amit a Google már hitelesít — így <b>nem kell DNS-t módosítani</b>, és a napi pár levél bőven belefér az ingyenes keretbe. (Ha valaha nagyobb volumen kell, egy levélküldő szolgáltatás — pl. Resend — is beköthető.)</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEJLESZTÉSI TERV -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Fejlesztési terv</div>
+      <h2>Négy fázisban <em>épül fel</em></h2>
+      <p>Minden fázis végén van valami, amit meg lehet nézni és ki lehet próbálni.</p>
+    </div>
+
+    <div class="phase">
+      <div class="tag"><span class="lab">1. fázis</span></div>
+      <div class="body">
+        <h3>Az adatbázis alapja</h3>
+        <ul>
+          <li>Supabase projekt létrehozása (EU-s régió az adatvédelem miatt).</li>
+          <li>A táblák felállítása: <b>programok</b>, <b>időpontok</b>, <b>jelentkezések</b>.</li>
+          <li>Biztonsági szabályok: ki mit olvashat és írhat (a jelentkezők adata nem publikus).</li>
+        </ul>
+        <p class="goal">Eredmény: áll az adatbázis, kézzel már fel lehet vinni egy próbaprogramot.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="tag"><span class="lab">2. fázis</span></div>
+      <div class="body">
+        <h3>A publikus foglalási felület</h3>
+        <ul>
+          <li>A programok <b>dinamikusan az adatbázisból</b> töltődnek az oldalon.</li>
+          <li>Elérhető időpontok és a szabad helyek megjelenítése.</li>
+          <li>Jelentkezési űrlap (név, e-mail, telefon, létszám, ételérzékenység).</li>
+          <li>Beküldés a szabad hely automatikus ellenőrzésével — nincs túlfoglalás.</li>
+        </ul>
+        <p class="goal">Eredmény: egy látogató valóban tud jelentkezni egy programra.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="tag"><span class="lab">3. fázis</span></div>
+      <div class="body">
+        <h3>Az admin felület</h3>
+        <ul>
+          <li>Jelszavas bejelentkezés az ügyfélnek.</li>
+          <li>Programok: felvétel, szerkesztés, ár módosítás, törlés, képfeltöltés.</li>
+          <li>Időpontok kezelése programonként (dátum, kapacitás, ár).</li>
+          <li>Jelentkezők listája, státuszkezelés és CSV-export.</li>
+        </ul>
+        <p class="goal">Eredmény: az ügyfél önállóan kezeli a programokat és a jelentkezőket.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="tag"><span class="lab">4. fázis</span></div>
+      <div class="body">
+        <h3>Élesítés és extrák</h3>
+        <ul>
+          <li>Éles domain rákötése, tesztelés valós adatokkal.</li>
+          <li>(Opcionális) E-mail értesítő új jelentkezésről.</li>
+          <li>Rövid adatvédelmi tájékoztató a személyes adatokhoz.</li>
+        </ul>
+        <p class="goal">Eredmény: a rendszer élesben működik. Később bővíthető online fizetéssel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KÖLTSÉG -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Költség</div>
+      <h2>Mennyibe kerül üzemeltetni</h2>
+    </div>
+    <div class="cost">
+      <span class="big">−182 €/év</span>
+      <span class="lbl">A saját rendszer megszünteti a <b>minup 182 €/év</b> díját. A <b>Supabase</b> és az <b>e-mail-küldés</b> (saját Google-postafiók) az ingyenes kereten belül van, a <b>Hostinger</b> tárhely és a <b>domain</b> pedig már megvan (a domain automatikusan megújul) — így az üzemeltetés érdemi többletköltség nélkül működik.</span>
+    </div>
+  </div>
+</section>
+
+<!-- KEEP-ALIVE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Egy üzemeltetési apróság</div>
+      <h2>Hogy az ingyenes adatbázis <em>ne aludjon el</em></h2>
+      <p>Az ingyenes Supabase-projektnek van egy sajátossága, amit egy egyszerű, szintén ingyenes trükkel kezelünk — hogy az oldal akkor is működjön, ha egy ideig kevés a látogató.</p>
+    </div>
+
+    <div class="callout">
+      <p><b>Mi történik magától:</b> ha egy ingyenes Supabase-projektet <b>egy teljes héten át semmi nem használ</b> (nincs látogató, nincs lekérés), a Supabase <b>szünetelteti</b> — az adatbázis lekapcsol, és amíg így van, az oldalon nem töltődnének be a programok. Fontos: ilyenkor <b>nem ébred fel magától</b> attól, hogy valaki megnyitja az oldalt — kézzel kell visszakapcsolni a vezérlőpultban.</p>
+    </div>
+
+    <p class="lead" style="margin-top:26px">A megoldás a <b>„keep-alive" (életjel):</b> egy külső, ingyenes szolgáltatás magától, óramű pontossággal „megkopogtatja" az oldalt — függetlenül attól, jött-e valódi látogató. Ez minden alkalommal tevékenységnek számít, így az inaktivitás-óra sosem telik le, és a projekt <b>sosem alszik el.</b></p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <div class="txt">Egy <b>ingyenes „uptime" figyelő</b> (pl. UptimeRobot vagy cron-job.org) beállítva, hogy <b>rendszeresen meghívja</b> az oldalt — akár naponta, akár pár percenként.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <div class="txt">Ez egy <b>valódi, kívülről érkező kérés</b>, amit a Supabase egyértelműen aktivitásként lát — <b>a látogatóktól teljesen függetlenül</b>, akkor is, ha épp senki nem jár az oldalon.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <div class="txt">Így a 7 napos „elalvás"-óra <b>soha nem telik le</b> → a rendszer folyamatosan ébren marad, <b>0 Ft költséggel.</b></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>Miért nem kell emiatt fizetős csomag vagy más szolgáltató:</b> a Supabase fizetős csomagja (~25 USD/hó) ugyan sosem alszik el, de <b>csak ezért kifizetni fölösleges</b>, amíg az ingyenes életjel ugyanezt megoldja. És bár egy másik rendszer (pl. Firebase) „gyárilag" nem alszik el, cserébe az <b>időzített emlékeztető e-mailekhez</b> ott már fizetős szint és bankkártya kellene — a Supabase-nél ez az ingyenes csomag része. Ezért maradunk a Supabase + ingyenes keep-alive megoldásnál.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ÜZEMELTETÉS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Üzemeltetés és tulajdonjog</div>
+      <h2>Kié a rendszer? <em>Az ügyfélé — minden.</em></h2>
+      <p>A döntés megszületett: az ügyfél birtokolja a fiókokat, én meghívott fejlesztő vagyok. Elkészülés után minden az övé, nem kötődik hozzám.</p>
+    </div>
+
+    <div class="model" style="max-width:640px">
+      <span class="badge">Megerősített modell</span>
+      <h3>Az ügyfél kezel mindent</h3>
+      <p class="who">Én meghívott fejlesztőként építem fel</p>
+      <ul>
+        <li>A <b>Supabase-projektet az ügyfél regisztrálja</b>; a <b>Hostinger, a domain és a DNS</b> is az övé.</li>
+        <li>Én <b>meghívott fejlesztőként</b> csatlakozom a saját e-mailemmel, és felépítem a rendszert.</li>
+        <li>A napi munkát az ügyfél a mi <b>admin oldalunkon</b> végzi (nem a Supabase gépházában).</li>
+        <li>Elkészülés után <b>minden az övé</b> — a fiókok az ő nevén, a számlázás az övé.</li>
+      </ul>
+      <div class="foot">Tiszta tulajdon, tiszta kilépés — nincs függés a fejlesztőtől.</div>
+    </div>
+
+    <div class="handoff">
+      <div class="handoff-head">
+        <span class="eyebrow">Kétlépcsős üzemeltetés — fejlesztéstől az élesítésig</span>
+        <p>A bemutatóhoz a rendszer <b>a fejlesztő saját fiókjain</b> fut, majd az ügyfél saját fiókjaiba <b>költözik át</b>.</p>
+      </div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="n">1</div>
+          <div class="txt"><b>Fejlesztés / demó:</b> a rendszer a fejlesztő <b>saját Supabase-fiókján és egy ingyenes Hostinger-fiókon</b> fut — az ügyfél élőben kipróbálja, mielőtt bármit regisztrálna.</div>
+        </div>
+        <div class="flow-step">
+          <div class="n">2</div>
+          <div class="txt"><b>Élesítés:</b> az ügyfél létrehozza a <b>saját Supabase- és Hostinger-fiókját</b>, a fejlesztő meghívott közreműködőként <b>átköltözteti</b> a projektet — az adatok vele költöznek.</div>
+        </div>
+        <div class="flow-step">
+          <div class="n">3</div>
+          <div class="txt">A <b>kemence-akademia.xyz</b> domaint ráállítjuk az új oldalra (a Hostingeren), majd a fejlesztő <b>kilép</b> → minden az ügyfélé.</div>
+        </div>
+      </div>
+      <p class="handoff-note">Tartalékként egy teljes adatbázis-export/import mindig kéznél van, így az átadás biztonságos.</p>
+    </div>
+
+    <div class="callout">
+      <p><b>A közös pont:</b> az ügyfél soha nem a Supabase „gépházába” lép be, hanem a mi jelszavas <b>admin oldalunkra</b>. A háttérfiókok az <b>ügyfél nevén és pénztárcáján</b> állnak.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DOMAINEK -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A domainek</div>
+      <h2>Három domain, három <em>szerep</em></h2>
+      <p>Egy tulajdonos, három webcím. Fontos látni, melyik mit csinál — mert nem mindegyiket váltjuk ki.</p>
+    </div>
+
+    <div class="domns">
+      <div class="domn">
+        <div class="url">kemence-akademia.xyz</div>
+        <div class="desc"><b>Edukációs ág</b> — a workshopok oldala. Ide épül a foglalási rendszer.<span class="kv">Kiváltjuk (új oldal)</span></div>
+      </div>
+      <div class="domn stay">
+        <div class="url">mobilkemence.xyz</div>
+        <div class="desc"><b>Fő márka</b> — a mobilkemencék marketing oldala.<span class="kv">Marad, nem nyúlunk hozzá</span></div>
+      </div>
+      <div class="domn stay">
+        <div class="url">kandallo-futar.hu</div>
+        <div class="desc"><b>Webshop</b> (PrestaShop, ~70 termék) — itt zajlik a tényleges eladás.<span class="kv">Marad, nem nyúlunk hozzá</span></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>Egyetlen oldalt váltunk ki</b> — a kemence-akademia.xyz-t (és a mögötte lévő minup foglalót). A <b>mobilkemence.xyz és a webshop marad</b>, azokhoz nem nyúlunk — csak linkelünk rájuk.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FELMÉRT LEVELEZÉS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A jelenlegi levelezés · felmért állapot</div>
+      <h2>Mit mértünk fel — és <em>mit nem bántunk</em></h2>
+      <p>A három domain élő DNS-beállítását lekérdeztük. Így működik ma a levelezés — és ez adja az élesítés legfontosabb óvintézkedését: a levelezéshez tartozó rekordokat érintetlenül hagyjuk.</p>
+    </div>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Domain</th><th>Levelezés ma</th><th>Teendő élesítéskor</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>mobilkemence.xyz</td>
+          <td><b>Google Workspace</b> — az <b>info@mobilkemence.xyz</b> itt van (Gmail-felületen olvasható).</td>
+          <td class="em">Az MX (Google) + SPF/DKIM marad, csak a web-rekordot állítjuk át</td>
+        </tr>
+        <tr>
+          <td>kemence-akademia.xyz</td>
+          <td><b>Nincs levelezés</b> (nincs MX). Ide épül a foglalási rendszer.</td>
+          <td class="em">A DNS szabadon állítható; az értesítők SPF/DKIM-je tiszta lappal ide kerülhet</td>
+        </tr>
+        <tr>
+          <td>kandallo-futar.hu</td>
+          <td><b>Nincs fogadó cím</b> (nincs MX); a webshop a <b>Rackhoston át küld</b>.</td>
+          <td class="em">Egyáltalán nem nyúlunk hozzá — marad, ahogy van</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><b>A „közös postaláda":</b> minden jel szerint az <b>info@mobilkemence.xyz</b> (a Google-nél) a közös, fogadó cím — ide futnak be a kapcsolati és valószínűleg a webshop-levelek is. Mivel ezt a <b>mobilkemence.xyz Google MX-e</b> szolgálja ki, <b>amihez nem nyúlunk</b>, a levelezés az élesítés után is zavartalanul megy. Élesítéskor kizárólag a <b>weboldal irányát</b> állítjuk át, a levelezés vezetékét (MX) nem.</p>
+    </div>
+
+    <div class="callout">
+      <p><b>Amit a felmérésen még megerősítünk:</b> az info@mobilkemence.xyz-t közvetlen Google-belépéssel olvassa-e, vagy átirányítva egy másik Gmailbe/Outlookba; fizetős Google Workspace-e; és hogy a webshop rendelés-visszaigazolásai / vevői válaszai pontosan hova érkeznek.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MI AZ A .XYZ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Mi az a „.xyz”?</div>
+      <h2>A domain <em>felépítése</em></h2>
+      <p>A teljes domain két részből áll: a névből és a végződésből.</p>
+    </div>
+
+    <div class="anat">
+      <div class="part"><span class="big">mobilkemence</span><span class="lbl2">a választott név</span></div>
+      <div class="part"><span class="big">.</span></div>
+      <div class="part tld"><span class="big">xyz</span><span class="lbl2">a végződés</span></div>
+    </div>
+
+    <div class="lead" style="margin-top:24px">
+      <p>A <b>.xyz</b> egy teljesen szabályos, modern domain-végződés — pont mint a <b>.hu</b> vagy a <b>.com</b>. Bárki megveheti, olcsó, és <b>technikailag ugyanúgy működik</b>, mint bármelyik másik. Csak kevésbé „hagyományos" a kinézete — a működésben nincs különbség.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ÉLESÍTÉS: DNS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Élesítés</div>
+      <h2>Hogyan mutat a domain az <em>új oldalra</em>?</h2>
+      <p>Amikor az új oldal elkészült, a domaint „rá kell állítani" az új tárhelyre. Ezt a DNS-beállítással tesszük.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <div class="txt">Az új oldal <b>elkészül és fut egy ideiglenes címen</b> (pl. <b>kemence-akademia.netlify.app</b>) — ott letesztelitek.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <div class="txt">A <b>Hostinger felületén</b> ráállítjátok a domaint az új oldalra. Mivel a <b>domain és a tárhely is a Hostingeren</b> van, ez lényegében egy házon belüli beállítás — nem kell külső DNS-értékeket másolgatni.</div>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <div class="txt">Vártok a terjedésre (pár perc – max ~48 óra, általában gyors), majd <b>az éles domain már az új oldalt hozza.</b></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><b>Jó hír:</b> a <b>kemence-akademia.xyz-en nincs levelezés</b> (nincs MX), így a domain-váltás itt nem veszélyeztet semmilyen e-mailt. A <b>mobilkemence.xyz</b> Google-levelezéséhez és a <b>kandallo-futar.hu</b>-hoz egyáltalán nem nyúlunk. Előbb mindig <b>kész és tesztelt oldal</b>, utána a domain ráállítása — így nincs állásidő.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="bt">Kemence Akadémia<small>Foglalási rendszer · Terv</small></div>
+    <p>Belső fejlesztési dokumentum · Készült 2026-ban · A design a meglévő oldal alapján.</p>
+  </div>
+</footer>
+
+</body>
+</html>

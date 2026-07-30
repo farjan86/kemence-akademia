@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kemence Akadémia — Programok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dialog.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap nav">
+    <a class="brand" href="#">
+      <svg class="flame" viewBox="0 0 20 24" aria-hidden="true"><path d="M10 1C11 6 16 7 16 13c0 4-2.7 9-6 9s-6-4-6-8c0-3 2-3.5 2.5-6C7.5 11 9 9 10 1Z" fill="url(#fg)"/><defs><linearGradient id="fg" x1="10" y1="1" x2="10" y2="22"><stop stop-color="#FBBF3C"/><stop offset="1" stop-color="#E4571B"/></linearGradient></defs></svg>
+      Kemence Akadémia
+    </a>
+    <span class="tag">Programok · élő adat a Supabase-ből</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <p class="eyebrow">Kurzusok</p>
+    <h1>Válaszd ki, mit sütnél.</h1>
+    <p class="lead">Az alábbi programok közvetlenül az adatbázisból töltődnek — minden betöltéskor frissen.</p>
+  </section>
+
+  <div id="programok" class="courses-grid" aria-live="polite">
+    <p class="status">Programok betöltése…</p>
+  </div>
+</main>
+
+<!-- Foglalási ablak (alapból rejtve) -->
+<div class="modal" id="foglalasModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <button class="modal-close" id="mClose" aria-label="Bezárás">×</button>
+
+    <div id="mFormWrap">
+      <p class="eyebrow">Foglalás</p>
+      <h2 id="mTitle" class="m-title">—</h2>
+      <p class="m-meta" id="mMeta">—</p>
+
+      <div class="infobar" id="mInfosav">A foglalás jóváhagyásához előre utalás szükséges. Beküldés után felvesszük veled a kapcsolatot; a foglalás addig „jóváhagyásra vár” állapotban van.</div>
+
+      <form id="foglalasForm" novalidate>
+        <label>Név <input name="nev" type="text" autocomplete="name" required></label>
+        <label>E-mail <input name="email" type="email" autocomplete="email" required></label>
+        <label>Telefonszám <input name="telefon" type="tel" autocomplete="tel" required></label>
+        <label>Létszám (fő) <input name="letszam" type="number" min="1" step="1" required></label>
+        <label>Megjegyzés <span class="opt">(opcionális)</span> <textarea name="megjegyzes" rows="2"></textarea></label>
+        <p class="form-err" id="mErr" hidden></p>
+        <button class="btn" type="submit" id="mSubmit">Foglalás elküldése</button>
+        <p class="privacy">A beküldéssel elfogadod az <a href="https://kandallo-futar.hu/index.php?id_cms=7&controller=cms" target="_blank" rel="noopener">adatvédelmi tájékoztatót</a>.</p>
+      </form>
+    </div>
+
+    <div class="m-success" id="mSuccess" hidden>
+      <div class="tick">✓</div>
+      <h3>Foglalásod rögzítettük!</h3>
+      <p>A foglalás <b>jóváhagyásra vár</b> — hamarosan felvesszük veled a kapcsolatot az utalás egyeztetéséhez. <span class="soft">(A visszaigazoló e-mailt a rendszer következő lépésében kötjük be.)</span></p>
+      <button class="btn ghost" id="mDone">Rendben</button>
+    </div>
+  </div>
+</div>
+
+<!-- Részletek ablak (rejtve) -->
+<div class="modal" id="reszletModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <button class="modal-close" id="rClose" aria-label="Bezárás">×</button>
+    <h2 id="rTitle" class="m-title">—</h2>
+    <div id="rLeiras" class="reszlet-szoveg"></div>
+  </div>
+</div>
+
+<!-- 1) Supabase kliens (CDN, sima script — file:// alól is működik) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 2) A te kapcsolati adataid -->
+<script src="js/config.js"></script>
+<!-- 3) Saját felugró ablak (alert/confirm helyett) -->
+<script src="js/dialog.js" defer></script>
+<!-- 4) Az alkalmazás logikája -->
+<script src="js/app.js" defer></script>
+
+</body>
+</html>

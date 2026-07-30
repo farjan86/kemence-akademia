@@ -1,0 +1,59 @@
+Megvolt az ügyféligény felmérés, szóval újraírnánk a teljes fejlesztési tervet. Az éles fejlesztési tervet az "eles"
+  almappába kellene létrehozni. A korábbi fejlesztési terv a főmappa "foglalasi-rendszer-terv.html". A kérdéssor amit
+  végigbeszéltem az ügyféllel a felmeres-kerdessor.pdf-ben van.
+  
+ Amit megtudtam:
+	1) A feladat https://www.kemence-akademia.xyz/ edukációs oldal, valamint a minup-os foglalási rendszer kiváltása. A mobilkemence.xyz weboldal marad, ahogy a kandallo-futar.hu webshop is marad. 
+	2) Az ügyfél maga írta a weboldalt, tehát a domain, a dns beállítások az ő kezében vannak. Minden a hostingeren van. Jelenleg csak a domainekért fizetés, és a minup foglalási rendszerért (utóbbiért évente 182 Eurót)
+	3) Foglaláskor a vendégnek akövetkező információkat kell megadni: 
+		- név, email, telefonszám, létszám, megjegyzés. A telefonszámra alapvető, az email címre egy komolyabb validációs ellenőrzés kell. Ne tudja elküldeni a foglalást ha nem validatak az adtai.  Az adatok közül a megjegyzés nem kötelező, a többi igen. Nyilván azt meg kell adni, vagy egyértelműnek kell lennie, hogy melyik workshopra jelentkezik a partner. 
+		- adatvédelmi checkboxra nincs szükség, de hivatkozni kell a kandallo-futar weboldalon található adatvédelmi részre (https://kandallo-futar.hu/index.php?id_cms=7&controller=cms)
+		- nem kell vendég regisztráció, partner regisztráció. Aki foglalni akar elküldi egy formot a fenti adatokkal és kész. Ha le kell mondani, módosítani kell a fogalalást, akkor ezt a partner jelzi a mobilkemence csapatnak, akik az admin felületen tudják a foglalás törlését elvégezni, vagy a módostást elvégezni. 
+		- A foglalónak látnia kell a szabad helyek számát az egyes programoknál
+		- A vendég a sikeres foglalás után kell kapjon egy visszaigazoló email-t azonnal, valamint az mobilkemence csapatnak is kapnia kell egy email-t, hogy foglalás történt (a levélnek tartalmazni kell, hogy milyen workshopra, mikori dátummal, hány emberrel regisztrált adott partner). Utóbbi esetben nem tudom milyen email címről lehetne email-t kapnia a domainhez tartozó email címre (akademia@mobilkemence.xyz)
+		- Szükséges egy emlékeztető email küdlés a workshop előtti napon arra az email címre, amelyet a partner a foglalásnál megadott (az időpont lehet előtte nap bármikor). A leveleket a saját email címről kell küldeni (domainhez tartozó email: akademia@mobilkemence.xyz) 
+		- Mobilalkalmazásra nincs szüksége az adminnak. Elég a webes admin fiók kezelés (ami egyébként mobilon is szépen jelenik meg). 
+		- Foglalásnál legyen egy információ sáv, hogy előre utalást vár majd az ügyfél a foglalás jóváhagyása érdekében (A foglalás alapesetben jóváhagyásra vár állapotú kezdetben. Lásd később)
+	
+		
+	4) Egy workshop programnál a következő információkat kell majd tárolni (workshops database struktúra tulajdonképpen):
+			- Cím, részletes leírás (ez a jelenlegi workshop leírások alapján elég hosszú szöveg is lehet), ár, időpont (dátum, óra perc), várható időtartam, max létszám, fotó (Ezek közül a fotó és a várható időtartam nem kötelező egy kivétellel).
+			- A workshop tételknél van létszámkorlát, és mutatni kell a szabad helyeket is (Amelyet természetesen a foglalások fogyasztanak). 
+			- Hamarosan státusz szükséges, tehát valahgoy mutatni kell, hogy majd elérhető lesz egy workshop (ilyenkor a címen, és leíráson kívül semmi nem kell, hogy kötelező legyen)
+			- A helyszín mindig ugyanott van, ezt nem kell beírni. 
+			- A workshopok alapvetően fix árasok, de kedvezményes árat megadhat az admin. Valahogy mutatni kell az eredeti árat, és hogy ehhez képest most mi a kedvezményes ár (Ez legyen feltűnő, csalogató)
+			- A programok nem ismétlődő időpontban vannak, szóval az admin választja ki az időpontokat az egyes progrmokhoz. 
+	
+	5) Admin felület: 
+		- az email címet itt kellene megadni (innen fognak menni a megerősítő levelek a foglalásokról a partnernek, és ide fog érkezni a visszajelező email az ügyfélnek is). Ez az email cím lesz a "levelezési email cím": akademia@mobilkemence.xyz
+		- az admin felületre egy email cím lesz jogosult belépni. Ez az email cím pont ami a levelezésekre szolgáló email cím. 
+		- Műveletek amelyek kellenek: 
+			- új program felvitel
+			- meglévő szerkesztés. bármilyen adat, vagy fénykép módosítás (legyen figyelmeztetés ha olyan programot akar szerkeszteni, amelyre már van érvényes foglalás)
+			- Program törlés (legyen figyelmeztetés ha olyan programot akar szerkeszteni, amelyre már van érvényes foglalás)
+			- A foglalásoknak meg kell jellennie az admin oldalon egy táblázatos nézetben. Tartalmaznia kell, hogy milyen programra ki végzett foglalást (név, telefonszám, email cím, foglalt helyek, a program időpontja). LEgyen kiemelve a program és időpont amire a foglalás beérkezett. 
+			- Alapvetően minden foglalás "jóváhagyásra vár" állapotban születik. Ezután az ügyfél (tehát a mobilkemence tulajdonos) felveszi a kapcsolatot a foglaló partnerrel és utalást kér. Ha megtörtént az utalás jóváhagyja a foglalást. Ekkor a foglalás "Jóváhagyott" státuszt kap. Már a jóváhagyásra vár állapotú foglalás is csökkenti a szabad helyek számát. Kell elutasítás funkció, ha nem fizet a foglaló partner. Az elutasítás felszabadítja a foglalt helyeket. SZínjelzés legyen a jóváhagyott legyen zöld, az elutasított legyen piros, a jóváhagyásra vár legyen narancssárga. 
+			- A lemondást az admin rögzíti (ekkor legyen lemondott státuszú a fogalalást
+			- A foglalásoknak legyen egy másodlagos státusza is ami azt mutatja, hogy a program a jövőben van ("közeledő") vagy múltbéli. 
+			- A foglalást az admin módosíthatja (tehát kell egy szerkesztés fül - amely adatlapon megnyitja a foglalás adatait). Foglalásnál módosítható lehet a név, telefonszám, email cím, a foglalt helyek száma, vagy akár a program, vagy időpont is. 
+			- A foglalás analitika legyen kitehető excelbe, és legyen egy pdf export gomb is. 
+			- Kell egy naptár nézet, amely havi bontásban mutatja egy naptárban a meghirdett programokat, itt mutatni kell a foglalt helyek/elérhető összes hely arányt is (pl. 4/10, tehát 10 helyből 4 foglalt). 
+			- Jelentkezőnek kapnia kell egy visszajelző levelet, ha a foglalás jóváhagyásra, elutasításra, vagy módosítára került (utóbbi esetben a módosítás tartalmával). 
+		
+	6) Egyéb 
+		- linkelni kell a facebook oldalt, 
+		- Mobilekemence.xyz oldalt és a kandallo-futar webshop ot is. 
+		- Galéria nem kell. 
+		- A kemence akadémia képeit kell majd használni a weboldalon (a programok képeit majd az admin tölti fel), de a weboldalon általánosságban megjelenő képeket az eredeti weboldalról lehet majd hozni. Arra van lehetőség, hgoy ezt is az admin töltse majd fel az admin fül (talán 2-3 kép lenne használva a főoldalon). 
+		- Az eredeti és kiváltani szükséges oldalon (https://www.kemence-akademia.xyz/) van egy részletes leírása ezeket is használni kell a program leírásoknál (ez majd az admin dolga)
+		- Az ügyfél igénye, hogy az új weboldal is Hostingeren-en legyen hostolva, szóval erre kell optimalizálni (Tesztelésnél én fejlesztőként is egy hostinger ingyenes regisztrációval szeretném majd tesztelni). A fenti funkcionalitásnak (különösen az email küldésekre vonatkozóan) megfelel a Hostinger? 
+		- A supabase marad a backend. Ha 1 hétig nem látogatja senki a weboldalt, akkor elaszik a supabase. Ezt szeretnék meggátolni, szóval kell egy pingelő alkalmazás (ez lehet egy mobilos verzió is, amit az admin a telefonjára telepít, vagy valami általános). Talán azért jó ha az admin látja, hogy elérhető a weboldala, ezt a ping meg is tudná neki mutatni). 
+		- A domain automatiusan megújul. A domain marad tehát a kemence-akademia.xyz. 
+		- Az üzemeltetési elképzelés, hogy a supabase-re a ügyfél regisztrál, én meghívott fejlesztő vagyok. Minden az ügyfél kezelélsében. 
+		- Weblap stílusa:
+			- Az ügyfélnek tetszik a d:\kemence-akademia\deploy\v2.html  minta elrendezése, stílusa, de a d:\kemence-akademia\deploy\v1.html sötét színvilága. Az ügyfélnek tetszik a d:\kemence-akademia\deploy\v1.html foglalási naptár nézete. Szóval ezeket az elemeket kellene vegyíteni. Az elképzelésem, hogy a program foglalás gombra kattintásakor egy naptárnézetes fogalási formra kerül a partner, ott bekérünk minden fent leírt adatot, majd elküldheti vagy bezárhatja a foglalását (küldés nélkül). Ez megoldható úgy, is hogy a weblapon lévő foglalási részre ugrik a böngésző, vagy külön form adatlap nyílik meg. Te döntésed. 
+		- projekt mappa: d:\kemence-akademia\eles. Ide dolgozunk. ez lesz az éles projekt projekt mappája. 
+		
+		
+			
+			
