@@ -33,12 +33,12 @@ db/                         SQL — adatbázis
   16-migracio-latogato-szamlalo.sql Migráció: látogatás-számláló (oldal_statisztika tábla + latogatas_rogzites()/latogatas_szam() függvények)
 web/                        Frontend (ezt szolgálja ki a szerver / Hostinger)
   index.html                Publikus FŐOLDAL (hero-slideshow, workshopok, élmény, rólunk, programok+foglalás, kapcsolat+térkép, lábléc)
-  css/style.css             Publikus stílus (sötét "parázs" paletta, max 1440px, reszponzív)
+  css/style.css             Publikus stílus (sötét "parázs" paletta, tartalom max 1880px / hero max 1920px, reszponzív)
   css/dialog.css            Közös felugró ablak stílusa
   js/config.js              Supabase Project URL + anon kulcs (publikus, RLS véd)
   js/dialog.js              Saját felugró ablak (alert/confirm helyett)
   js/app.js                 Publikus logika (programok, foglalás, látogatás-számláló)
-  kepek/                    Főoldali képek (logo_1..3.png hero-slideshow, csapat.jpg)
+  kepek/                    Főoldali képek: logo-mark.png (logó, favicon), hero-1..3.jpg (hero-slideshow), csapat.jpg (Rólunk), *_workshop.jpg + leanybucsu.jpg (workshop-boxok)
   admin/index.html          Admin oldal (belépés + fülek + modalok)
   admin/admin.css           Admin stílus
   admin/admin.js            Admin logika (foglalások, naptár, programok, beállítások, e-mail)

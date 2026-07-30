@@ -5,12 +5,12 @@
   --korom:#16100B; --korom-2:#1E150E; --brick:#271B12; --brick-2:#2F2016;
   --line:#3C2A1C; --parazs:#E4571B; --lang:#F59E1B; --lang-2:#FBBF3C;
   --izzas:#FCE9C4; --text:#F1E4D2; --hamu:#B49E86; --hamu-2:#8B7660;
-  --maxw:1440px;
+  --maxw:1880px;
 }
 *{box-sizing:border-box}
 body{margin:0; background:var(--korom); color:var(--text);
   font-family:"Hanken Grotesk",system-ui,sans-serif; font-size:17px; line-height:1.6;
-  -webkit-font-smoothing:antialiased}
+  -webkit-font-smoothing:antialiased; overflow-x:hidden}
 body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:radial-gradient(60vw 50vh at 82% -8%, rgba(228,87,27,.18), transparent 60%)}
 .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px; position:relative; z-index:1}
@@ -22,6 +22,8 @@ a{color:inherit; text-decoration:none}
 .nav{display:flex; align-items:center; justify-content:space-between; height:66px}
 .brand{display:flex; align-items:center; gap:10px; font-family:"Fraunces"; font-weight:900; font-size:19px}
 .flame{width:20px; height:24px; filter:drop-shadow(0 0 6px rgba(245,158,11,.6))}
+.brand-logo{width:34px; height:34px; border-radius:50%; display:block; flex:none;
+  filter:drop-shadow(0 0 8px rgba(228,87,27,.35))}
 .tag{font-family:"Space Mono",monospace; font-size:12px; color:var(--hamu-2)}
 
 /* intro */
@@ -43,27 +45,27 @@ a{color:inherit; text-decoration:none}
   box-shadow:0 22px 46px -22px rgba(228,87,27,.55)}
 .card:hover::before{transform:scaleX(1)}
 .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px}
-.card h3{font-family:"Fraunces"; font-weight:900; font-size:23px; letter-spacing:-.02em; margin:0}
-.badge{font-family:"Space Mono",monospace; font-size:10.5px; font-weight:700; letter-spacing:.12em;
+.card h3{font-family:"Fraunces"; font-weight:900; font-size:30px; letter-spacing:-.02em; margin:0}
+.badge{font-family:"Space Mono",monospace; font-size:11.5px; font-weight:700; letter-spacing:.12em;
   text-transform:uppercase; padding:5px 9px; border-radius:999px; white-space:nowrap;
   border:1px solid var(--line); color:var(--hamu)}
 .badge.soon{color:var(--lang); border-color:var(--lang)}
-.card p.desc{color:var(--hamu); font-size:15px; margin:0 0 10px;
+.card p.desc{color:var(--hamu); font-size:18.5px; margin:0 0 10px;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
 .reszlet-btn{align-self:flex-start; background:none; border:0; cursor:pointer; padding:0; margin:0 0 16px;
-  font-family:"Space Mono",monospace; font-size:12.5px; color:var(--lang); text-decoration:underline dotted}
+  font-family:"Space Mono",monospace; font-size:15px; color:var(--lang); text-decoration:underline dotted}
 .reszlet-btn:hover{color:var(--izzas)}
-.reszlet-szoveg{white-space:pre-line; color:var(--hamu); font-size:15px; line-height:1.65}
+.reszlet-szoveg{white-space:pre-line; color:var(--hamu); font-size:18px; line-height:1.65}
 .card-kep{width:100%; height:170px; object-fit:cover; border-radius:10px; margin-bottom:14px; display:block; border:1px solid var(--line)}
-.meta{font-family:"Space Mono",monospace; font-size:12.5px; color:var(--hamu); margin-bottom:6px}
+.meta{font-family:"Space Mono",monospace; font-size:15.5px; color:var(--hamu); margin-bottom:6px}
 .meta b{color:var(--izzas)}
-.seats{font-family:"Space Mono",monospace; font-size:12.5px; margin-bottom:14px}
+.seats{font-family:"Space Mono",monospace; font-size:15.5px; margin-bottom:14px}
 .seats.free{color:var(--lang)} .seats.full{color:#E4726B}
 
 /* ár + akció */
 .card-foot{display:flex; align-items:center; justify-content:space-between; margin-top:auto;
   padding-top:16px; border-top:1px solid var(--line)}
-.price{font-family:"Fraunces"; font-weight:900; font-size:22px}
+.price{font-family:"Fraunces"; font-weight:900; font-size:28px}
 .price .old{font-family:"Hanken Grotesk"; font-weight:500; font-size:14px; color:var(--hamu-2);
   text-decoration:line-through; margin-right:8px}
 .price .sale{color:var(--lang-2)}
@@ -116,7 +118,7 @@ a{color:inherit; text-decoration:none}
 /* =====================================================================
    FŐOLDAL — hero, szekciók, workshop-csempék, rólunk, lábléc
    ===================================================================== */
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth; overflow-x:hidden}
 a.btn{display:inline-block; text-decoration:none}
 
 /* fejléc-navigáció */
@@ -128,10 +130,19 @@ a.btn{display:inline-block; text-decoration:none}
 .topnav .nav-cta:hover{color:#231206; filter:brightness(1.05)}
 @media(max-width:560px){ .topnav a:not(.nav-cta){display:none} }
 
-/* hero — cinematic overlay a banner képarányában (teljes kép, ráírt szöveg) */
-.hero{position:relative; overflow:hidden; border-bottom:1px solid var(--line);
-  width:100%; aspect-ratio:2048 / 794; background:var(--korom-2)}
-.hero-slideshow{position:absolute; inset:0; z-index:0}
+/* hero — középre zárt banner a kép arányában (teljes kép, vágás nélkül, elmosott szélek) */
+.hero{position:relative; overflow:hidden;
+  width:100%; max-width:1920px; margin:14px auto 0; aspect-ratio:16 / 5; background:transparent}
+/* a kép széleit lágyan a lap hátterébe fadeljük (nincs éles keret) */
+.hero-slideshow{position:absolute; inset:0; z-index:0; overflow:hidden;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, rgba(0,0,0,.5) 100px, #000 210px, #000 calc(100% - 210px), rgba(0,0,0,.5) calc(100% - 100px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, rgba(0,0,0,.5) 46px, #000 96px, #000 calc(100% - 96px), rgba(0,0,0,.5) calc(100% - 46px), transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, rgba(0,0,0,.5) 100px, #000 210px, #000 calc(100% - 210px), rgba(0,0,0,.5) calc(100% - 100px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, rgba(0,0,0,.5) 46px, #000 96px, #000 calc(100% - 96px), rgba(0,0,0,.5) calc(100% - 46px), transparent 100%);
+  mask-composite:intersect}
 .hero-slideshow img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
   opacity:0; will-change:opacity,transform; animation:heroFade 18s infinite}
 .hero-slideshow img:nth-child(1){animation-delay:0s}
@@ -148,10 +159,14 @@ a.btn{display:inline-block; text-decoration:none}
   background:
     linear-gradient(0deg, rgba(22,16,11,.94) 0%, rgba(22,16,11,.55) 24%, rgba(22,16,11,0) 48%),
     linear-gradient(90deg, rgba(22,16,11,.6) 0%, rgba(22,16,11,.1) 50%, transparent 70%)}
-.hero-text{position:absolute; left:0; right:0; bottom:0; z-index:2; padding-top:24px; padding-bottom:42px}
+.hero-text{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:24px 24px 42px}
 .hero h1{font-size:clamp(30px,4.4vw,54px); margin:12px 0 14px; max-width:18ch; text-shadow:0 2px 22px rgba(0,0,0,.6)}
 .hero-lead{color:var(--izzas); font-size:clamp(15px,1.8vw,19px); max-width:56ch; margin:0 0 22px; text-shadow:0 1px 12px rgba(0,0,0,.6)}
 .hero-cta{display:flex; gap:12px; flex-wrap:wrap}
+/* nagy, félig áttetsző logó-vízjel a hero jobb oldalán, a háttérbe olvadva */
+.hero-logo{position:absolute; z-index:1; right:clamp(2px,0.6vw,10px); bottom:clamp(2px,0.6vw,10px);
+  width:clamp(170px,25vw,340px); height:auto; opacity:.3; pointer-events:none;
+  filter:drop-shadow(0 6px 26px rgba(0,0,0,.5))}
 /* mobilon a wide banner túl alacsony lenne az overlayhez → a szöveg a kép ALÁ kerül */
 @media(max-width:600px){
   .hero{aspect-ratio:auto; max-height:none}
@@ -160,6 +175,7 @@ a.btn{display:inline-block; text-decoration:none}
   .hero-text{position:static; padding-top:30px; padding-bottom:34px}
   .hero h1{text-shadow:none}
   .hero-lead{color:var(--hamu); text-shadow:none}
+  .hero-logo{width:112px; right:12px; top:12px; bottom:auto; transform:none; opacity:.85}
 }
 @media(prefers-reduced-motion:reduce){
   .hero-slideshow img{animation:none}
@@ -177,51 +193,54 @@ a.btn{display:inline-block; text-decoration:none}
 .section{padding:58px 0}
 .section + .section{border-top:1px solid var(--line)}
 .section-head{max-width:640px; margin:0 0 30px}
-.section-head h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(26px,3.6vw,38px);
+.section-head h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(30px,4vw,44px);
   letter-spacing:-.02em; margin:10px 0 8px; line-height:1.08}
-.section-sub{color:var(--hamu); margin:0}
+.section-sub{color:var(--hamu); margin:0; font-size:19px}
 .section-sub a{color:var(--lang)}
 
 /* workshop-csempék (marketing) */
-.ws-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
-.ws-tile{position:relative; background:var(--brick); border:1px solid var(--line); border-radius:16px;
-  padding:24px 22px; overflow:hidden; transition:transform .25s, border-color .25s}
+.ws-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:16px}
+.ws-tile{position:relative; background:var(--brick); border:1px solid var(--line); border-radius:14px;
+  padding:16px 16px; overflow:hidden; transition:transform .25s, border-color .25s}
 .ws-tile::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
   background:linear-gradient(180deg,var(--parazs),var(--lang-2)); transform:scaleY(0); transform-origin:top; transition:transform .35s}
 .ws-tile:hover{transform:translateY(-3px); border-color:#5a3a22}
 .ws-tile:hover::before{transform:scaleY(1)}
-.ws-kicker{font-family:"Space Mono",monospace; font-size:11px; font-weight:700; letter-spacing:.16em;
+.ws-kicker{font-family:"Space Mono",monospace; font-size:12.5px; font-weight:700; letter-spacing:.16em;
   text-transform:uppercase; color:var(--lang)}
-.ws-tile h3{font-family:"Fraunces"; font-weight:900; font-size:21px; letter-spacing:-.02em;
+.ws-tile h3{font-family:"Fraunces"; font-weight:900; font-size:26px; letter-spacing:-.02em;
   margin:8px 0 10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-.ws-tile p{color:var(--hamu); font-size:14.5px; margin:0}
+.ws-tile p{color:var(--hamu); font-size:18px; margin:0}
+.ws-thumb{margin:0 0 12px; width:100%; overflow:hidden; border-radius:10px}
+.ws-thumb img{width:100%; height:auto; display:block; transition:transform .4s}
+.ws-tile:hover .ws-thumb img{transform:scale(1.04)}
 @media(max-width:900px){ .ws-grid{grid-template-columns:repeat(2,1fr)} }
 @media(max-width:560px){ .ws-grid{grid-template-columns:1fr} }
 
 /* „Milyen egy nap nálunk?" — élmény */
 .elmeny-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
 .elm-item{background:var(--brick); border:1px solid var(--line); border-radius:16px; padding:22px 24px}
-.elm-num{font-family:"Space Mono",monospace; font-size:12px; font-weight:700; color:var(--lang); letter-spacing:.12em}
-.elm-item h4{font-family:"Fraunces"; font-weight:900; font-size:19px; letter-spacing:-.01em; margin:8px 0 8px}
-.elm-item p{color:var(--hamu); font-size:14.5px; margin:0}
+.elm-num{font-family:"Space Mono",monospace; font-size:13px; font-weight:700; color:var(--lang); letter-spacing:.12em}
+.elm-item h4{font-family:"Fraunces"; font-weight:900; font-size:25px; letter-spacing:-.01em; margin:8px 0 8px}
+.elm-item p{color:var(--hamu); font-size:18px; margin:0}
 @media(max-width:640px){ .elmeny-grid{grid-template-columns:1fr} }
 
 /* rólunk / filozófia */
 .rolunk{background:var(--korom-2)}
 .about{display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:stretch}
-.about-text h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(26px,3.6vw,38px);
+.about-text h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(30px,4vw,44px);
   letter-spacing:-.02em; margin:10px 0 14px}
-.about-text p{color:var(--hamu); margin:0 0 14px}
+.about-text p{color:var(--hamu); margin:0 0 14px; font-size:18.5px}
 .about-text strong{color:var(--izzas); font-weight:600}
 .about-card{background:var(--brick); border:1px solid var(--line); border-radius:16px; padding:22px}
 .ac-row{display:flex; align-items:baseline; gap:12px; padding:12px 0; border-bottom:1px solid var(--line)}
 .ac-row:first-child{padding-top:0}
-.ac-num{font-family:"Fraunces"; font-weight:900; font-size:21px; color:var(--lang-2); min-width:104px}
-.ac-label{color:var(--hamu); font-size:14px}
+.ac-num{font-family:"Fraunces"; font-weight:900; font-size:23px; color:var(--lang-2); min-width:104px}
+.ac-label{color:var(--hamu); font-size:16px}
 .ac-cta{margin-top:18px; width:100%; text-align:center}
 /* rólunk — stat-sáv + csapatkép */
 .about-stats{display:flex; flex-wrap:wrap; gap:8px 18px; margin:18px 0 4px;
-  font-family:"Space Mono",monospace; font-size:13px; color:var(--hamu)}
+  font-family:"Space Mono",monospace; font-size:14.5px; color:var(--hamu)}
 .about-stats b{color:var(--lang-2)}
 .about-cta{margin-top:16px}
 .about-photo{display:flex; flex-direction:column; margin:0}
@@ -233,9 +252,9 @@ a.btn{display:inline-block; text-decoration:none}
 /* kapcsolat / térkép */
 .kapcsolat{background:var(--korom-2)}
 .kapcsolat-grid{display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:stretch}
-.kapcsolat-info h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(26px,3.6vw,38px); letter-spacing:-.02em; margin:10px 0 16px}
+.kapcsolat-info h2{font-family:"Fraunces"; font-weight:900; font-size:clamp(30px,4vw,44px); letter-spacing:-.02em; margin:10px 0 16px}
 .kapcsolat-lista{margin:0 0 22px}
-.kapcsolat-lista p{display:flex; gap:12px; align-items:center; color:var(--text); font-size:16px; margin:0 0 10px}
+.kapcsolat-lista p{display:flex; gap:12px; align-items:center; color:var(--text); font-size:18px; margin:0 0 10px}
 .kapcsolat-lista a{color:var(--lang)}
 .kapcsolat-lista a:hover{color:var(--izzas)}
 .k-ikon{width:22px; text-align:center; flex:none}
