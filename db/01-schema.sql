@@ -283,8 +283,41 @@ create policy email_log_read on public.email_log
 grant select  on public.programok       to anon, authenticated;
 grant execute on function public.foglalt_helyek(uuid) to anon, authenticated;
 
+-- ---------------------------------------------------------------------
+-- 8) LÁTOGATÁS-SZÁMLÁLÓ (egyszerű, globális; RLS mögött, csak függvényen át)
+-- ---------------------------------------------------------------------
+create table if not exists public.oldal_statisztika (
+  id           integer primary key default 1 check (id = 1),
+  latogatasok  bigint not null default 0,
+  updated_at   timestamptz not null default now()
+);
+insert into public.oldal_statisztika (id, latogatasok)
+values (1, 0) on conflict (id) do nothing;
+alter table public.oldal_statisztika enable row level security;
+
+create or replace function public.latogatas_rogzites()
+returns bigint language sql security definer set search_path = public as $$
+  update public.oldal_statisztika
+     set latogatasok = latogatasok + 1, updated_at = now()
+   where id = 1
+  returning latogatasok;
+$$;
+create or replace function public.latogatas_szam()
+returns bigint language sql security definer set search_path = public as $$
+  select latogatasok from public.oldal_statisztika where id = 1;
+$$;
+grant execute on function public.latogatas_rogzites() to anon, authenticated;
+grant execute on function public.latogatas_szam()     to anon, authenticated;
+
 -- =====================================================================
 --  Kész. A "workshops"/"bookings"/"settings" táblák állnak,
 --  a publikus "programok" nézet mutatja a szabad helyeket,
---  és a foglalás nem tud túlfoglalni.
+--  és a foglalás nem tud túlfoglalni. Az e-mail SABLONOK is benne vannak.
+-- =====================================================================
+--
+--  AMI EBBEN A FÁJLBAN NINCS (mert projekt-specifikus értékek kellenek hozzá):
+--   • Automatikus visszaigazoló + csapat-értesítő  → db/15-migracio-auto-visszaigazolo-trigger.sql
+--   • Napi emlékeztető (pg_cron)                    → db/14-migracio-emlekezteto-cron.sql
+--  Ezek trigger/cron + pg_net/pg_cron, és a <PROJECT_REF>/<ANON_KEY> értéket
+--  bele kell írni (Supabase → Project Settings → API). Éles telepítés: lásd install.html.
 -- =====================================================================

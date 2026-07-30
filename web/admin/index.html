@@ -109,7 +109,7 @@
 
       <form id="formAltalanos" class="beall-card">
         <h3>Általános</h3>
-        <label>Csapat e-mail cím <small>(ide jönnek a foglalás-értesítők)</small>
+        <label>Csapat e-mail cím <small>(ide jönnek a foglalás-értesítők, és ez a válaszcím a vendég-leveleken)</small>
           <input name="levelezesi_email" type="email">
         </label>
         <label>Foglalási info-sáv <small>(a foglalási űrlapon jelenik meg)</small>
@@ -164,6 +164,25 @@
       <div class="beall-foot">
         <button class="btn" type="submit">Mentés</button>
         <button class="btn ghost" type="button" id="szMegse">Mégse</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Levél-előnézet / szerkesztő ablak (rejtve) -->
+<div class="modal" id="levelModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="levelCim">
+    <button class="modal-close" id="levelClose" aria-label="Bezárás">×</button>
+    <h2 id="levelCim" class="m-title">✉ Levél</h2>
+    <form id="levelForm" class="mform">
+      <p class="level-cimzett">Címzett: <b id="levelCimzett"></b></p>
+      <label>Tárgy <input name="targy" type="text" required></label>
+      <label>Törzsszöveg <textarea name="torzs" rows="12"></textarea></label>
+      <p class="hint">Az előnézet a sablonból készült, a mezők behelyettesítve. Küldés előtt szabadon módosíthatod.</p>
+      <p class="form-err" id="levelErr" hidden></p>
+      <div class="beall-foot">
+        <button class="btn" type="submit">Küldés</button>
+        <button class="btn ghost" type="button" id="levelMegse">Mégse</button>
       </div>
     </form>
   </div>

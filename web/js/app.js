@@ -244,6 +244,27 @@ document.getElementById("mDone").addEventListener("click", zarFoglalas);
 // Nincs háttér-kattintás bezárás (szövegkijelöléskor is elsülne). Esc marad.
 document.addEventListener("keydown", (e) => { if(e.key === "Escape" && !modal.hidden) zarFoglalas(); });
 
+// -------------------- Látogatás-számláló --------------------
+// Böngészőnként 6 óránként max egyszer számít új látogatásnak (localStorage).
+async function latogatasSzamlalo(){
+  const KULCS = "ka_utolso_latogatas";
+  const HAT_ORA = 6 * 60 * 60 * 1000;
+  try {
+    const most = Date.now();
+    const utolso = parseInt(localStorage.getItem(KULCS) || "0", 10);
+    const ujLatogatas = !utolso || (most - utolso) > HAT_ORA;
+    const { data, error } = ujLatogatas
+      ? await db.rpc("latogatas_rogzites")   // növel + visszaadja az összeget
+      : await db.rpc("latogatas_szam");      // csak olvassa
+    if(error || data == null) return;        // csendben kihagyjuk (pl. ha a migráció még nem futott)
+    if(ujLatogatas) localStorage.setItem(KULCS, String(most));
+    const el = document.getElementById("latogatoSzam");
+    const wrap = document.getElementById("latogatoWrap");
+    if(el){ el.textContent = Number(data).toLocaleString("hu-HU"); if(wrap) wrap.hidden = false; }
+  } catch(_){ /* a látogatót ne zavarja meg semmilyen hiba */ }
+}
+
 // Indítás
 betoltBeallitasok();
 betoltProgramok();
+latogatasSzamlalo();

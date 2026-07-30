@@ -229,6 +229,8 @@ main h2{font-size:28px; margin:0 0 18px}
 .reszlet-tabla td.kozep, .reszlet-tabla th:nth-child(3){text-align:center}
 .reszlet-tabla .kontakt small{display:block; color:var(--hamu); font-size:12.5px}
 .halvany{color:var(--hamu)}
+.level-cimzett{margin:0 0 4px; color:var(--hamu); font-size:14px}
+.level-cimzett b{color:var(--izzas)}
 
 @media(max-width:820px){
   .naptar-ev{grid-template-columns:1fr}

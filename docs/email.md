@@ -1,107 +1,135 @@
-# E-mail küldés — egyszerű magyarázat
+# E-mail küldés — koncepció és beállítás (egyben)
 
-> Ez a fájl **emberi nyelven** magyarázza el, hogyan küld a rendszer e-mailt, és miért.
-> A technikai beállítás (kulcsok, parancsok) külön van: `docs/email-kuldes-setup.md`.
+> Ez a fájl mindent tartalmaz az e-mail-küldésről: **mi ez, miért így**, és a **beállítás lépésről lépésre**.
+> A küldő függvény: `supabase/functions/send-email/index.ts`. Az éles telepítés checklistje: **`install.html`**.
 
-## A három szereplő
-1. **Küldő motor** — a „posta", ami ténylegesen kézbesíti a leveleket. Ezt **nem mi üzemeltetjük**,
-   hanem egy szolgáltatás. Kezdetben: **Resend**. (Később lehet a Google is — lásd lentebb.)
-2. **Feladó cím** — ez a „feladó a borítékon", amit a vendég lát. A **te domained** egy címe.
-3. **Fogadó postaláda** — ide jönnek a **válaszok** és a **csapat-értesítők**; ezt **ti olvassátok**
-   (`akademia@mobilkemence.xyz`, Google Workspace).
+---
 
-> A lényeg: a fogadó postaláda (`akademia@mobilkemence.xyz`) az éles rendszerben **csak fogad**.
-> A **küldést a küldő motor végzi** — abba a postaládába a rendszernek be sem kell lépnie.
+## 1. A koncepció — a három szereplő
 
-## Mi az a Resend, és miért kell egyáltalán?
-Ahhoz, hogy egy **program** levelet küldjön, kell egy levélküldő szerver, ami elfogadja és
-kézbesíti a leveleket. Ezt nem érdemes magunknak üzemeltetni (a fogadók spamnek néznék).
-Ezért egy kész szolgáltatást használunk. A **Resend** pontosan ez: kapsz tőle egy **kulcsot
-(API key)**, azt beírjuk a Supabase-be, és a rendszer ezen keresztül küld. Ez a teljes szerepe.
-*(Hasonló szolgáltatások: SendGrid, Brevo, Mailgun, Amazon SES. A Resend egy egyszerű, modern változat.)*
+1. **Küldő motor** — a „posta", ami ténylegesen kézbesíti a leveleket. Nem mi üzemeltetjük, hanem egy szolgáltatás: a **Resend**.
+2. **Feladó cím (From)** — a „feladó a borítékon", amit a vendég lát. A **saját, igazolt domained** egy címe.
+3. **Fogadó postaláda** — ide jönnek a **válaszok** és a **csapat-értesítők**; ezt a csapat olvassa (`akademia@mobilkemence.xyz`, Google Workspace).
 
-**Miért nem a Gmail rögtön?** Mert a Gmailen át küldéshez **postaláda + App Password + 2FA** kell,
-és fejlesztés alatt nincs hozzáférésünk a domain postaládáihoz. A Resendhez **nem kell postaláda**.
+> **A lényeg:** a fogadó postaláda éles üzemben **csak fogad**. A küldést a **Resend** végzi — abba a postaládába a rendszernek be sem kell lépnie.
 
-**Mit csinál a Resend / mit NEM csinál:**
-- ✅ **Küld** kimenő leveleket a domained nevében, kezeli a kézbesítést és a visszapattanásokat, ad statisztikát/naplót.
-- ❌ **Nem fogad** leveleket — nincs mögötte postaláda, nem lehet benne „olvasni". Ezért irányítjuk a **válaszokat (Reply-To)** egy valódi, olvasott fiókra (`akademia@mobilkemence.xyz`).
+### Mi az a Resend, és miért kell?
+Ahhoz, hogy egy program levelet küldjön, kell egy levélküldő szerver, ami elfogadja és kézbesíti a leveleket (magunknak nem érdemes üzemeltetni, a fogadók spamnek néznék). A **Resend** pontosan ez: kapsz tőle egy **API-kulcsot**, azt a Supabase-be tesszük, és a rendszer ezen át küld. *(Hasonlók: SendGrid, Brevo, Mailgun, Amazon SES.)*
 
-Röviden: a Resend a **kimenő posta**, nem a postaládád.
+- ✅ **Küld** a domained nevében, kezeli a visszapattanásokat, naplót ad.
+- ❌ **Nem fogad** (nincs mögötte postaláda). Ezért a **válaszokat (Reply-To)** egy valódi fiókra irányítjuk.
 
-## ⭐ Fejlesztés vs. éles — mi kell mikor?
-| | **MOST (fejlesztés)** | **ÉLESBEN (ügyféllel)** |
+---
+
+## 2. Feladó, címzett, válaszcím — ki hova megy
+
+| Levéltípus | Feladó (From) | Címzett | Válaszcím (Reply-To) |
+|---|---|---|---|
+| Vendég-levél (visszaigazolás, jóváhagyás, stb.) | a `MAIL_FROM` postaláda | a vendég | a **Csapat e-mail cím** |
+| Csapat-értesítő (új foglalás) | a `MAIL_FROM` postaláda | a **Csapat e-mail cím** | a vendég |
+
+- A **Feladó** mindig a `MAIL_FROM` secret (a bejelentkezett/igazolt cím). Tetszőleges cím nevében nem lehet küldeni.
+- A **Csapat e-mail cím** az adminban állítható (Beállítások → Általános). Kettős szerepe van: a csapat-értesítők címzettje ÉS a vendég-levelek válaszcíme.
+- A `noreply@…` helyett érdemes **barátságos feladót** (`akademia@…`) használni, mert a Reply-To miatt a vendég válaszolhat.
+
+---
+
+## 3. Fejlesztés vs. éles — mi kell mikor
+
+| | **Fejlesztés** | **Éles (ügyféllel)** |
 |---|---|---|
-| Küldő motor | Resend **teszt-mód** | Resend + a domain igazolva |
-| Feladó cím | `onboarding@resend.dev` | amit az ügyfél akar (pl. `akademia@mobilkemence.xyz`) |
-| Kell DNS-beállítás? | **NEM** | igen, pár rekord (lásd lentebb) |
-| Kell domain/e-mail hozzáférés? | **NEM** | igen (az ügyfélé) |
+| Küldő | Resend + saját teszt-domain (`mislenyma.hu`) | Resend + a kliens igazolt domainje |
+| Feladó | `…@mislenyma.hu` | `…@kemence-akademia.xyz` (vagy `akademia@mobilkemence.xyz`) |
+| Fejlesztői védelem (`DEV_REDIRECT_TO`) | **BE** — minden levél egy tesztcímre | **KI** (törölni!) |
 
-➡️ **Fejlesztés alatt semmilyen domain- vagy e-mail-hozzáférés nem kell.** A Resend teszt-módja a
-**saját (Resend-regisztrációs) címedre** küld — így az egész folyamatot végig tudod tesztelni.
+### 🔒 Fejlesztői védelem: `DEV_REDIRECT_TO`
+Ha ez a secret be van állítva (pl. `janos.farkas86@gmail.com`), akkor **MINDEN levél KIZÁRÓLAG erre az egy címre** megy — a valós címzett a tárgyba kerül: `[TESZT → eredeti@cim] …`. Így fejlesztés közben valós/éles címre **fizikailag lehetetlen** küldeni. **⚠️ Élesben törölni kell.**
 
-## Mi az a DNS?
-**DNS** = az internet „telefonkönyve": a domainhez (pl. `kemence-akademia.xyz`) tartozó beállítások
-listája. Itt mondjuk meg többek közt, hová menjenek a levelek, és ki küldhet a domain nevében.
+---
 
-## Fogalmak egyszerűen: MX, SPF, DKIM
-Képzeld a domainedet egy céges postázónak. Három dolgot állíthatunk a DNS-ben:
+## 4. Beállítás lépésről lépésre
 
-- **MX** (Mail eXchange) — **hová érkezzenek** a domainnek CÍMZETT levelek. Ez a **fogadásról** szól.
-  Pl. a `mobilkemence.xyz` MX-e a Google → a beérkező levelek a Google-postaládába jönnek.
-  *(Küldéskor NEM ezt használjuk.)*
-- **SPF** (Sender Policy Framework) — **ki KÜLDHET** a domain nevében. Egy „engedélyezett feladók" lista.
-  A fogadó (pl. Gmail) ezt nézi: ha a küldő szerver nincs a listán → gyanús/spam. **A küldés hitelesítése.**
-  ⚠️ Egy névhez **csak EGY** SPF sor lehet — ha bővíteni kell, a meglévőt **kiegészítjük**, sosem teszünk mellé másodikat.
-- **DKIM** (DomainKeys Identified Mail) — **digitális pecsét** a leveleken. A küldő aláírja a levelet egy
-  titkos kulccsal, a fogadó a DNS-ben közzétett nyilvános kulccsal ellenőrzi → biztos, hogy tényleg a te
-  domainedről jött és nem hamisított. **A hitelesség bizonyítéka.**
+### 4.1 — Resend-fiók + API-kulcs
+1. Regisztrálj: **resend.com** (ingyenes).
+2. **API Keys → Create API Key** → másold ki a `re_…` kulcsot (csak egyszer látszik!), és tedd a gitignore-olt `secrets/titkok.txt`-be.
 
-Analógia:
-- **MX** = a postaláda címe (hová jön a levél).
-- **SPF** = a portás listája (ki adhat fel a nevedben).
-- **DKIM** = a viaszpecsét a borítékon (biztos, hogy tőled van).
+### 4.2 — Supabase secretek
+Supabase → **Edge Functions → Secrets**:
 
-## Mit kell a DNS-be tenni élesben? (Resend)
-A Resendben: **Add Domain** → beírod a domaint → a Resend **kiírja a PONTOS rekordokat** (értékekkel együtt).
-Ezeket bemásolod a **Hostinger DNS-be**, majd a Resendben **Verify**. Jellemzően **3 rekord** (a Resend a
-saját `send.` aldomainjét használja):
+| Név | Érték |
+|---|---|
+| `RESEND_API_KEY` | a Resend `re_…` kulcs |
+| `MAIL_FROM` | a saját igazolt domained címe, pl. `Kemence Akadémia <akademia@mislenyma.hu>` |
+| `DEV_REDIRECT_TO` *(fejlesztői védelem)* | pl. `janos.farkas86@gmail.com` — **⚠️ élesben töröld!** |
 
-| Típus | Hová (név) | Mit csinál |
-|---|---|---|
-| **MX** | `send.<domain>` | a visszapattanó (bounce) levelek kezelése |
-| **TXT (SPF)** | `send.<domain>` | felhatalmazza a Resendet a küldésre |
-| **TXT (DKIM)** | `resend._domainkey.<domain>` | a pecsét (aláírás-kulcs) |
+> A `SUPABASE_URL` és `SUPABASE_SERVICE_ROLE_KEY` **automatikusan** elérhető — ezeket NEM kell megadni.
 
-> Mivel ezek egy **`send.` aldomainen** vannak, a fő-domain meglévő beállításait (pl. a Google MX-ét) **nem érintik**.
-> **Hol csináljuk?** *Hostinger → a domain → DNS Zone / DNS-rekordok → új rekordok.* Ez **élesítéskor**, az ügyféllel.
+### 4.3 — A `send-email` függvény deploy
+> ⚠️ Az **Edge Functions** menü kell (TypeScript), **NEM** a Database → Functions (SQL). Az Edge Functions-nél csak **név + kód-szerkesztő + Deploy** van.
 
-## A feladó cím — két lehetőség élesre, és a hozzá tartozó DNS
-**A) `noreply@kemence-akademia.xyz` — tiszta domain**
-- A `kemence-akademia.xyz` **üres** (nincs MX/SPF). Csak a Resend 3 rekordját adod hozzá. **Nincs mit elrontani.**
+Supabase → **Edge Functions → Create a new function** → név **`send-email`** → beilleszted a `supabase/functions/send-email/index.ts` teljes tartalmát → **Deploy**. *(CLI-vel: `supabase functions deploy send-email`.)*
 
-**B) `akademia@mobilkemence.xyz` — a valódi cím (itt van Google-levelezés)**
-- A **Google MX-ét NEM bántjuk** → a beérkező levelek maradnak a Google-postaládában.
-- A Resend a `send.mobilkemence.xyz` aldomainre teszi az MX/SPF/DKIM-et → **nem ütközik** a fő-domain Google-rekordjaival.
-- Ha valaha a **fő-domain SPF-jét** kellene bővíteni: a meglévő `v=spf1 include:_spf.google.com ~all`-t
-  **egy sorban egészítjük ki**, sosem teszünk mellé második SPF-et.
-- Ezért „óvatos" a B): a cél, hogy a **meglévő Google-levelezés sértetlen maradjon.** Ez az **ügyfél DNS-én, vele** történik.
+---
 
-## Később átállhatunk Google-re? — IGEN
-A rendszer úgy épül, hogy a **küldés egyetlen helyen** van (a `send-email` függvény). Minden más
-(sablonok, admin-gomb, foglalási folyamat, emlékeztető) csak annyit mond: „küldd el ezt a levelet" —
-nem érdekli, HOGYAN megy.
+## 5. Teszt
 
-Ezért ha az ügyfél később **Google-lel** (Workspace SMTP-vel, App Password-del) akar küldeni:
-- **csak a `send-email` függvényt** írjuk át (Resend → Google SMTP), és **kicseréljük a secreteket**,
-- a **sablonok, az admin-felület, az adatbázis, a logika VÁLTOZATLAN marad**,
-- a feladó ilyenkor natívan `akademia@mobilkemence.xyz` lesz (mert abból a postaládából megy).
+**Nyers mód** (csak az SMTP/kapcsolat teszteléséhez, PowerShell):
+```powershell
+Invoke-RestMethod -Method Post -Uri "https://<PROJECT_REF>.supabase.co/functions/v1/send-email" `
+  -Headers @{ Authorization = "Bearer <ANON_KEY>" } -ContentType "application/json" `
+  -Body '{"to":"<A_CIMED>","subject":"Teszt","text":"Szia"}'
+```
 
-Vagyis a **Resend nem „örökre szóló" döntés** — bármikor átállítható Google-re (vagy más szolgáltatóra)
-a rendszer többi részének érintése nélkül.
+**Sablon mód** (valós foglalásra): a `<PROJECT_REF>` és `<ANON_KEY>` a Supabase → Project Settings → API alatt.
+```
+{"booking_id":"<UUID>","tipus":"visszaigazolas"}
+```
+A `csapat_ertesito` a Csapat e-mail címre megy, minden más a vendégnek. Minden küldés bekerül az `email_log` táblába.
 
-## Összefoglalva egy mondatban
-> A leveleket egy **küldő szolgáltatás** (kezdetben Resend) küldi a **domained nevében**; a vendég a
-> **domained egy címét** látja feladóként; a **válaszok és a csapat-értesítők** a **valódi Google-postaládátokba**
-> (`akademia@mobilkemence.xyz`) futnak be, amit a megszokott felületen olvastok. A küldő szolgáltató
-> **később bármikor lecserélhető** (pl. Google-re) a rendszer többi része nélkül.
+> A `DEV_REDIRECT_TO` miatt fejlesztésben minden a tesztcímedre jön (`[TESZT → …]` tárggyal).
+
+---
+
+## 6. Éles domain igazolása (DNS)
+
+### Fogalmak egyszerűen
+- **MX** (Mail eXchange) — **hová érkezzenek** a domainnek CÍMZETT levelek (fogadás). *(Küldéskor nem ezt használjuk.)*
+- **SPF** (Sender Policy Framework) — **ki KÜLDHET** a domain nevében (engedélyezett feladók listája). ⚠️ Egy névhez **csak egy** SPF-sor lehet.
+- **DKIM** (DomainKeys Identified Mail) — **digitális pecsét/aláírás**, ami bizonyítja, hogy a levél valóban a domainedről jött.
+
+Analógia: **MX** = a postaláda címe · **SPF** = a portás listája · **DKIM** = a viaszpecsét a borítékon.
+
+### A menet
+1. Resend → **Domains → Add Domain** → a küldő domain.
+2. A Resend kiír **3 rekordot** (a `send.` aldomainen): **MX**, **TXT (SPF)**, **TXT (DKIM)** → bemásolod a domain DNS-ébe (Hostinger/Rackhost) → **Verify**.
+3. `MAIL_FROM` átállítása a saját domain címére.
+
+> Mivel a rekordok a `send.` aldomainen vannak, a fő-domain meglévő beállításait (pl. a Google MX-ét) **nem érintik**. Ha valaha a fő-domain SPF-jét kell bővíteni: a meglévőt **egészítsd ki egy sorban**, ne tegyél mellé másodikat.
+
+**Feladó-opciók élesre:** A) `noreply@kemence-akademia.xyz` (tiszta domain, kockázatmentes) · B) `akademia@mobilkemence.xyz` (valódi cím, a Google-levelezés mellé — óvatos DNS).
+
+---
+
+## 7. Limitek (Resend ingyenes csomag)
+- **3 000 levél / hó**, **100 levél / nap**, **1 igazolt domain**, 30 napos napló-megőrzés.
+- Ehhez a projekthez **bőven elég**. A saját `email_log` táblánk korlátlanul megőrzi a küldéseket.
+- (Pro: $20/hó, 50 000 levél — valószínűleg sosem kell.)
+
+---
+
+## 8. Később Google-re váltás? — IGEN
+A küldés **egyetlen helyen** van (a `send-email` függvény `kuld()` része). Ha a kliens Google-lel (Workspace SMTP + App Password) akar küldeni: csak a függvény `kuld()` részét írjuk át és a secreteket cseréljük — a **sablonok, admin, adatbázis, logika változatlan**. A Resend tehát nem végleges döntés.
+
+---
+
+## 9. Hibaelhárítás
+- **„domain is not verified" (403)** → a `MAIL_FROM` nem igazolt domainen van, VAGY (teszt-módban) idegen címre próbálsz küldeni. Igazold a domaint (6. pont). Figyelem: nem igazolt domainen lévő **Reply-To** is kiválthatja!
+- **„invalid API key" (401)** → rossz/hiányzó `RESEND_API_KEY` secret.
+- **A levél nem jön meg** → nézd a Resend → **Logs**-ot és a Supabase → Edge Functions → `send-email` → **Logs**-ot; a válasz `error` mezője megmondja az okot.
+
+---
+
+## Kapcsolódó
+- Élesítési checklist (secretek, deploy, webhook, cron, DNS): **`install.html`**.
+- E-mail sablonok szerkesztése: admin → Beállítások → E-mail sablonok.
+- Automatika (auto visszaigazoló + napi emlékeztető): `db/14`, `db/15` migrációk.

@@ -219,9 +219,13 @@ function sorHtml(b){
   const st = STAT[b.statusz] || { szoveg:b.statusz, cls:"x" };
   const m  = masodlagos(b.workshops?.idopont);
   const szerkGomb = `<button class="btn sm ghost" data-edit="${b.id}">Szerkesztés</button>`;
+  // ✉ Levél: NEM a „jóváhagyásra vár" soron (ott a vendég a foglaláskori visszaigazolót kapta),
+  // és MINDIG a műveletek utolsója.
+  const mailGomb = (b.statusz !== "jovahagyasra_var")
+    ? `<button class="btn sm ghost" data-mail="${b.id}">✉ Levél</button>` : "";
   const gombok = szerkGomb + muveletek(b.statusz).map(mv =>
     `<button class="btn sm ${mv.stilus}" data-id="${b.id}" data-uj="${mv.uj}">${mv.cimke}</button>`
-  ).join("");
+  ).join("") + mailGomb;
   return `<tr>
     <td class="azon" data-cim="Azonosító">${azon(b.azonosito)}</td>
     <td class="prog" data-cim="Program">
@@ -271,6 +275,8 @@ function megjelenit(){
     btn.addEventListener("click", () => nyitSzerkeszto(btn.dataset.edit)));
   cel.querySelectorAll(".megj-ikon").forEach(btn =>
     btn.addEventListener("click", () => mutatMegjegyzes(btn.dataset.megj)));
+  cel.querySelectorAll("[data-mail]").forEach(btn =>
+    btn.addEventListener("click", () => levelPartnernek(btn.dataset.mail)));
 }
 
 // A megjegyzés megmutatása (saját ablakban)
@@ -294,6 +300,83 @@ function mutatLevelek(id){
     .join("\n");
   dialog.uzen(sorok, { cim: fejlec });
 }
+
+// ✉ Levél a partnernek — a foglalás STÁTUSZA határozza meg a sablont;
+// előnézet + szabad szerkesztés (tárgy/törzs), majd küldés a send-email függvénnyel.
+// (A program csapat általi elmaradásának csoportos levele NEM ide tartozik.)
+const STATUSZ_SABLON = {
+  jovahagyott: "jovahagyas",
+  elutasitott: "elutasitas",
+  lemondott:   "lemondas",
+};
+function levelMezok(b){
+  return {
+    nev: b.nev, email: b.email, telefon: b.telefon,
+    program: b.workshops?.cim ?? "",
+    idopont: formatDatum(b.workshops?.idopont),
+    letszam: b.letszam,
+    azonosito: azon(b.azonosito),
+  };
+}
+function behelyettesitJs(sablon, mezok){
+  return String(sablon ?? "").replace(/\{(\w+)\}/g, (_, k) => (mezok[k] ?? ""));
+}
+
+const levelModal = document.getElementById("levelModal");
+const levelForm  = document.getElementById("levelForm");
+const levelErr   = document.getElementById("levelErr");
+let levelAktualis = null;   // { id, tipus, email }
+
+async function levelPartnernek(id){
+  const b = osszesFoglalas.find(x => x.id === id);
+  if(!b) return;
+  const tipus = STATUSZ_SABLON[b.statusz];
+  if(!tipus) return dialog.uzen("Ehhez a státuszhoz nincs küldhető levél.", { cim:"Levél" });
+
+  const { data: sablon, error } = await db.from("email_sablonok")
+    .select("targy, torzs").eq("tipus", tipus).single();
+  if(error || !sablon) return dialog.uzen("Nem sikerült betölteni a sablont.", { cim:"Hiba" });
+
+  const mezok = levelMezok(b);
+  levelAktualis = { id, tipus, email: b.email };
+  document.getElementById("levelCim").textContent = `✉ ${EMAIL_CIMKE[tipus] || tipus}`;
+  document.getElementById("levelCimzett").textContent = `${b.nev} · ${b.email}`;
+  levelForm.targy.value = behelyettesitJs(sablon.targy, mezok);
+  levelForm.torzs.value = behelyettesitJs(sablon.torzs, mezok);
+  levelErr.hidden = true;
+  levelModal.hidden = false;
+}
+
+levelForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if(!levelAktualis) return;
+  const targy = levelForm.targy.value.trim();
+  const torzs = levelForm.torzs.value;
+  if(!targy){ levelErr.textContent = "A tárgy nem lehet üres."; levelErr.hidden = false; return; }
+
+  const gomb = levelForm.querySelector('button[type="submit"]');
+  gomb.disabled = true; gomb.textContent = "Küldés…";
+  const { data, error } = await db.functions.invoke("send-email", {
+    body: { booking_id: levelAktualis.id, tipus: levelAktualis.tipus, targy, torzs },
+  });
+  gomb.disabled = false; gomb.textContent = "Küldés";
+
+  if(error){
+    let reszlet = error.message || "Ismeretlen hiba.";
+    try { const j = await error.context?.json?.(); if(j?.error) reszlet = j.error; } catch(_){}
+    levelErr.textContent = "Nem sikerült: " + reszlet; levelErr.hidden = false; return;
+  }
+  if(data && data.ok === false){
+    levelErr.textContent = "Nem sikerült: " + (data.error || ""); levelErr.hidden = false; return;
+  }
+  levelModal.hidden = true;
+  await betoltEmailLog();   // a „✉ N kiment levél" számláló frissüljön
+  megjelenit();
+  dialog.uzen(`Levél elküldve: ${levelAktualis.email}`, { cim:"Elküldve ✓" });
+});
+
+document.getElementById("levelClose").addEventListener("click", () => { levelModal.hidden = true; });
+document.getElementById("levelMegse").addEventListener("click", () => { levelModal.hidden = true; });
 
 // Szűrő-események
 ["fProgram","fNev","fIdoallapot"].forEach(id => {
@@ -761,7 +844,7 @@ async function archivalProgram(id){
   const elo = progElofoglalasSzam.get(id) || 0;
   // Múltbéli (lezajlott) programnál NINCS "elmarad" — ami megtörtént, az nem tud elmaradni.
   const multbeli = masodlagos(p?.idopont)?.kulcs === "multbeli";
-  let volElmaras = false, ertesites = false;
+  let volElmaras = false, ertesites = false, elmaradErtesitok = [];
 
   if(elo > 0 && !multbeli){
     // Jövőbeli/mai program élő foglalással → felajánljuk az elmaradást (értesítéssel)
@@ -775,12 +858,17 @@ async function archivalProgram(id){
     if(valasz === "megse" || valasz === false) return;
     if(valasz === "elmarad"){
       volElmaras = true;
+      // Az érintett élő foglalások kigyűjtése MÉG a lemondás előtt (a levélküldéshez).
+      const { data: erintett, error: selErr } = await db.from("bookings")
+        .select("id").eq("workshop_id", id).in("statusz", ["jovahagyasra_var","jovahagyott"]);
+      if(selErr) return dialog.uzen("Hiba a foglalások lekérdezésekor: " + selErr.message, { cim:"Hiba" });
       const { error: be } = await db.from("bookings")
         .update({ statusz:"lemondott" }).eq("workshop_id", id)
         .in("statusz", ["jovahagyasra_var","jovahagyott"]);
       if(be) return dialog.uzen("Nem sikerült a foglalások lemondása: " + be.message, { cim:"Hiba" });
       ertesites = await dialog.megerosit(`Kiküldjük az elmaradás-értesítőt a ${elo} vendégnek?`,
         { cim:"Elmaradás-értesítő", okCimke:"Igen, kiküldöm", megseCimke:"Most nem" });
+      if(ertesites) elmaradErtesitok = erintett || [];
     }
   } else {
     // Nincs élő foglalás VAGY múltbéli program → sima archiválás (a foglalások megmaradnak)
@@ -797,10 +885,22 @@ async function archivalProgram(id){
   if(error) return dialog.uzen("Archiválási hiba: " + error.message, { cim:"Hiba" });
 
   if(volElmaras){
-    const uz = ertesites
-      ? `A program „elmaradt” állapotba került és archiválva lett; a(z) ${elo} érintett foglalás „lemondott”. Az elmaradás-értesítő a levélküldő háttér bekötése után automatikusan kimegy nekik.`
-      : `A program „elmaradt” állapotba került és archiválva lett; a(z) ${elo} érintett foglalás „lemondott”. Értesítőt most nem küldünk.`;
-    await dialog.uzen(uz, { cim:"Kész" });
+    if(ertesites && elmaradErtesitok.length){
+      let sikeres = 0, hibas = 0;
+      for(const bk of elmaradErtesitok){
+        const { data, error: kerr } = await db.functions.invoke("send-email",
+          { body:{ booking_id: bk.id, tipus:"program_elmarad" } });
+        if(kerr || (data && data.ok === false)) hibas++; else sikeres++;
+      }
+      await betoltEmailLog();
+      await dialog.uzen(
+        `A program „elmaradt” állapotba került és archiválva lett; a(z) ${elo} érintett foglalás „lemondott”.\n\nElmaradás-értesítő kiküldve: ${sikeres} db${hibas ? `, sikertelen: ${hibas} db` : ""}.`,
+        { cim:"Kész" });
+    } else {
+      await dialog.uzen(
+        `A program „elmaradt” állapotba került és archiválva lett; a(z) ${elo} érintett foglalás „lemondott”. Értesítőt most nem küldünk.`,
+        { cim:"Kész" });
+    }
   }
   betoltProgramLista();
 }
