@@ -19,6 +19,8 @@ db/                         SQL — adatbázis (a korábbi köztes migrációkat
   02-storage.sql            Storage bucket a program-fotókhoz (public olvasás, admin írás)
   03-auto-visszaigazolo-trigger.sql  Auto visszaigazoló + csapat-értesítő trigger + pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
   04-emlekezteto-cron.sql   Napi emlékeztető pg_cron + pg_net (másnapi jóváhagyott foglalásoknak; <PROJECT_REF>/<ANON_KEY> kitöltendő)
+  05-rovid-leiras.sql       Migráció: rövid (kártya) leírás mező (rovid_leiras) hozzáadása a programokhoz
+  start-programok.sql       ÖNÁLLÓ induló (kb. éles) programok: 6 workshop rövid+részletes leírással, árral, időponttal (üres DB-n; NEM töröl)
   seed-demo-foglalasok.sql  ÖNÁLLÓ demó-adat (CSAK dev): MINDENT töröl + azonosítót nulláz, majd 8 programot (2 múltbéli, 4 jövőbeli, 2 hamarosan) és ~21 foglalást visz fel. Éles DB-n NE fusson.
 web/                        Frontend (ezt szolgálja ki a szerver / Hostinger)
   index.html                Publikus FŐOLDAL (hero-slideshow, workshopok, élmény, rólunk, programok+foglalás, kapcsolat+térkép, lábléc)
@@ -45,7 +47,7 @@ start-szerver.bat           Helyi szerver indító (localhost:5500)
 ### Táblák
 
 **`workshops`** — programok
-`id` (uuid, PK) · `cim` · `leiras` · `ar` · `kedvezmenyes_ar` · `idopont` (timestamptz) · `varhato_idotartam` · `max_letszam` · `foto_url` · `statusz` (`aktiv`/`hamarosan`/`elmaradt`) · `archivalt` (bool) · `created_at`
+`id` (uuid, PK) · `cim` · `rovid_leiras` (rövid, a kártyán, kötelező) · `leiras` (részletes, **opcionális**, a „Részletek" ablakban) · `ar` · `kedvezmenyes_ar` · `idopont` (timestamptz) · `varhato_idotartam` · `max_letszam` · `foto_url` · `statusz` (`aktiv`/`hamarosan`/`elmaradt`) · `archivalt` (bool) · `created_at`
 Megszorítások: akciós ár < alap ár; `aktiv` státusznál kötelező ár+időpont+létszám; létszám>0.
 
 **`bookings`** — foglalások

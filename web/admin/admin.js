@@ -682,6 +682,46 @@ async function mentSablon(e){
 // ===================== PROGRAMOK (admin CRUD) =====================
 const progModal = document.getElementById("progModal");
 const progForm  = document.getElementById("progForm");
+
+// --- Rich text (félkövér / dőlt / felsorolás) a leírás-mezőkhöz ---
+const edRovid     = document.getElementById("edRovid");
+const edReszletes = document.getElementById("edReszletes");
+try { document.execCommand("styleWithCSS", false, false); } catch(_){}  // szemantikus <b>/<i>, ne inline stílus
+document.querySelectorAll(".rte-tb .rte-b").forEach(b => {
+  b.addEventListener("mousedown", (e) => {   // mousedown: ne vesszen el a kijelölés a kattintáskor
+    e.preventDefault();
+    if(b.dataset.cmd){ document.execCommand(b.dataset.cmd, false, null); }
+    else if(b.dataset.size){
+      let sz = parseInt(document.queryCommandValue("fontSize")) || 3;
+      sz = Math.max(1, Math.min(7, sz + parseInt(b.dataset.size)));
+      document.execCommand("fontSize", false, sz);
+    }
+  });
+});
+// Tab = behúzás, Shift+Tab = kihúzás (felsorolásnál a pontokat nesteli)
+[edRovid, edReszletes].forEach(ed => ed.addEventListener("keydown", (e) => {
+  if(e.key === "Tab"){ e.preventDefault(); document.execCommand(e.shiftKey ? "outdent" : "indent", false, null); }
+}));
+// Biztonsági HTML-tisztító: csak félkövér/dőlt/aláhúzás/felsorolás/sortörés maradhat, attribútum nélkül
+function tisztitHtml(html){
+  const OK = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, BLOCKQUOTE:1, FONT:1 };
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html || "";
+  (function walk(parent){
+    Array.from(parent.childNodes).forEach(n => {
+      if(n.nodeType === 1){
+        if(OK[n.tagName]){
+          const keepSize = (n.tagName === "FONT") ? n.getAttribute("size") : null;
+          while(n.attributes.length) n.removeAttribute(n.attributes[0].name);
+          if(keepSize && /^[1-7]$/.test(keepSize)) n.setAttribute("size", keepSize);
+          walk(n);
+        }
+        else { walk(n); while(n.firstChild) parent.insertBefore(n.firstChild, n); parent.removeChild(n); }
+      } else if(n.nodeType === 8){ parent.removeChild(n); }
+    });
+  })(tpl.content);
+  return tpl.innerHTML.trim();
+}
 const pErr      = document.getElementById("pErr");
 let progLista = [];   // a betöltött programok (szerkesztéshez)
 
@@ -757,7 +797,7 @@ async function betoltProgramLista(){
     return `<article class="prog-kartya">
       <div class="fej"><h4>${escapeHtml(p.cim)}</h4>${badge}</div>
       ${hamarosan ? "" : `<div class="datum">${formatDatum(p.idopont)}</div>`}
-      <p class="leiras">${escapeHtml(p.leiras)}</p>
+      <p class="leiras">${tisztitHtml(p.rovid_leiras || p.leiras || "")}</p>
       <div class="also"><span class="arak">${arak}</span>${helyek}</div>
       <div class="gombok">${gombok}</div>
     </article>`;
@@ -779,6 +819,7 @@ document.querySelectorAll(".altab").forEach(t => t.addEventListener("click", () 
 // Szerkesztő megnyitása (id nélkül = új)
 function nyitProgram(id){
   progForm.reset(); pErr.hidden = true;
+  edRovid.innerHTML = ""; edReszletes.innerHTML = "";
   document.getElementById("pFotoElonezet").hidden = true;
   const p = id ? progLista.find(x => x.id === id) : null;
   document.getElementById("pTitle").textContent = p ? "Program szerkesztése" : "Új program";
@@ -787,7 +828,8 @@ function nyitProgram(id){
   if(p){
     progForm.statusz.value          = p.statusz;
     progForm.cim.value              = p.cim;
-    progForm.leiras.value           = p.leiras;
+    edRovid.innerHTML     = tisztitHtml(p.rovid_leiras || "");
+    edReszletes.innerHTML = tisztitHtml(p.leiras || "");
     progForm.ar.value               = p.ar ?? "";
     progForm.kedvezmenyes_ar.value  = p.kedvezmenyes_ar ?? "";
     progForm.idopont.value          = isoToLocalInput(p.idopont);
@@ -829,7 +871,8 @@ progForm.addEventListener("submit", async e => {
   const id       = progForm.dataset.id;
   const statusz  = progForm.statusz.value;
   const cim      = progForm.cim.value.trim();
-  const leiras   = progForm.leiras.value.trim();
+  const rovid_leiras = edRovid.textContent.trim() ? tisztitHtml(edRovid.innerHTML) : "";
+  const leiras       = edReszletes.textContent.trim() ? tisztitHtml(edReszletes.innerHTML) : null;
   const ar       = progForm.ar.value ? parseInt(progForm.ar.value, 10) : null;
   const kedvezmenyes_ar = progForm.kedvezmenyes_ar.value ? parseInt(progForm.kedvezmenyes_ar.value, 10) : null;
   const idopont  = progForm.idopont.value ? new Date(progForm.idopont.value).toISOString() : null;
@@ -837,7 +880,7 @@ progForm.addEventListener("submit", async e => {
   const varhato_idotartam = progForm.varhato_idotartam.value.trim() || null;
 
   if(!cim)    return pHiba("A cím kötelező.");
-  if(!leiras) return pHiba("A leírás kötelező.");
+  if(!rovid_leiras) return pHiba("A rövid leírás kötelező.");
   if(statusz === "aktiv"){
     if(ar == null)          return pHiba("Aktív programnál az ár kötelező.");
     if(!idopont)            return pHiba("Aktív programnál az időpont kötelező.");
@@ -869,7 +912,7 @@ progForm.addEventListener("submit", async e => {
     catch(err){ gomb.disabled = false; return pHiba("A kép feltöltése nem sikerült: " + err.message); }
   }
 
-  const sor = { statusz, cim, leiras, ar, kedvezmenyes_ar, idopont, max_letszam, varhato_idotartam, foto_url };
+  const sor = { statusz, cim, rovid_leiras, leiras, ar, kedvezmenyes_ar, idopont, max_letszam, varhato_idotartam, foto_url };
   const { error } = id
     ? await db.from("workshops").update(sor).eq("id", id)
     : await db.from("workshops").insert(sor);

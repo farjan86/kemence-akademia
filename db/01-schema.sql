@@ -18,7 +18,8 @@
 create table if not exists public.workshops (
   id                 uuid primary key default gen_random_uuid(),
   cim                text        not null,
-  leiras             text        not null,
+  rovid_leiras       text,                    -- rövid leírás a kártyára (kötelező az adminban)
+  leiras             text,                    -- részletes leírás (OPCIONÁLIS), a „Részletek" ablakban
   ar                 integer,                 -- Ft; "aktív" programnál kötelező
   kedvezmenyes_ar    integer,                 -- opcionális akciós ár
   idopont            timestamptz,             -- dátum + idő; "aktív"-nál kötelező
@@ -151,7 +152,7 @@ $$;
 drop view if exists public.programok;
 create view public.programok as
 select
-  w.id, w.cim, w.leiras, w.ar, w.kedvezmenyes_ar, w.idopont,
+  w.id, w.cim, w.rovid_leiras, w.leiras, w.ar, w.kedvezmenyes_ar, w.idopont,
   w.varhato_idotartam, w.foto_url, w.statusz, w.max_letszam, w.archivalt,
   greatest(coalesce(w.max_letszam,0) - public.foglalt_helyek(w.id), 0) as szabad_helyek
 from public.workshops w;

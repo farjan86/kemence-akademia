@@ -88,7 +88,20 @@ main h2{font-size:28px; margin:0 0 18px}
   border:1px solid var(--line); background:var(--brick); color:var(--hamu); font-size:20px; cursor:pointer; line-height:1}
 .modal-close:hover{color:var(--izzas); border-color:var(--parazs)}
 .m-title{font-family:"Fraunces"; font-weight:900; font-size:24px; margin:2px 0 18px}
-.modal-lg{max-width:600px}
+.modal-lg{max-width:920px}
+/* rich text szerkesztő (félkövér/dőlt/felsorolás a leírásokhoz) */
+.mezo{display:flex; flex-direction:column; gap:5px}
+.mezo-cimke{font-size:13px; color:var(--hamu); font-weight:600}
+.rte{border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--brick)}
+.rte-tb{display:flex; gap:5px; padding:6px 8px; border-bottom:1px solid var(--line); background:var(--korom-2)}
+.rte-b{min-width:30px; height:28px; padding:0 8px; border:1px solid var(--line); border-radius:6px;
+  background:var(--brick); color:var(--text); cursor:pointer; font-size:13.5px; line-height:1}
+.rte-b:hover{border-color:var(--parazs); color:var(--izzas)}
+.rte-ed{min-height:64px; padding:10px 12px; color:var(--text); font-size:15px; line-height:1.55; outline:none}
+.rte-ed.rte-nagy{min-height:180px}
+.rte-ed:focus{background:var(--brick-2)}
+.rte-ed:empty:before{content:attr(data-ph); color:var(--hamu-2)}
+.rte-ed ul{margin:6px 0 6px 22px} .rte-ed p{margin:0 0 6px}
 .mform{display:flex; flex-direction:column; gap:14px}
 .mform label{display:flex; flex-direction:column; gap:5px; font-size:13px; color:var(--hamu); font-weight:600}
 .mform label small{color:var(--hamu-2); font-weight:400}

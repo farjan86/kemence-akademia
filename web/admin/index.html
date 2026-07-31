@@ -204,7 +204,33 @@
         </select>
       </label>
       <label>Cím <input name="cim" type="text" required></label>
-      <label>Részletes leírás <textarea name="leiras" rows="7" required></textarea></label>
+      <div class="mezo">
+        <span class="mezo-cimke">Rövid leírás <small>(ez jelenik meg a kártyán)</small></span>
+        <div class="rte">
+          <div class="rte-tb">
+            <button type="button" class="rte-b" data-cmd="bold" title="Félkövér"><b>B</b></button>
+            <button type="button" class="rte-b" data-cmd="italic" title="Dőlt"><i>I</i></button>
+            <button type="button" class="rte-b" data-cmd="underline" title="Aláhúzás"><u>U</u></button>
+            <button type="button" class="rte-b" data-size="1" title="Nagyobb betű">A+</button>
+            <button type="button" class="rte-b" data-size="-1" title="Kisebb betű">A−</button>
+          </div>
+          <div class="rte-ed" id="edRovid" contenteditable="true" data-ph="Rövid leírás…"></div>
+        </div>
+      </div>
+      <div class="mezo">
+        <span class="mezo-cimke">Részletes leírás <small>(opcionális, a „Részletek" ablakban)</small></span>
+        <div class="rte">
+          <div class="rte-tb">
+            <button type="button" class="rte-b" data-cmd="bold" title="Félkövér"><b>B</b></button>
+            <button type="button" class="rte-b" data-cmd="italic" title="Dőlt"><i>I</i></button>
+            <button type="button" class="rte-b" data-cmd="underline" title="Aláhúzás"><u>U</u></button>
+            <button type="button" class="rte-b" data-size="1" title="Nagyobb betű">A+</button>
+            <button type="button" class="rte-b" data-size="-1" title="Kisebb betű">A−</button>
+            <button type="button" class="rte-b" data-cmd="insertUnorderedList" title="Felsorolás">•—</button>
+          </div>
+          <div class="rte-ed rte-nagy" id="edReszletes" contenteditable="true" data-ph="Részletes leírás…"></div>
+        </div>
+      </div>
       <div class="ket-mezo">
         <label>Ár (Ft) <input name="ar" type="number" min="0" step="1"></label>
         <label>Kedvezményes ár (Ft) <small>opcionális</small> <input name="kedvezmenyes_ar" type="number" min="0" step="1"></label>

@@ -38,16 +38,38 @@ async function betoltBeallitasok(){
   }
 }
 
+// Biztonsági HTML-tisztító: csak félkövér/dőlt/aláhúzás/felsorolás/sortörés maradhat (a leírás rich text)
+function tisztitHtml(html){
+  const OK = { B:1, STRONG:1, I:1, EM:1, U:1, UL:1, OL:1, LI:1, BR:1, P:1, DIV:1, BLOCKQUOTE:1, FONT:1 };
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html || "";
+  (function walk(parent){
+    Array.from(parent.childNodes).forEach(n => {
+      if(n.nodeType === 1){
+        if(OK[n.tagName]){
+          const keepSize = (n.tagName === "FONT") ? n.getAttribute("size") : null;
+          while(n.attributes.length) n.removeAttribute(n.attributes[0].name);
+          if(keepSize && /^[1-7]$/.test(keepSize)) n.setAttribute("size", keepSize);
+          walk(n);
+        }
+        else { walk(n); while(n.firstChild) parent.insertBefore(n.firstChild, n); parent.removeChild(n); }
+      } else if(n.nodeType === 8){ parent.removeChild(n); }
+    });
+  })(tpl.content);
+  return tpl.innerHTML.trim();
+}
+
 // -------------------- Kártya HTML --------------------
 function kartya(p){
   const kep = p.foto_url ? `<img class="card-kep" src="${p.foto_url}" alt="" loading="lazy">` : "";
-  const reszlet = `<button class="reszlet-btn" data-reszlet="${p.id}">Részletek →</button>`;
+  const rovid = tisztitHtml(p.rovid_leiras || p.leiras || "");
+  const reszlet = p.leiras ? `<button class="reszlet-btn" data-reszlet="${p.id}">Részletek →</button>` : "";
 
   if(p.statusz === "hamarosan"){
     return `<article class="card">
       ${kep}
       <div class="card-top"><h3>${p.cim}</h3><span class="badge soon">Hamarosan</span></div>
-      <p class="desc">${p.leiras}</p>
+      <p class="desc">${rovid}</p>
       ${reszlet}
     </article>`;
   }
@@ -68,7 +90,7 @@ function kartya(p){
   return `<article class="card">
     ${kep}
     <div class="card-top"><h3>${p.cim}</h3></div>
-    <p class="desc">${p.leiras}</p>
+    <p class="desc">${rovid}</p>
     ${reszlet}
     ${datum ? `<div class="meta"><b>${datum}</b>${p.varhato_idotartam ? " · "+p.varhato_idotartam : ""}</div>` : ""}
     ${seats}
@@ -104,7 +126,7 @@ function mutatReszletek(id){
   const p = programLista.find(x => x.id === id);
   if(!p) return;
   document.getElementById("rTitle").textContent = p.cim;
-  document.getElementById("rLeiras").textContent = p.leiras;
+  document.getElementById("rLeiras").innerHTML = tisztitHtml(p.leiras || "");
   reszletModal.hidden = false;
 }
 document.getElementById("rClose").addEventListener("click", () => { reszletModal.hidden = true; });
