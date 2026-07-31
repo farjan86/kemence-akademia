@@ -67,7 +67,7 @@ Supabase → **Edge Functions → Secrets**:
 ### 4.3 — A `send-email` függvény deploy
 > ⚠️ Az **Edge Functions** menü kell (TypeScript), **NEM** a Database → Functions (SQL). Az Edge Functions-nél csak **név + kód-szerkesztő + Deploy** van.
 
-Supabase → **Edge Functions → Create a new function** → név **`send-email`** → beilleszted a `supabase/functions/send-email/index.ts` teljes tartalmát → **Deploy**. *(CLI-vel: `supabase functions deploy send-email`.)*
+Supabase → **Edge Functions → Deploy a new function** → név **`send-email`** → beilleszted a `supabase/functions/send-email/index.ts` teljes tartalmát → **Deploy**. *(CLI-vel: `supabase functions deploy send-email`.)*
 
 ---
 
@@ -132,4 +132,4 @@ A küldés **egyetlen helyen** van (a `send-email` függvény `kuld()` része). 
 ## Kapcsolódó
 - Élesítési checklist (secretek, deploy, webhook, cron, DNS): **`install.html`**.
 - E-mail sablonok szerkesztése: admin → Beállítások → E-mail sablonok.
-- Automatika (auto visszaigazoló + napi emlékeztető): `db/14`, `db/15` migrációk.
+- Automatika (auto visszaigazoló + napi emlékeztető): `db/03-auto-visszaigazolo-trigger.sql`, `db/04-emlekezteto-cron.sql`.

@@ -14,23 +14,12 @@
 ## 2. Projektstruktúra
 
 ```
-db/                         SQL — adatbázis
-  01-schema.sql             A TELJES, mindig naprakész séma (üres telepítéshez elég ez)
-  02-seed-teszt.sql         Teszt programok (ideiglenes)
-  03-migracio-infosav.sql   Migráció: settings.foglalas_infosav
-  04-seed-foglalasok-teszt.sql  ÖNÁLLÓ demó-adat: MINDENT töröl + azonosítót nulláz, majd 8 programot (2 múltbéli, 4 jövőbeli, 2 hamarosan) és ~21 foglalást visz fel időrendben. Kiváltja a 02-t.
-  05-migracio-email-sablonok.sql Migráció: azonosito + email_sablonok
-  06-migracio-email-log.sql Migráció: email_log + demó napló
-  07-migracio-azonosito-formatum.sql Migráció: azonosító előtag/kezdő + belső sorszám 1-től
-  08-migracio-sablonok-bovites.sql Migráció: visszaigazolás + csapat-értesítő sablon
-  09-migracio-storage-fotok.sql Migráció: Storage bucket a program-fotókhoz
-  10-migracio-archivalas.sql Migráció: program-archiválás + program_elmarad sablon
-  11-migracio-elmaradt-programallapot.sql Migráció: az "elmaradt" a PROGRAM állapota (nem a foglalásé)
-  12-migracio-multbeli-foglalas-tiltas.sql Migráció: publikus (anon) foglalás tiltása MÚLTBÉLI eseményre (a mai nap még OK)
-  13-migracio-emlekezteto-sablon.sql Migráció: „emlékeztető" e-mail sablon (a program előtti napon, a vendégnek)
-  14-migracio-emlekezteto-cron.sql Migráció: napi emlékeztető pg_cron + pg_net (másnapi jóváhagyott foglalásoknak; <PROJECT_REF>/<ANON_KEY> kitöltendő)
-  15-migracio-auto-visszaigazolo-trigger.sql Migráció: auto visszaigazoló+csapat-értesítő trigger+pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
-  16-migracio-latogato-szamlalo.sql Migráció: látogatás-számláló (oldal_statisztika tábla + latogatas_rogzites()/latogatas_szam() függvények)
+db/                         SQL — adatbázis (a korábbi köztes migrációkat egyesítettük a 01-schema.sql-be)
+  01-schema.sql             A TELJES, mindig naprakész séma (üres/éles telepítéshez elég ez): táblák, RLS, „programok" nézet, túlfoglalás-trigger, 7 e-mail sablon, alap-beállítások, látogatás-számláló
+  02-storage.sql            Storage bucket a program-fotókhoz (public olvasás, admin írás)
+  03-auto-visszaigazolo-trigger.sql  Auto visszaigazoló + csapat-értesítő trigger + pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
+  04-emlekezteto-cron.sql   Napi emlékeztető pg_cron + pg_net (másnapi jóváhagyott foglalásoknak; <PROJECT_REF>/<ANON_KEY> kitöltendő)
+  seed-demo-foglalasok.sql  ÖNÁLLÓ demó-adat (CSAK dev): MINDENT töröl + azonosítót nulláz, majd 8 programot (2 múltbéli, 4 jövőbeli, 2 hamarosan) és ~21 foglalást visz fel. Éles DB-n NE fusson.
 web/                        Frontend (ezt szolgálja ki a szerver / Hostinger)
   index.html                Publikus FŐOLDAL (hero-slideshow, workshopok, élmény, rólunk, programok+foglalás, kapcsolat+térkép, lábléc)
   css/style.css             Publikus stílus (sötét "parázs" paletta, tartalom max 1880px / hero max 1920px, reszponzív)
@@ -48,6 +37,7 @@ fejlesztesi-terv.md         A terv / roadmap
 foglalasi-rendszer-terv.html  Ügyfél-facing áttekintő (bemutató)
 felmeres-kerdessor.html/.pdf  Az ügyféligény-felmérés
 start-szerver.bat           Helyi szerver indító (localhost:5500)
+.github/workflows/keepalive.yml  GitHub Actions: 3 naponta pingeli a Supabase REST-et (az ingyenes projekt ne aludjon el); 2 secret kell: SUPABASE_URL, SUPABASE_ANON_KEY
 ```
 
 ## 3. Adatbázis
@@ -80,8 +70,8 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {idopont} {letsza
 - **`foglalt_helyek(uuid)`** (függvény, `security definer`): egy program foglalt helyeinek száma (a `jovahagyasra_var` + `jovahagyott` foglalások létszám-összege). Anon is hívhatja, de a foglalási sorokat nem látja.
 - **`ellenoriz_szabad_hely()`** + **`trg_szabad_hely`** trigger (bookings, before insert/update): túlfoglalás elleni védelem; nem-aktív programra nem enged foglalni; a **publikus (anon) foglalást múltbéli eseményre elutasítja** (a mai nap még OK; az admin/seed rögzíthet historikusat).
 - **`latogatas_rogzites()` / `latogatas_szam()`** (`security definer`): a látogatásszám növelése ill. olvasása. Anon is hívhatja (a tábla RLS-e miatt csak ezeken át).
-- **`trg_uj_foglalas_email()`** + **`trg_uj_foglalas_email`** trigger (bookings, after insert) — **külön migráció (`db/15`), projekt-specifikus értékkel:** új `jovahagyasra_var` foglaláskor `pg_net`-tel meghívja a `send-email` függvényt (auto visszaigazoló + csapat-értesítő). A Supabase Database Webhook SQL-alternatívája; ugyanazt a `{type:INSERT, record}` payloadot küldi.
-- **`pg_cron` napi feladat** (`kemence-napi-emlekezteto`, `db/14`) — `pg_net`-tel a másnapi jóváhagyott foglalásoknak emlékeztetőt küld.
+- **`trg_uj_foglalas_email()`** + **`trg_uj_foglalas_email`** trigger (bookings, after insert) — **külön fájl (`db/03-auto-visszaigazolo-trigger.sql`), projekt-specifikus értékkel:** új `jovahagyasra_var` foglaláskor `pg_net`-tel meghívja a `send-email` függvényt (auto visszaigazoló + csapat-értesítő). A Supabase Database Webhook SQL-alternatívája; ugyanazt a `{type:INSERT, record}` payloadot küldi.
+- **`pg_cron` napi feladat** (`kemence-napi-emlekezteto`, `db/04-emlekezteto-cron.sql`) — `pg_net`-tel a másnapi jóváhagyott foglalásoknak emlékeztetőt küld.
 
 ### Szabad helyek és azonosító képletei
 - **Szabad helyek:** `max_letszam − (jovahagyasra_var + jovahagyott létszámok)`. Az `elutasitott`/`lemondott` felszabadít.
@@ -104,7 +94,7 @@ Egyetlen admin fiók (Supabase Auth), **önregisztráció nincs** — a fiókot 
 
 ## 4. Konvenciók
 
-- **`db/01-schema.sql` az egyetlen igazságforrás** — mindig a teljes, friss sémát tartalmazza; üres/éles telepítéshez elég ezt lefuttatni. A `0X-migracio-*.sql` fájlok a már futó fejlesztői DB-t frissítik.
+- **`db/01-schema.sql` az egyetlen igazságforrás** — mindig a teljes, friss sémát tartalmazza; üres/éles telepítéshez elég ezt lefuttatni. A storage/automatika külön fájlokban van (`02-storage.sql`, `03-auto-visszaigazolo-trigger.sql`, `04-emlekezteto-cron.sql`), a `seed-demo-foglalasok.sql` pedig csak dev-demó.
 - **Nincs böngésző-`alert`/`confirm`/`prompt`** — minden felugró a saját `web/js/dialog.js` (`dialog.megerosit` / `dialog.uzen`).
 - **Nincs placeholder ("árnyékszöveg")** a beviteli mezőkben.
 - **Design:** v2 minta elrendezése + v1 minta sötét parázs-palettája; a foglalás/admin naptár-jellegű. Betűk: Fraunces + Hanken Grotesk + Space Mono.
@@ -114,8 +104,8 @@ Egyetlen admin fiók (Supabase Auth), **önregisztráció nincs** — a fiókot 
 
 - **Helyi szerver:** `start-szerver.bat` (dupla katt) → `http://localhost:5500/` (publikus), `/admin/` (admin).
 - **Adatbázis:** a `db/*.sql` fájlokat a Supabase **SQL Editor**ban futtatjuk.
-  - **Éles/üres telepítés:** elég a **`01-schema.sql`** (mindig a teljes, friss séma: táblák, RLS, nézet, túlfoglalás-trigger, 7 sablon, alap-beállítások, látogatás-számláló). Utána: Storage bucket (`db/09` vagy UI), majd az **e-mail-automatika** (`db/15` trigger + `db/14` cron — ezekbe a `<PROJECT_REF>`/`<ANON_KEY>` kitöltendő, és kell `pg_net`/`pg_cron`). A teljes menetrend: **`install.html`**.
-  - **Fejlesztői DB frissítése:** a `0X-migracio-*.sql` fájlok viszik be a változásokat a már futó DB-be. A `db/04` = önálló demó-adat (mindent töröl + újratölt).
-  - Az **e-mail-automatika NINCS a 01-ben** (projekt-specifikus `<PROJECT_REF>`/`<ANON_KEY>` kell hozzá) — külön a `db/14` (cron) és `db/15` (trigger).
+  - **Éles/üres telepítés:** elég a **`01-schema.sql`** (mindig a teljes, friss séma: táblák, RLS, nézet, túlfoglalás-trigger, 7 sablon, alap-beállítások, látogatás-számláló). Utána: Storage bucket (`db/02-storage.sql` vagy UI), majd az **e-mail-automatika** (`db/03-auto-visszaigazolo-trigger.sql` + `db/04-emlekezteto-cron.sql` — ezekbe a `<PROJECT_REF>`/`<ANON_KEY>` kitöltendő, és kell `pg_net`/`pg_cron`). A teljes menetrend: **`install.html`**.
+  - **Demó-adat (dev):** a `db/seed-demo-foglalasok.sql` mindent töröl + újratölt (8 program, ~21 foglalás). Éles adatbázison NE fusson.
+  - Az **e-mail-automatika NINCS a 01-ben** (projekt-specifikus `<PROJECT_REF>`/`<ANON_KEY>` kell hozzá) — külön a `db/03-auto-visszaigazolo-trigger.sql` és `db/04-emlekezteto-cron.sql`.
 - **Levélküldés:** a `send-email` Edge Function deploy + a `RESEND_API_KEY` / `MAIL_FROM` (és fejlesztésben `DEV_REDIRECT_TO`) secretek. Lásd `docs/email.md`, `install.html`.
 - **Config:** a `web/js/config.js`-be kell a Supabase **Project URL** és **anon** kulcs (Settings → API).

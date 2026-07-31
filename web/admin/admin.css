@@ -129,6 +129,8 @@ main h2{font-size:28px; margin:0 0 18px}
 
 /* ---- Szűrősáv ---- */
 .filterbar{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px}
+.export-gombok{margin-left:auto; display:flex; gap:8px; align-self:flex-end}
+@media(max-width:560px){ .export-gombok{width:100%; margin-left:0} .export-gombok .btn{flex:1} }
 .filterbar label{display:flex; flex-direction:column; gap:5px; font-family:"Space Mono",monospace;
   font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--hamu-2)}
 .filterbar select,.filterbar input{font-family:"Hanken Grotesk"; font-size:14.5px; color:var(--text);
@@ -155,6 +157,7 @@ main h2{font-size:28px; margin:0 0 18px}
 .tbl .actions{display:flex; gap:6px; flex-wrap:nowrap}
 .tbl td[data-cim="Művelet"]{white-space:nowrap}
 .tbl .btn.sm{white-space:nowrap}
+.jelentes-sor{display:flex; justify-content:flex-end; margin:0 0 8px}
 
 /* státusz-jelvények */
 .pill{display:inline-block; font-family:"Space Mono",monospace; font-size:11px; font-weight:700;

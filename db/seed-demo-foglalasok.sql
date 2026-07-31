@@ -4,7 +4,7 @@
 --     e-mail napló) és az azonosító-sorszámot 1-től újraindítja, majd
 --     felvisz 8 programot és hozzájuk foglalásokat.
 --
---  Ez a fájl ÖNÁLLÓ: a 02-seed-teszt.sql-t KIVÁLTJA (nem kell külön futtatni).
+--  Ez a fájl ÖNÁLLÓ demó-adat (CSAK fejlesztéshez). Éles DB-n NE futtasd.
 --  A 01-schema.sql-be NEM épül be — ez csak demó-adat.
 --
 --  A 8 program összeállítása:

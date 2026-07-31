@@ -58,15 +58,15 @@
 <div class="callout">
   <b>Hol találod a saját projekted azonosítóit?</b> (Több lépésnél kell — a <span class="repl">&lt;PROJECT_REF&gt;</span> / <span class="repl">&lt;ANON_KEY&gt;</span> helyére.)
   <ul>
-    <li><b>PROJECT_REF</b> — a projekt azonosítója. Supabase → <b>Project Settings → API → Project URL</b>: <code>https://<b>&lt;PROJECT_REF&gt;</b>.supabase.co</code>. A <code>web/js/config.js</code> <code>SUPABASE_URL</code>-jében is.</li>
-    <li><b>ANON_KEY</b> — a publikus „anon" kulcs. Supabase → <b>Project Settings → API → anon / public</b>. Ugyanez a <code>web/js/config.js</code> <code>SUPABASE_ANON_KEY</code> értéke. (Publikus, nem titok.)</li>
+    <li><b>SUPABASE_URL / PROJECT_REF</b> — Supabase → <b>Project Settings → Data API → „API URL"</b> mező: <code>https://<b>&lt;PROJECT_REF&gt;</b>.supabase.co</code>. Ez a <code>web/js/config.js</code> <code>SUPABASE_URL</code> értéke; a <code>&lt;PROJECT_REF&gt;</code> ennek az aldomain-része.</li>
+    <li><b>ANON_KEY</b> — a publikus „anon" kulcs. Supabase → <b>Project Settings → API Keys</b> → a <b>„Legacy anon, service_role API keys"</b> fül → az <b>„anon public"</b> mező. Ez a <code>web/js/config.js</code> <code>SUPABASE_ANON_KEY</code> értéke. (Publikus, nem titok.)</li>
   </ul>
 </div>
 
 <div class="callout ok">
   <b>Miből áll a rendszer? (1 perc)</b>
   <ul>
-    <li><b>Frontend</b> (a <code>web/</code> mappa): a publikus foglaló oldal + az admin felület. Statikus fájlok — élesben a <b>Netlify</b>-on (a <code>kemence-akademia.xyz</code> domainnal).</li>
+    <li><b>Frontend</b> (a <code>web/</code> mappa): a publikus foglaló oldal + az admin felület. Statikus fájlok — <b>élesben a Hostingeren</b> (a <code>kemence-akademia.xyz</code> domainnal); teszthez/demóhoz a Netlify.</li>
     <li><b>Backend</b>: a <b>Supabase</b> — az adatbázis (foglalások, programok), a belépés (admin) és a levélküldő függvény háza.</li>
     <li><b>Levélküldés</b>: a <b>Resend</b> — ez a „posta", ami ténylegesen kiküldi a leveleket.</li>
   </ul>
@@ -80,7 +80,8 @@
     <a href="#email">2. E-mail küldés (Resend)</a>
     <a href="#automata">3. E-mail automatika (trigger + cron)</a>
     <a href="#hosting">4. Hosting és élesítés</a>
-    <a href="#tervezett">5. Tervezett szakaszok</a>
+    <a href="#keepalive">5. Keep-alive</a>
+    <a href="#tervezett">6. Tervezett szakaszok</a>
   </nav>
 </div>
 
@@ -104,10 +105,14 @@
   </div>
 
   <h3>1.3 — Storage bucket a program-fotókhoz</h3>
-  <p>Futtasd le a <code>db/09-migracio-storage-fotok.sql</code>-t, VAGY: Supabase → <b>Storage → New bucket</b> → név <code>program-fotok</code>, <b>public</b>.</p>
+  <p>Futtasd le a <code>db/02-storage.sql</code>-t, VAGY: Supabase → <b>Storage → New bucket</b> → név <code>program-fotok</code>, <b>public</b>.</p>
 
   <h3>1.4 — <code>web/js/config.js</code> kitöltése</h3>
-  <p>Írd bele a projekt <b>Project URL</b>-jét és az <b>anon</b> kulcsot (Project Settings → API):</p>
+  <p>Írd bele a projekt <b>Supabase URL</b>-jét és az <b>anon public</b> kulcsot:</p>
+  <ul>
+    <li><b>SUPABASE_URL</b> → <b>Project Settings → Data API → „API URL"</b> mező.</li>
+    <li><b>SUPABASE_ANON_KEY</b> → <b>Project Settings → API Keys → „Legacy anon, service_role API keys" fül → „anon public"</b> mező.</li>
+  </ul>
   <pre>window.SUPABASE_URL      = "https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co";
 window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
 
@@ -149,7 +154,7 @@ window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
     <b>⚠️ Ne keverd össze:</b> az <b>Edge Functions</b> menü kell (TypeScript), NEM a <b>Database → Functions</b> (SQL). Ott csak <b>név + kód-szerkesztő + Deploy</b> van.
   </div>
   <ol>
-    <li>Supabase → <b>Edge Functions → Create a new function</b> (Via Editor).</li>
+    <li>Supabase → <b>Edge Functions → Deploy a new function</b> (Via Editor).</li>
     <li>Név: <b>pontosan</b> <code>send-email</code>.</li>
     <li>Másold be a <code>supabase/functions/send-email/index.ts</code> teljes tartalmát → <b>Deploy</b>.</li>
     <li>Hívási URL: <code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/functions/v1/send-email</code>. Hibák: a függvény <b>Logs</b> fülén.</li>
@@ -163,6 +168,13 @@ window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
 <div class="card" id="automata">
   <h2><span class="num">3.</span> E-mail automatika (trigger + cron)</h2>
   <p>Ez NINCS a 01-ben (projekt-specifikus értékek kellenek). Előfeltétel: a 2. szakasz (deploy + secretek) kész.</p>
+  <div class="callout"><b>A <span class="repl">&lt;PROJECT_REF&gt;</span> és <span class="repl">&lt;ANON_KEY&gt;</span> értéket a legegyszerűbb a <code>web/js/config.js</code>-ből kimásolni</b> (már ki van töltve):
+    <ul>
+      <li><span class="repl">&lt;PROJECT_REF&gt;</span> = a <code>SUPABASE_URL</code>-ben a <code>https://</code> és a <code>.supabase.co</code> közötti rész.</li>
+      <li><span class="repl">&lt;ANON_KEY&gt;</span> = a teljes <code>SUPABASE_ANON_KEY</code> érték.</li>
+    </ul>
+    Ez a szakasz (3.2, 3.3 és a teszt-lekérdezések) mind ezt a kettőt használja.
+  </div>
 
   <h3>3.1 — Extensionök bekapcsolása</h3>
   <p>Supabase → <b>Database → Extensions</b> → keresd és kapcsold BE: <code>pg_net</code> (a trigger + cron http-hívásaihoz) és <code>pg_cron</code> (a napi ütemezéshez).</p>
@@ -191,12 +203,12 @@ drop trigger if exists trg_uj_foglalas_email on public.bookings;
 create trigger trg_uj_foglalas_email
 after insert on public.bookings
 for each row execute function public.trg_uj_foglalas_email();</pre>
-  <p><small>(Ugyanez a fájl: <code>db/15-migracio-auto-visszaigazolo-trigger.sql</code>.) Kikapcsolás: <code>drop trigger trg_uj_foglalas_email on public.bookings;</code></small></p>
-  <div class="callout warn"><b>⚠️ Seed + trigger:</b> ha a demó-seedet (<code>db/04</code>) újrafuttatod aktív triggerrel, minden új foglalás küld egy levelet. Seed előtt kapcsold ki a triggert.</div>
+  <p><small>(Ugyanez a fájl: <code>db/03-auto-visszaigazolo-trigger.sql</code>.) Kikapcsolás: <code>drop trigger trg_uj_foglalas_email on public.bookings;</code></small></p>
+  <div class="callout warn"><b>⚠️ Seed + trigger:</b> ha a demó-seedet (<code>db/seed-demo-foglalasok.sql</code>) újrafuttatod aktív triggerrel, minden új foglalás küld egy levelet. Seed előtt kapcsold ki a triggert.</div>
 
   <h3>3.3 — Napi emlékeztető (cron)</h3>
   <p><b>Mit csinál:</b> minden reggel megnézi, mely program van <b>MÁSNAP</b>, és a <b>jóváhagyott</b> foglalóknak kiküldi az emlékeztetőt.</p>
-  <div class="callout"><b>Előfeltétel:</b> létezzen az „emlékeztető" sablon (a <code>01-schema</code>-ban benne van; régi DB-nél futtasd a <code>db/13-migracio-emlekezteto-sablon.sql</code>-t), és a <code>pg_cron</code> + <code>pg_net</code> legyen bekapcsolva (3.1).</div>
+  <div class="callout"><b>Előfeltétel:</b> létezzen az „emlékeztető" sablon (a <code>db/01-schema.sql</code>-ban benne van), és a <code>pg_cron</code> + <code>pg_net</code> legyen bekapcsolva (3.1).</div>
   <p><b>Beállítás</b> — az SQL Editorban futtasd le (cseréld ki a <span class="repl">helykitöltőket</span>):</p>
   <pre>create extension if not exists pg_cron;
 create extension if not exists pg_net;
@@ -213,7 +225,7 @@ select cron.schedule('kemence-napi-emlekezteto', '0 8 * * *', $$
     and (w.idopont at time zone 'Europe/Budapest')::date
         = ((now() at time zone 'Europe/Budapest')::date + 1)
 $$);</pre>
-  <p><small>(Ugyanez a fájl: <code>db/14-migracio-emlekezteto-cron.sql</code>. Napi 8:00 UTC. Ellenőrzés: <code>select jobname, schedule, active from cron.job;</code>)</small></p>
+  <p><small>(Ugyanez a fájl: <code>db/04-emlekezteto-cron.sql</code>. Napi 8:00 UTC. Ellenőrzés: <code>select jobname, schedule, active from cron.job;</code>)</small></p>
 
   <p><b>Azonnali teszt</b> (hogy ne kelljen a napi futásra várni) — pár jóváhagyott foglalónak <b>rögtön</b> küld emlékeztetőt (dátumszűrő nélkül):</p>
   <pre>select net.http_post(
@@ -230,53 +242,91 @@ from public.bookings b where b.statusz = 'jovahagyott' limit 3;</pre>
 
 <!-- ============================ 4. HOSTING / ÉLESÍTÉS ============================ -->
 <div class="card" id="hosting">
-  <h2><span class="num">4.</span> Hosting és élesítés (Netlify)</h2>
-  <p>A frontend <b>statikus</b> (nincs szerveroldali kód), ezért ingyenes statikus hostra való. Éles host: <b>Netlify</b>. A <code>kemence-akademia.xyz</code> <b>dedikált domain</b> (nincs rajta más oldal, sem e-mail), ezért a teljes DNS-t nyugodtan a Netlify-ra bízhatjuk.</p>
+  <h2><span class="num">4.</span> Hosting és élesítés (Hostinger)</h2>
+  <p>A frontend <b>statikus</b> (nincs szerveroldali kód, nincs build), ezért bármelyik tárhely kiszolgálja. <b>Élesben a Hostinger</b> — az ügyfélnek úgyis van ott csomagja (a <code>mobilkemence.xyz</code> + webshop miatt), így a <code>kemence-akademia.xyz</code> is oda kerül, egy helyre. A <b>Netlify</b> csak <b>teszt/demó</b> célra (lásd 4.3).</p>
 
-  <h3>4.1 — Frontend fel a Netlify-ra</h3>
+  <h3>4.1 — Frontend fel a Hostingerre (éles)</h3>
   <ol>
-    <li><a href="https://app.netlify.com" target="_blank">app.netlify.com</a> → belépés (élesben az <b>ügyfél</b> fiókjában, vagy a fejlesztőében és később átadva).</li>
-    <li><b>Add new site → Deploy manually</b> → húzd rá a <code>web/</code> mappát (drag &amp; drop). VAGY: kösd GitHubhoz és a repo <code>web/</code>-jét add meg publish-könyvtárnak (nincs build parancs).</li>
-    <li>Kész: kapsz egy <code>&lt;valami&gt;.netlify.app</code> címet. A <b>HTTPS automatikus</b> (Let's Encrypt), külön SSL-vásárlás nincs.</li>
+    <li><b>hPanel → Websites → Add website</b> → <code>kemence-akademia.xyz</code> (a meglévő tárhely-csomagon belül, a többi oldal mellé). Ez létrehoz egy webgyökér-mappát (pl. <code>.../kemence-akademia.xyz/public_html</code>).</li>
+    <li><b>Fájlfeltöltés:</b> a <code>web/</code> mappa <b>TARTALMÁT</b> (nem magát a <code>web</code> mappát) töltsd fel a webgyökérbe — File Manager vagy FTP. Így az <code>index.html</code> a gyökérbe kerül, az admin a <code>/admin/</code>-ra.</li>
+    <li><b>SSL (HTTPS):</b> hPanel-ben kapcsold be az <b>ingyenes SSL-t</b> (Let's Encrypt) a domainre.</li>
+    <li><b>www átirányítás:</b> állítsd be, hogy a <code>www.kemence-akademia.xyz</code> a fő címre menjen (hPanel beépített opció).</li>
   </ol>
-  <div class="callout"><b>Teszteléshez ennyi elég</b> — a <code>*.netlify.app</code> címen már működik minden. A saját domaint (4.2) csak élesítéskor kell rákötni.</div>
+  <div class="callout ok"><b>A backend független a hostingtól:</b> a Supabase, a Resend és a trigger/cron ugyanúgy megy, akárhol vannak a statikus fájlok — a böngésző a <code>config.js</code> alapján csatlakozik a Supabase-hez.</div>
 
-  <h3>4.2 — Domain rákötése: A-rekord a Netlify-ra (a DNS Hostingeren marad)</h3>
-  <div class="callout"><b>Fontos:</b> a DNS/névszerver <b>domainenként külön</b> van — amit itt a <code>kemence-akademia.xyz</code>-vel csinálsz, az a <b>többi domaint (pl. <code>mobilkemence.xyz</code>) nem érinti</b>.</div>
-  <p>A DNS-kezelést <b>a Hostingeren hagyjuk</b>, és csak ennek az egy domainnek a web-rekordjait irányítjuk a Netlify-ra:</p>
-  <ol>
-    <li>Netlify → a site → <b>Domain management → Add a domain</b> → <code>kemence-akademia.xyz</code>. A varázsló kiírja a pontos értékeket (IP + <code>www</code> cél).</li>
-    <li><b>Hostinger → DNS Zone Editor</b> (a <code>kemence-akademia.xyz</code> zónájában):
-      <ul>
-        <li><code>A</code> rekord, név <code>@</code> → a Netlify által megadott <b>IP</b> (jelenleg <code>75.2.60.5</code>). A korábbi tárhelyre mutató A-rekordot <b>erre cseréld</b>.</li>
-        <li><code>CNAME</code> rekord, név <code>www</code> → a <code>&lt;...&gt;.netlify.app</code> cím (vagy amit a varázsló ír).</li>
-      </ul>
-    </li>
-    <li>Terjedés: pár perctől pár óráig. Utána a Netlify <b>automatikusan kiállítja a HTTPS-t</b> (Let's Encrypt) — külön SSL-vásárlás nincs.</li>
-  </ol>
-  <div class="callout ok"><b>Előny:</b> mivel a DNS a Hostingeren marad, a Resend <code>send.</code> rekordjai (2.2) is <b>ott, egy helyen</b> vannak — nem kell két DNS-t kezelni.</div>
-  <div class="callout">
-    <b>Alternatíva (A — Netlify DNS):</b> a fenti helyett a <code>kemence-akademia.xyz</code> teljes DNS-ét is átadhatod a Netlify-nak: a regisztrátornál (Hostinger → Domains → Nameservers) átállítod ennek az egy domainnek a <b>névszerverét</b> a Netlify 4 névszerverére. Ekkor a Netlify kezel mindent (apex + <code>www</code> + HTTPS) magától, de a Resend <code>send.</code> rekordjait onnantól a <b>Netlify DNS</b>-ében kell felvenni. Ez is csak ezt az egy domaint érinti. A B) (fenti) marad az ajánlott, mert a DNS egy helyen marad.
-  </div>
+  <h3>4.2 — Domain / DNS</h3>
+  <p>A <code>kemence-akademia.xyz</code> domain a Hostingeren van. Amikor a 4.1-ben hozzáadod a website-ot, a Hostinger jellemzően <b>magától a saját szerverére állítja</b> az A-rekordot. Ha nem: a <b>DNS Zone Editor</b>-ban az <code>A</code> rekord (<code>@</code>) a Hostinger tárhely IP-jére mutasson. Az e-mail (Resend) <code>send.</code> rekordjait (2.2) <b>ne bántsd</b>.</p>
 
-  <h3>4.3 — Éles ellenőrző lista (EZT NE FELEJTSD!)</h3>
+  <h3>4.3 — Teszt/demó a Netlify-on (élesítés ELŐTT, opcionális)</h3>
+  <p>Ha még az élesítés előtt meg akarod mutatni az oldalt az ügyfélnek, a <b>Netlify</b> a leggyorsabb (ingyenes): <a href="https://app.netlify.com" target="_blank">app.netlify.com</a> → <b>Add new project → Deploy manually</b> → húzd rá a <code>web/</code> mappát → kapsz egy <code>*.netlify.app</code> címet, azonnali HTTPS-sel. Ez nem érinti az éles Hostinger-telepítést.</p>
+  <div class="callout warn"><b>Netlify kredit:</b> az ingyenes csomagon <b>1 deploy ≈ 15 kredit</b> (havi 300), ezért csak akkor tolj ki új verziót, ha tényleg mutatni akarod — a fejlesztést lokálban (<code>localhost:5500</code>) csináld.</div>
+
+  <h3>4.4 — Éles ellenőrző lista (EZT NE FELEJTSD!)</h3>
   <ul>
     <li><b>⚠️ Töröld a <code>DEV_REDIRECT_TO</code> secretet</b> — különben minden vendég-levél a teszt-címre menne!</li>
     <li><code>MAIL_FROM</code> = a kliens igazolt domainje (nem a dev-domain).</li>
     <li>Admin → Beállítások → <b>Csapat e-mail cím</b> = a valódi csapat-postaláda (pl. <code>akademia@mobilkemence.xyz</code>).</li>
     <li>A trigger (3.2) és a cron (3.3) a <b>kliens</b> <code>&lt;PROJECT_REF&gt;</code>/<code>&lt;ANON_KEY&gt;</code> értékével fusson.</li>
-    <li>A demó-adat (<code>db/04</code>) NE fusson éles adatbázison.</li>
-    <li>A domain a Netlify-ra mutat (HTTPS zöld), és a <code>www</code> is elérhető.</li>
+    <li>A <code>web/js/config.js</code> a <b>kliens</b> Supabase URL-jét + anon kulcsát tartalmazza (nem a fejlesztőit).</li>
+    <li>A demó-adat (<code>db/seed-demo-foglalasok.sql</code>) NE fusson éles adatbázison.</li>
+    <li>A domain a <b>Hostingerre</b> mutat, HTTPS zöld, és a <code>www</code> is elérhető.</li>
   </ul>
 </div>
 
-<!-- ============================ 5. TERVEZETT ============================ -->
+<!-- ============================ 5. KEEP-ALIVE ============================ -->
+<div class="card" id="keepalive">
+  <h2><span class="num">5.</span> Keep-alive (a Supabase ne aludjon el)</h2>
+  <p>Az <b>ingyenes</b> Supabase projekt ~<b>7 nap inaktivitás</b> után szünetel. Egy periodikus, <b>kívülről</b> érkező API-kérés aktivitásnak számít, és nullázza az inaktivitás-számlálót. Már az <b>oldal megnyitása is aktivitás</b> (a főoldal betölti a programokat + a látogatás-számlálót a Supabase-ből), tehát rendszeres forgalomnál gyakran nem is aludna el, de <b>alacsony forgalmú / szezonális</b> oldalnál kell a biztosíték.</p>
+  <p><b>Két út:</b> <b>fejlesztéshez</b> a repóban lévő GitHub Actions (5.1); <b>élesben</b> a <b>cron-job.org</b> (5.2), mert az nem függ a fejlesztő GitHub-jától (és a kliensnek nincs is GitHub-ja).</p>
+
+  <h3>5.1 — Dev / demó: GitHub Actions (2 secret)</h3>
+  <ol>
+    <li>GitHub → a repo → <b>Settings → Secrets and variables → Actions → New repository secret</b>, vegyél fel kettőt:</li>
+  </ol>
+  <table>
+    <tr><th>Secret neve</th><th>Érték</th></tr>
+    <tr><td><code>SUPABASE_URL</code></td><td><code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co</code> (a <code>config.js</code> <code>SUPABASE_URL</code>-je)</td></tr>
+    <tr><td><code>SUPABASE_ANON_KEY</code></td><td>az <b>anon public</b> kulcs (publikus, RLS védi)</td></tr>
+  </table>
+  <p><b>Teszt:</b> GitHub → <b>Actions</b> fül → <b>Supabase keep-alive</b> → <b>Run workflow</b>. Zöld pipa = működik.</p>
+
+  <div class="callout warn"><b>Két korlát:</b>
+    <ul>
+      <li>A GitHub <b>letiltja az ütemezett workflow-t 60 nap repó-inaktivitás után</b> (ha nincs commit). Aktív fejlesztésnél nem gond; bármelyik commit újraaktiválja. Teljesen „magára hagyott" éles repónál buktató lehet.</li>
+      <li><b>Fizetős</b> Supabase-csomagon a projekt nem alszik el — akkor a keep-alive fölösleges.</li>
+    </ul>
+  </div>
+
+  <h3>5.2 — Éles / kliens: cron-job.org (ingyenes, GitHub nélkül) — AJÁNLOTT</h3>
+  <p>Élesben a keep-alive NE a fejlesztő GitHub-jától függjön (a kliensnek nincs is GitHub-ja). Erre a legjobb ingyenes megoldás a <b>cron-job.org</b>: a <b>felhőben fut 24/7</b>, nem függ egyetlen géptől/telefontól sem, és a fiók a <b>kliensé</b> lehet (átadható). Tud egyedi fejlécet küldeni (kell az anon kulcs), így tiszta 200-as választ kapunk.</p>
+  <ol>
+    <li>Regisztrálj: <a href="https://cron-job.org" target="_blank">cron-job.org</a> (ingyenes). Élesnél érdemes a <b>kliens / csapat e-mailjével</b>, hogy az övé legyen.</li>
+    <li><b>Create cronjob</b> → töltsd ki:</li>
+  </ol>
+  <table>
+    <tr><th>Mező</th><th>Érték</th></tr>
+    <tr><td><b>Title</b></td><td><code>Kemence Supabase keep-alive</code></td></tr>
+    <tr><td><b>URL</b></td><td><code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/rest/v1/workshops?select=id&amp;limit=1</code></td></tr>
+    <tr><td><b>Schedule</b></td><td><b>Every day at 8:00</b> (a napi futás a legegyszerűbb és bőven elég; csak 7 napnál sűrűbb kell). Ne bajlódj a „2 naponta"-val.</td></tr>
+    <tr><td><b>Request method</b></td><td>GET</td></tr>
+  </table>
+  <p><b>Request headers</b> (a beállításban „Advanced" / „Headers") — <b>ez a fontos, e nélkül 401 jönne</b>:</p>
+  <table>
+    <tr><th>Header neve</th><th>Érték</th></tr>
+    <tr><td><code>apikey</code></td><td>az <b>anon public</b> kulcs</td></tr>
+    <tr><td><code>Authorization</code></td><td><code>Bearer <span class="repl">&lt;ANON_KEY&gt;</span></code> (a „Bearer " szó + szóköz + az anon kulcs)</td></tr>
+  </table>
+  <p><b>Mentés</b> → a cronjob legyen <b>Enabled</b>. A cron-job.org rögtön kipróbálja; a <b>History/Log</b> alatt <b>HTTP 200</b> = működik. (Kézzel is: „Run now" / „Test run".)</p>
+  <div class="callout ok"><b>„Zéró gondos" alternatíva:</b> <b>fizetős Supabase</b> (Pro, ~$25/hó) — a projekt <b>soha nem alszik el</b>, nincs keep-alive, nincs karbantartás. Valódi, bevételt termelő rendszernél ez a legtisztább; az ügyfél döntése/költsége.</div>
+  <div class="callout"><b>Miért a <code>workshops</code> végpontot pingeljük?</b> Ez a Supabase <b>auto-generált REST API-ja</b> (PostgREST): a <code>workshops</code> táblából kér le egy apró adatot (<code>select=id&amp;limit=1</code> = csak egy sor egyetlen mezője). Publikusan olvasható (RLS engedi), a válasz pici, és a kérés átmegy a Supabase API-átjáróján → ez számít <b>aktivitásnak</b>. Bármelyik létező, anon-olvasható tábla/nézet megtenné.</div>
+</div>
+
+<!-- ============================ 6. TERVEZETT ============================ -->
 <div class="card" id="tervezett">
-  <h2><span class="num">5.</span> Tervezett szakaszok <span class="tag terv">bővítjük</span></h2>
+  <h2><span class="num">6.</span> Tervezett szakaszok <span class="tag terv">bővítjük</span></h2>
   <ul class="todo">
-    <li>Keep-alive ping (hogy az ingyenes Supabase ne aludjon el)</li>
-    <li>Excel / PDF export</li>
-    <li>Publikus főoldal dizájn/kialakítás</li>
+    <li>Admin által feltölthető főoldali képek (most fix képek a <code>web/kepek/</code>-ben)</li>
+    <li>Kétlépcsős azonosítás (2FA / TOTP) az adminhoz — opcionális, ügyféldöntés</li>
   </ul>
 </div>
 

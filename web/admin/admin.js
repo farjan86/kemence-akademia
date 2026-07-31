@@ -279,6 +279,59 @@ function megjelenit(){
     btn.addEventListener("click", () => levelPartnernek(btn.dataset.mail)));
 }
 
+// ==================== Export (Excel / PDF) ====================
+// A könyvtárakat CSAK exportáláskor töltjük be (CDN-ről), hogy az admin oldal gyors maradjon.
+const _scriptCache = {};
+function loadScript(src){
+  if(_scriptCache[src]) return _scriptCache[src];
+  _scriptCache[src] = new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error("Betöltés sikertelen: " + src));
+    document.head.appendChild(s);
+  });
+  return _scriptCache[src];
+}
+
+const EXPORT_FEJ = ["Azonosító","Program","Program időpontja","Időállapot","Vendég neve","Telefon","E-mail","Fő","Státusz","Megjegyzés"];
+// A jelenleg szűrt lista (aktív státusz-fül + szűrők) sorai export-formában
+function exportSorok(){
+  return szurtLista().map(b => [
+    azon(b.azonosito),
+    b.workshops?.cim ?? "—",
+    formatDatum(b.workshops?.idopont),
+    masodlagos(b.workshops?.idopont)?.szoveg ?? "—",
+    b.nev ?? "",
+    b.telefon ?? "",
+    b.email ?? "",
+    b.letszam ?? "",
+    STAT[b.statusz]?.szoveg ?? b.statusz,
+    b.megjegyzes ?? ""
+  ]);
+}
+function exportFajlnev(){
+  return "foglalasok-" + foglStatuszFul + "-" + new Date().toISOString().slice(0, 10);
+}
+function vanExportAdat(){
+  if(szurtLista().length) return true;
+  dialog.uzen("A jelenlegi nézetben nincs exportálható foglalás.", { cim: "Nincs adat" });
+  return false;
+}
+
+async function exportExcel(){
+  if(!vanExportAdat()) return;
+  try{
+    await loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const adat = [EXPORT_FEJ, ...exportSorok()];
+    const ws = XLSX.utils.aoa_to_sheet(adat);
+    ws["!cols"] = EXPORT_FEJ.map((h, i) => ({ wch: i === 1 ? 28 : i === 9 ? 40 : Math.max(12, h.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Foglalások");
+    XLSX.writeFile(wb, exportFajlnev() + ".xlsx");
+  }catch(e){ dialog.uzen("Az Excel-export nem sikerült: " + e.message, { cim: "Hiba" }); }
+}
+
+document.getElementById("exportExcel")?.addEventListener("click", exportExcel);
+
 // A megjegyzés megmutatása (saját ablakban)
 function mutatMegjegyzes(id){
   const b = osszesFoglalas.find(x => x.id === id);
@@ -1063,7 +1116,7 @@ function nyitNaptarProgram(wid){
     const st = STAT[b.statusz] || { szoveg:b.statusz, cls:"x" };
     return `<tr>
       <td class="azon" data-cim="Azonosító">${azon(b.azonosito)}</td>
-      <td class="kontakt" data-cim="Vendég">${escapeHtml(b.nev || "—")}<small>${escapeHtml(b.telefon || "")}</small></td>
+      <td class="kontakt" data-cim="Vendég">${escapeHtml(b.nev || "—")}<small>${escapeHtml(b.telefon || "")}</small><small>${escapeHtml(b.email || "")}</small></td>
       <td class="kozep" data-cim="Fő">${b.letszam}</td>
       <td data-cim="Státusz"><span class="pill ${st.cls}">${st.szoveg}</span></td>
     </tr>`;
@@ -1080,12 +1133,77 @@ function nyitNaptarProgram(wid){
       <div class="szam-kartya"><b>${jovN}</b><span>jóváhagyva (fő)</span></div>
       <div class="szam-kartya"><b>${varN}</b><span>vár (fő)</span></div>
     </div>
+    <div class="jelentes-sor"><button type="button" class="btn sm ghost" id="jelentesBtn">📄 Jelentés (PDF)</button></div>
     <table class="tbl reszlet-tabla">
       <thead><tr><th>Azonosító</th><th>Vendég</th><th>Fő</th><th>Státusz</th></tr></thead>
       <tbody>${sorokHtml}</tbody>
     </table>
     <p class="hint">A foglalások kezelése (jóváhagyás, lemondás, szerkesztés) a <b>Foglalások</b> fülön történik.</p>`;
+  document.getElementById("jelentesBtn")?.addEventListener("click", () => naptarJelentes(wid));
   document.getElementById("naptarReszletek").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+// Program-jelentés PDF: a program adatai (leírás nélkül) + a jóváhagyott vendégek táblája (elérhetőséggel)
+async function naptarJelentes(wid){
+  const p = naptarProgramok.find(x => x.id === wid);
+  if(!p){ dialog.uzen("A program nem található.", { cim:"Hiba" }); return; }
+  const bk = foglalasokProgramhoz(wid);
+  const rang = { jovahagyott:0, jovahagyasra_var:1 };
+  const sorok = bk.filter(b => b.statusz === "jovahagyott" || b.statusz === "jovahagyasra_var")
+    .sort((a, b) => (rang[a.statusz] - rang[b.statusz]) || (a.azonosito - b.azonosito));
+  const foSum = st => bk.filter(b => b.statusz === st).reduce((s, b) => s + (Number(b.letszam) || 0), 0);
+  const jovN = foSum("jovahagyott"), varN = foSum("jovahagyasra_var");
+  const elo = jovN + varN;
+  const max = p.max_letszam || 0;
+  const szabad = max ? Math.max(0, max - elo) : "—";
+  const allapot = { aktiv:"Aktív", hamarosan:"Hamarosan", elmaradt:"Elmaradt" }[p.statusz] || p.statusz;
+  const arSor = p.kedvezmenyes_ar
+    ? `${HUF(p.kedvezmenyes_ar)} (akciós · eredeti ${HUF(p.ar)})`
+    : (p.ar != null ? HUF(p.ar) : "—");
+  try{
+    await loadScript("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js");
+    await loadScript("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js");
+
+    const adat = [
+      ["Program", p.cim || "—"],
+      ["Időpont", formatDatum(p.idopont)],
+      ["Időtartam", p.varhato_idotartam || "—"],
+      ["Ár", arSor],
+      ["Max. létszám", max ? `${max} fő` : "—"],
+      ["Állapot", allapot],
+      ["Foglalt / szabad hely", `${elo}${max ? `/${max}` : ""} foglalt · ${szabad} szabad`],
+      ["Jelentkezők", `${sorok.length} foglalás · ${elo} fő (jóváhagyva ${jovN}, vár ${varN})`]
+    ];
+    const fej = ["Azonosító","Név","Telefon","E-mail","Fő","Státusz"].map(h => ({ text:h, style:"th" }));
+    const vendegBody = [fej];
+    if(sorok.length){
+      sorok.forEach(b => vendegBody.push([ azon(b.azonosito), b.nev || "—", b.telefon || "—", b.email || "—", String(b.letszam), STAT[b.statusz]?.szoveg ?? b.statusz ]));
+      vendegBody.push([ { text:"Összesen (élő)", colSpan:4, alignment:"right", bold:true }, {}, {}, {}, { text:String(elo), bold:true }, {} ]);
+    } else {
+      vendegBody.push([ { text:"Erre a programra nincs élő (jóváhagyott vagy jóváhagyásra váró) foglalás.", colSpan:6, alignment:"center", italics:true, color:"#777" }, {}, {}, {}, {}, {} ]);
+    }
+
+    const doc = {
+      pageSize:"A4", pageMargins:[36, 40, 36, 36],
+      content: [
+        { text:"Kemence Akadémia — Programjelentés", style:"cim" },
+        { text:new Date().toLocaleDateString("hu-HU"), style:"alcim" },
+        { table:{ widths:["auto","*"], body: adat.map(([k, v]) => [ { text:k, bold:true }, String(v) ]) },
+          layout:"noBorders", margin:[0, 0, 0, 14] },
+        { text:`Jelentkezők (${elo} fő élő)`, style:"szekcio" },
+        { table:{ headerRows:1, widths:["auto","*","auto","*","auto","auto"], body:vendegBody }, layout:"lightHorizontalLines" }
+      ],
+      defaultStyle:{ fontSize:10 },
+      styles:{
+        cim:   { fontSize:16, bold:true, margin:[0,0,0,2] },
+        alcim: { fontSize:9, color:"#777", margin:[0,0,0,12] },
+        szekcio:{ fontSize:12, bold:true, margin:[0,0,0,6] },
+        th:    { bold:true, fontSize:9, fillColor:"#f0e6da" }
+      }
+    };
+    const slug = (p.cim || "program").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "program";
+    pdfMake.createPdf(doc).download("jelentes-" + slug + "-" + new Date().toISOString().slice(0, 10) + ".pdf");
+  }catch(e){ dialog.uzen("A jelentés készítése nem sikerült: " + e.message, { cim:"Hiba" }); }
 }
 
 document.getElementById("hoElozo").addEventListener("click", () => lepEv(-1));

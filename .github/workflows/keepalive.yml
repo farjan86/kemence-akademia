@@ -1,0 +1,34 @@
+name: Supabase keep-alive
+
+# Az ingyenes Supabase projekt ~7 nap inaktivitas utan elalszik.
+# Ez a job 3 naponta kuld egy apro REST-kerest -> aktivitas -> nem all le.
+# Beallitas: a repo Settings -> Secrets and variables -> Actions alatt kell
+#   SUPABASE_URL       = https://<PROJECT_REF>.supabase.co
+#   SUPABASE_ANON_KEY  = az anon public kulcs (publikus, RLS vedi)
+
+on:
+  schedule:
+    - cron: '0 6 */3 * *'    # 3 naponta 06:00 UTC
+  workflow_dispatch: {}       # kezi inditas is (Actions ful -> Run workflow)
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "Hianyzik a SUPABASE_URL vagy SUPABASE_ANON_KEY secret."; exit 1
+          fi
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$URL/rest/v1/workshops?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "HTTP $code"
+          if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
+            echo "Keep-alive OK"
+          else
+            echo "Keep-alive sikertelen (HTTP $code)"; exit 1
+          fi

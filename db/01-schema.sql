@@ -5,8 +5,8 @@
 --  KONVENCIÓ: ez a fájl MINDIG a legfrissebb, teljes sémát tartalmazza.
 --  Egy ÜRES projektnél elég EZT lefuttatni — minden benne van (táblák,
 --  biztonság, logika). Éles telepítésnél nulláról ezt futtatjuk.
---  A már FUTÓ (fejlesztői) DB-hez a változásokat külön kis migrációs
---  fájlok viszik be (pl. 03-migracio-*.sql), de az eredmény ugyanez.
+--  A storage-bucket és a levél-automatika külön fájlokban van:
+--  02-storage.sql, 03-auto-visszaigazolo-trigger.sql, 04-emlekezteto-cron.sql.
 --
 --  Tartalom: workshops, bookings, settings + biztonság (RLS) +
 --  szabad-helyek logika + túlfoglalás elleni védelem.
@@ -316,8 +316,8 @@ grant execute on function public.latogatas_szam()     to anon, authenticated;
 -- =====================================================================
 --
 --  AMI EBBEN A FÁJLBAN NINCS (mert projekt-specifikus értékek kellenek hozzá):
---   • Automatikus visszaigazoló + csapat-értesítő  → db/15-migracio-auto-visszaigazolo-trigger.sql
---   • Napi emlékeztető (pg_cron)                    → db/14-migracio-emlekezteto-cron.sql
+--   • Automatikus visszaigazoló + csapat-értesítő  → db/03-auto-visszaigazolo-trigger.sql
+--   • Napi emlékeztető (pg_cron)                    → db/04-emlekezteto-cron.sql
 --  Ezek trigger/cron + pg_net/pg_cron, és a <PROJECT_REF>/<ANON_KEY> értéket
 --  bele kell írni (Supabase → Project Settings → API). Éles telepítés: lásd install.html.
 -- =====================================================================
