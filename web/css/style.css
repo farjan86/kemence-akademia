@@ -8,6 +8,9 @@
   --maxw:1880px;
 }
 *{box-sizing:border-box}
+/* Az egész oldal alaphangolása: 100%-on a korábbi ~90%-os nézet arányai.
+   MOBILON (700px alatt) NINCS zoom — ott a natív méret a jó (különben apró a szöveg). */
+@media (min-width:700px){ html{zoom:.9} }
 body{margin:0; background:var(--korom); color:var(--text);
   font-family:"Hanken Grotesk",system-ui,sans-serif; font-size:17px; line-height:1.6;
   -webkit-font-smoothing:antialiased; overflow-x:hidden}
@@ -35,9 +38,11 @@ a{color:inherit; text-decoration:none}
 .status{color:var(--hamu); font-family:"Space Mono",monospace; font-size:14px}
 
 /* grid + cards */
-.courses-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding-bottom:70px}
-.card{position:relative; background:var(--brick); border:1px solid var(--line); border-radius:18px;
-  padding:24px; display:flex; flex-direction:column; overflow:hidden;
+/* Kitölti a sort; a 340px-es minimum miatt a max szélességű tartalomban (1880px) legfeljebb 5 fér egy sorba. */
+.courses-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px;
+  padding-bottom:70px}
+.card{position:relative; background:var(--brick); border:1px solid var(--line); border-radius:14px;
+  padding:18px; display:flex; flex-direction:column; overflow:hidden;
   transition:transform .25s, border-color .25s, box-shadow .35s}
 .card::before{content:""; position:absolute; left:0; right:0; top:0; height:3px;
   background:linear-gradient(90deg,var(--parazs),var(--lang-2)); transform:scaleX(0); transform-origin:left; transition:transform .35s}
@@ -45,12 +50,12 @@ a{color:inherit; text-decoration:none}
   box-shadow:0 22px 46px -22px rgba(228,87,27,.55)}
 .card:hover::before{transform:scaleX(1)}
 .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px}
-.card h3{font-family:"Fraunces"; font-weight:900; font-size:30px; letter-spacing:-.02em; margin:0}
+.card h3{font-family:"Fraunces"; font-weight:900; font-size:25px; letter-spacing:-.02em; margin:0}
 .badge{font-family:"Space Mono",monospace; font-size:11.5px; font-weight:700; letter-spacing:.12em;
   text-transform:uppercase; padding:5px 9px; border-radius:999px; white-space:nowrap;
   border:1px solid var(--line); color:var(--hamu)}
 .badge.soon{color:var(--lang); border-color:var(--lang)}
-.card p.desc{color:var(--hamu); font-size:18.5px; margin:0 0 10px;
+.card p.desc{color:var(--hamu); font-size:17px; margin:0 0 10px;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
 .reszlet-btn{align-self:flex-start; background:none; border:0; cursor:pointer; padding:0; margin:0 0 16px;
   font-family:"Space Mono",monospace; font-size:15px; color:var(--lang); text-decoration:underline dotted}
@@ -60,7 +65,7 @@ a{color:inherit; text-decoration:none}
 .reszlet-szoveg ul,.reszlet-szoveg ol{margin:0 0 12px 22px}
 .reszlet-szoveg li{margin:4px 0}
 .reszlet-szoveg strong,.reszlet-szoveg b{color:var(--izzas)}
-.card-kep{width:100%; height:170px; object-fit:cover; border-radius:10px; margin-bottom:14px; display:block; border:1px solid var(--line)}
+.card-kep{width:100%; aspect-ratio:3/2; object-fit:cover; border-radius:10px; margin-bottom:12px; display:block; border:1px solid var(--line)}
 .meta{font-family:"Space Mono",monospace; font-size:15.5px; color:var(--hamu); margin-bottom:6px}
 .meta b{color:var(--izzas)}
 .seats{font-family:"Space Mono",monospace; font-size:15.5px; margin-bottom:14px}
@@ -78,8 +83,33 @@ a{color:inherit; text-decoration:none}
   color:#231206; background:linear-gradient(180deg,var(--lang-2),var(--parazs))}
 .btn:disabled{opacity:.4; cursor:not-allowed; filter:grayscale(.3)}
 
-@media(max-width:900px){ .courses-grid{grid-template-columns:repeat(2,1fr)} }
 @media(max-width:560px){ .courses-grid{grid-template-columns:1fr} }
+
+/* előadó + „…Ft-tól" + időpont-csempék a programkártyán */
+.card .eloado{font-family:"Space Mono",monospace; font-size:14px; color:var(--hamu); margin:0 0 10px}
+.card .eloado b{color:var(--izzas)}
+.ar-tol{font-family:"Fraunces"; font-weight:900; font-size:23px; margin:2px 0 12px}
+.ar-tol small{font-family:"Space Mono",monospace; font-weight:400; font-size:12.5px; color:var(--hamu-2); letter-spacing:.04em}
+.idopont-cimke{font-family:"Space Mono",monospace; font-size:12px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--hamu-2); margin:0 0 10px}
+.idopont-lista{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:auto}
+.idopont-btn{display:flex; flex-direction:column; gap:3px; align-items:flex-start; text-align:left; cursor:pointer;
+  font:inherit; color:var(--text); background:var(--korom-2); border:1px solid var(--line); border-radius:12px; padding:10px 11px;
+  transition:border-color .2s, transform .2s, background .2s, box-shadow .3s}
+.idopont-btn:hover:not(:disabled){border-color:var(--parazs); transform:translateY(-2px); background:var(--brick-2);
+  box-shadow:0 14px 28px -18px rgba(228,87,27,.6)}
+.idopont-btn:disabled{opacity:.45; cursor:not-allowed}
+.i-datum{font-family:"Space Mono",monospace; font-size:13px; font-weight:700; color:var(--izzas)}
+.i-ar{font-family:"Fraunces"; font-weight:900; font-size:17px}
+.i-ar .old{font-family:"Hanken Grotesk"; font-weight:500; font-size:12px; color:var(--hamu-2); text-decoration:line-through; margin-right:6px}
+.i-ar .sale{color:var(--lang-2)}
+.i-hely{font-family:"Space Mono",monospace; font-size:12.5px}
+.i-hely.free{color:var(--lang)} .i-hely.full{color:#E4726B}
+/* átmeneti foglalás-szünet jelzése a kártyán */
+.szunet-sav{font-family:"Space Mono",monospace; font-size:12.5px; font-weight:700; letter-spacing:.02em;
+  color:var(--lang-2); background:rgba(245,158,11,.12); border:1px solid var(--lang);
+  border-radius:10px; padding:9px 12px; margin-top:8px; text-align:center}
+@media(max-width:560px){ .idopont-lista{grid-template-columns:1fr} }
 
 /* =========================== Foglalási ablak =========================== */
 .modal{position:fixed; inset:0; z-index:100; display:flex; align-items:flex-start; justify-content:center;

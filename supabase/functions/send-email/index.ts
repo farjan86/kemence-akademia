@@ -84,7 +84,7 @@ async function kuldSablon(
 ): Promise<string> {
   const { data: b, error: be } = await db
     .from("bookings")
-    .select("*, workshops ( cim, idopont )")
+    .select("*, idopontok ( idopont, workshops ( cim ) )")
     .eq("id", booking_id)
     .single();
   if (be || !b) throw new Error("A foglalás nem található: " + booking_id);
@@ -106,8 +106,8 @@ async function kuldSablon(
     const azonosito = `${elotag}${Number(b.azonosito) + kezdo - 1}`;
     const mezok = {
       nev: b.nev, email: b.email, telefon: b.telefon,
-      program: b.workshops?.cim ?? "",
-      idopont: formatDatum(b.workshops?.idopont ?? null),
+      program: b.idopontok?.workshops?.cim ?? "",
+      idopont: formatDatum(b.idopontok?.idopont ?? null),
       letszam: b.letszam, azonosito,
     };
     targy = behelyettesit(sablon.targy, mezok);

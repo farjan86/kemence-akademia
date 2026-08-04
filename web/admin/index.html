@@ -57,10 +57,11 @@
         <button class="altab" data-fstat="jovahagyott">Jóváhagyott <span class="db"></span></button>
         <button class="altab" data-fstat="elutasitott">Elutasított <span class="db"></span></button>
         <button class="altab" data-fstat="lemondott">Lemondott <span class="db"></span></button>
+        <button class="altab" data-fstat="osszes">Összes foglalás <span class="db"></span></button>
       </div>
       <div class="filterbar">
-        <label>Program
-          <select id="fProgram"><option value="">Összes program</option></select>
+        <label>Program / időpont
+          <select id="fProgram"><option value="">Összes program / időpont</option></select>
         </label>
         <label>Vendég neve
           <input id="fNev" type="search" autocomplete="off">
@@ -84,10 +85,10 @@
     <section class="tab-panel" data-panel="naptar" hidden>
       <div class="naptar-fejlec">
         <div class="ho-lepto">
-          <button class="btn ghost sm" id="hoElozo" aria-label="Előző év">‹</button>
+          <button class="btn ghost sm" id="hoElozo" aria-label="Előző">‹</button>
           <h3 id="hoCimke">—</h3>
-          <button class="btn ghost sm" id="hoKovetkezo" aria-label="Következő év">›</button>
-          <button class="btn ghost sm" id="hoMa">Idén</button>
+          <button class="btn ghost sm" id="hoKovetkezo" aria-label="Következő">›</button>
+          <button class="btn ghost sm" id="hoMa">Ma</button>
         </div>
         <div class="naptar-ossz" id="naptarOssz"></div>
       </div>
@@ -102,7 +103,10 @@
           <button class="altab active" data-altab="aktualis">Aktuális programok</button>
           <button class="altab" data-altab="archivalt">Archivált programok</button>
         </div>
-        <button class="btn" id="ujProgramBtn">+ Új program</button>
+        <div class="prog-gombok">
+          <button class="btn ghost" id="globalSzunetBtn">Minden foglalás felfüggesztése</button>
+          <button class="btn" id="ujProgramBtn">+ Új program</button>
+        </div>
       </div>
       <div id="programLista"><p class="status">Betöltés…</p></div>
     </section>
@@ -113,10 +117,16 @@
       <form id="formAltalanos" class="beall-card">
         <h3>Általános</h3>
         <label>Csapat e-mail cím <small>(ide jönnek a foglalás-értesítők, és ez a válaszcím a vendég-leveleken)</small>
-          <input name="levelezesi_email" type="email">
+          <input name="levelezesi_email" type="email" required placeholder="pl. akademia@sajatdomain.hu">
         </label>
         <label>Foglalási info-sáv <small>(a foglalási űrlapon jelenik meg)</small>
           <textarea name="foglalas_infosav" rows="3"></textarea>
+        </label>
+        <label>Naptár megjelenítése <small>(az admin Naptár fülén)</small>
+          <select name="naptar_nezet">
+            <option value="lista">Lista (hónaponként a programok)</option>
+            <option value="racs">Normál naptár (hónaprács a napokkal)</option>
+          </select>
         </label>
         <div class="beall-foot"><button class="btn" type="submit">Mentés</button><span class="mentve" hidden>Mentve ✓</span></div>
       </form>
@@ -151,8 +161,8 @@
     <button class="modal-close" id="szClose" aria-label="Bezárás">×</button>
     <h2 id="szTitle" class="m-title">Foglalás szerkesztése</h2>
     <form id="szerkForm" class="mform">
-      <label>Program / időpont
-        <select name="workshop_id" id="szProgram"></select>
+      <label>Időpont <small>(áthelyezés — csak azonos árú időpontra)</small>
+        <select name="idopont_id" id="szProgram"></select>
       </label>
       <div class="ket-mezo">
         <label>Név <input name="nev" type="text" required></label>
@@ -231,15 +241,15 @@
           <div class="rte-ed rte-nagy" id="edReszletes" contenteditable="true" data-ph="Részletes leírás…"></div>
         </div>
       </div>
-      <div class="ket-mezo">
-        <label>Ár (Ft) <input name="ar" type="number" min="0" step="1"></label>
-        <label>Kedvezményes ár (Ft) <small>opcionális</small> <input name="kedvezmenyes_ar" type="number" min="0" step="1"></label>
-      </div>
-      <div class="ket-mezo">
-        <label>Időpont <input name="idopont" type="datetime-local"></label>
-        <label>Max létszám <input name="max_letszam" type="number" min="1" step="1"></label>
-      </div>
+      <label>Előadó <small>opcionális, több név vesszővel (a kártyán: „Előadó: …")</small> <input name="eloado" type="text"></label>
       <label>Várható időtartam <small>opcionális, pl. „~4 óra"</small> <input name="varhato_idotartam" type="text"></label>
+
+      <div class="mezo" id="idopontokMezo">
+        <span class="mezo-cimke">Időpontok <small>(időpontonként: dátum, ár, kedvezményes ár, létszám, állapot)</small></span>
+        <div class="ido-fejlec"><span>Dátum + idő</span><span>Ár (Ft)</span><span>Kedv. ár</span><span>Fő</span><span>Állapot</span><span></span></div>
+        <div id="idopontLista"></div>
+        <button type="button" class="btn sm ghost" id="idopontAdd">+ Időpont hozzáadása</button>
+      </div>
       <label>Fotó <small>opcionális</small>
         <input name="foto" id="pFoto" type="file" accept="image/*">
       </label>
@@ -256,6 +266,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js"></script>
 <script src="../js/dialog.js" defer></script>
-<script src="admin.js" defer></script>
+<script src="js/util.js" defer></script>
+<script src="js/core.js" defer></script>
+<script src="js/foglalasok.js" defer></script>
+<script src="js/programok.js" defer></script>
+<script src="js/naptar.js" defer></script>
+<script src="js/beallitasok.js" defer></script>
 </body>
 </html>

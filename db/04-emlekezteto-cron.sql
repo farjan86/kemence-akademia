@@ -38,9 +38,9 @@ select cron.schedule(
       body    := jsonb_build_object('booking_id', b.id, 'tipus', 'emlekezteto')
     )
     from public.bookings b
-    join public.workshops w on w.id = b.workshop_id
+    join public.idopontok i on i.id = b.idopont_id
     where b.statusz = 'jovahagyott'
-      and (w.idopont at time zone 'Europe/Budapest')::date
+      and (i.idopont at time zone 'Europe/Budapest')::date
           = ((now() at time zone 'Europe/Budapest')::date + 1)
   $$
 );

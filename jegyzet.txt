@@ -1,0 +1,7 @@
+1) Adott napra csak egy workhop kiírás lehet! 
+2) A foglaláskor a résztvevők neveinek megadás (rugalmas résztvevőszám)
+3) Feltűnőbbek legyenek a likelt oldalak
+4) Adott időpontra tudd beállítani, hogy 1 foglaló tudja csak foglalni minimum hány fővel
+5) Egyedi ajánlatkérés 
+
+6) KÉpek nem szépen jelennek meg a programoknál! 

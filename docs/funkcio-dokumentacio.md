@@ -1,7 +1,7 @@
 # Kemence Akadémia — Felhasználói kézikönyv
 
 > A rendszer teljes, felhasználó- és admin-szemszögű leírása. Ebből a dokumentumból közvetlenül
-> generálható a felhasználói kézikönyv. Utolsó frissítés: 2026-07-30.
+> generálható a felhasználói kézikönyv. Utolsó frissítés: 2026-08-04 (a „több időpont" átalakítás után).
 
 A rendszer két részből áll:
 - **Publikus oldal** (`/`) — a vendégek itt böngészik a programokat és foglalnak.
@@ -28,12 +28,18 @@ Minden foglalásnak pontosan egy státusza van. Ez határozza meg, mi a teendő 
 - **Felszabadít:** az *elutasított* és a *lemondott* foglalás **visszaadja** a helyet.
 - A *jóváhagyásra vár* és *jóváhagyott* a **„élő" foglalás**; az *elutasított* és *lemondott* a **lezárt** (végleges) állapot.
 
-### 1.2 A program állapota (`statusz`, 3 érték)
+### 1.2 A program állapota (`statusz`, 2 érték)
 | Állapot | Jelentés |
 |---|---|
-| **Aktív** | Normál, **foglalható** program (van ár, időpont, létszám). |
-| **Hamarosan** | Beharangozott, **még nem foglalható** (elég a cím + leírás). |
-| **Elmaradt** | A program **lemondva** (elmarad); a foglalásai „lemondott"-ra kerültek. |
+| **Aktív** | Normál program, amelyhez **időpontok** tartoznak (időpontonként ár + létszám). |
+| **Hamarosan** | Beharangozott, **még nincs időpontja** (elég a cím + leírás); a főoldalon „Hamarosan" jelvénnyel látszik. |
+
+### 1.2b Az időpont állapota (`idopontok.statusz`, 2 érték)
+Egy programnak több **időpontja** (alkalma) lehet; mindegyiknek saját **ára, kedvezményes ára és létszáma** van.
+| Állapot | Jelentés |
+|---|---|
+| **Aktív** | Foglalható alkalom. |
+| **Elmaradt** | Ez az **egy alkalom** elmarad (a program többi időpontja megmaradhat); új foglalás nem adható rá, az érintett foglalók lemondhatók + értesíthetők. |
 
 ### 1.3 Archivált (igen/nem) — külön dimenzió
 Az **`archivált`** jelző FÜGGETLEN a program állapotától, és azt jelenti: **látszik-e a főoldalon**.
@@ -68,16 +74,15 @@ Minden foglalás kap egy azonosítót, pl. **`F-100`**. A formátum a Beállít�
 - **Lábléc:** linkek (Facebook, mobilkemence.xyz, webshop, adatvédelem) + egy nem feltűnő **látogatás-számláló** (böngészőnként 6 óránként max. 1 új látogatás).
 
 ### 2.2 A program-kártyák
-- **Csak a nem archivált** programok jelennek meg.
-- Kártyánként: fotó (ha van), cím, rövid leírás-előnézet, időpont, várható időtartam, ár.
+- **Csak a nem archivált** programok jelennek meg, **programonként egy kártya** (nem időpontonként külön).
+- Kártyánként: fotó (ha van), cím, **„Előadó: …"** (ha meg van adva), rövid leírás-előnézet, várható időtartam.
 - **„Részletek" gomb:** a hosszú leírás külön ablakban nyílik meg (nem terheli a kártyát).
-- **Szabad helyek** kiírva; ha nincs, **„Betelt"** (a gomb letiltva).
-- **Kedvezményes ár:** az eredeti áthúzva, a kedvezményes kiemelve.
-- **„Hamarosan" program:** csak cím + leírás + jelvény, nem foglalható.
-- **„Lezárult" program:** ha a program napja már elmúlt, a kártyán „Lezárult" és a gomb letiltva (akkor is, ha még nincs archiválva). A mai nap még foglalható.
+- **Időpont-csempék:** a kártya alján minden **jövőbeli** időpont egy **kattintható csempe** — rajta a **dátum, az ár és a szabad helyek**. A betelt/elmaradt csempe letiltva („Betelt" / „Elmarad"); a **múltbeli** időpontok nem jelennek meg.
+- **Kedvezményes ár:** a csempén az eredeti áthúzva, a kedvezményes kiemelve.
+- **„Hamarosan" program:** ha nincs jövőbeli, aktív időpontja, csak cím + leírás + „Hamarosan" jelvény, csempe nélkül.
 
 ### 2.3 Hogyan foglal a vendég?
-1. A programnál a **„Foglalás →"** gombra kattint.
+1. A programnál **rákattint a kívánt időpont-csempére** (dátum · ár · szabad hely).
 2. Kitölti az űrlapot: **név, e-mail, telefon, létszám, megjegyzés** (a megjegyzés nem kötelező).
 3. **Validáció** (hibás adattal nem küldhető el):
    - e-mail: formátum-ellenőrzés + elgépelés-figyelmeztetés (pl. `gmail.coom` → „Talán gmail.com?");
@@ -131,10 +136,13 @@ Oszlopok: **azonosító** (pl. `F-100`) · **program** (cím + időpont) · **id
 
 > Fontos: a **„Vendég lemondta"** a *vendég* általi lemondás rögzítése — NEM a teljes program elmaradása. A teljes program lemondását a **Programok fül „Elmarad a program"** funkciója kezeli (lásd 6.4).
 
-### 4.5 Foglalás szerkesztése
+### 4.5 Foglalás szerkesztése és áthelyezése
 1. A soron nyomd meg a **„Szerkesztés"** gombot.
-2. Egy adatlap nyílik, ahol módosítható: **program/időpont** (legördülő), **név, e-mail, telefon, létszám, megjegyzés**.
-3. Mentéskor a **túlfoglalás-védelem** érvényes: ha a választott programon nincs elég szabad hely, a rendszer jelzi és nem menti.
+2. Módosítható: **név, e-mail, telefon, létszám, megjegyzés**, és a foglalás **áthelyezhető** ugyanazon program **másik időpontjára** (legördülő).
+3. **Áthelyezés csak azonos árú időpontra** lehetséges (a legördülő csak ilyeneket kínál). Ha a másik időpont ára eltér, a vendégnek **új foglalást** kell leadnia.
+4. Mentéskor a **túlfoglalás-védelem** érvényes: ha a választott időponton nincs elég szabad hely, a rendszer jelzi és nem menti.
+
+> Hasznos, ha a szervező lemond egy időpontot és másikat ajánl, vagy ha a vendég kéri az áthelyezést.
 
 ### 4.6 Levél küldése a vendégnek (kézi) — „✉ Levél" gomb
 - A **„✉ Levél"** gomb a **műveletek utolsója**, és **NEM jelenik meg a „jóváhagyásra vár" soron** (ott a vendég már megkapta a foglaláskori visszaigazolót).
@@ -153,7 +161,7 @@ Minden soron a **„✉ N kiment levél"** link → külön ablak listázza, mil
 - **Telítettség = az élő foglalások** (vár + jóváhagyott) létszám-összege a max létszámból. A sor színe: van hely (zöld) · közel tele ≥75% (narancs) · **betelt** (piros); az elmaradó program áthúzva.
 - **Évi összesítő** a fejlécben: hány program · összes foglalt/összes hely · hány betelt.
 - **Programra kattintva** a naptár alatt megnyílik az adott program **analitikája**: foglalt/szabad hely, jóváhagyva/vár (fő), majd az **élő jelentkezők listája** (azonosító · vendég · fő · státusz). A foglalások kezelése a Foglalások fülön történik.
-- Csak **időponttal rendelkező** programok kerülnek a naptárba (a „Hamarosan" nem).
+- Minden **időpont külön eseményként** kerül a naptárba (az időpont nélküli „Hamarosan" program nem).
 
 ---
 
@@ -164,39 +172,31 @@ Két al-fül: **Aktuális** (aktív + hamarosan, nem archivált) és **Archivál
 
 ### 6.1 Hogyan viszek fel új programot?
 1. Az **Aktuális** al-fülön nyomd meg a **„+ Új program"** gombot → megnyílik a szerkesztő.
-2. Töltsd ki a mezőket:
-   - **Állapot:** *Aktív* (foglalható) vagy *Hamarosan* (csak megjelenik).
-   - **Cím**
-   - **Részletes leírás** (hosszú is lehet — ez jelenik meg a „Részletek" ablakban).
-   - **Ár (Ft)** és **Kedvezményes ár** (opcionális; kisebb kell legyen az alap árnál — áthúzva jelenik meg).
-   - **Időpont** (dátum + óra:perc).
-   - **Várható időtartam** (opcionális, pl. „~4 óra").
-   - **Max létszám**.
-   - **Fotó** (opcionális; feltöltés, előnézettel).
-3. **Kötelező mezők:** *Aktív* programnál **ár + időpont + max létszám** kötelező; *Hamarosan*-nál elég a **cím + leírás**.
-4. **Mentés.** *(Az ablak csak a Mentés/Mégse gombokra záródik — kattintással/Esc-cel nem, hogy ne vesszen el a kitöltött adat.)*
+2. Töltsd ki a program **közös** mezőit:
+   - **Állapot:** *Aktív* (időpontokkal, foglalható) vagy *Hamarosan* (csak megjelenik, időpont nélkül).
+   - **Cím**, **Rövid leírás** (a kártyán), **Részletes leírás** (a „Részletek" ablakban).
+   - **Előadó** (opcionális; több név vesszővel — a kártyán „Előadó: …").
+   - **Várható időtartam** (opcionális, pl. „~4 óra"), **Fotó** (opcionális; feltöltés, előnézettel).
+3. **Időpontok** (csak *Aktív* programnál): a **„+ Időpont hozzáadása"** gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként **dátum + idő, ár, kedvezményes ár (opc.), max létszám**. Új időpont mindig „Aktív" (az „Elmarad" csak meglévő időpontnál választható).
+4. **Kötelező:** cím + rövid leírás; *Aktív* programnál minden felvitt időpontnál **dátum + ár + max létszám**. *Hamarosan*-nál nincs időpont (a mező is eltűnik).
+5. **Mentés.** *(Az ablak csak a Mentés/Mégse gombokra záródik — kattintással/Esc-cel nem.)*
 
 ### 6.2 Program szerkesztése
 - Az **Aktuális** fülön a **„Szerkesztés"** gomb. Bármelyik adat/fotó módosítható.
 - **Ha a programra már van foglalás,** a rendszer figyelmeztet mentés előtt (a módosítás érinti a jelentkezőket).
 
 ### 6.3 Mit jelent az archiválás, és mi a következménye?
-Az **archiválás** leveszi a programot a főoldalról, de **az adatai és a foglalásai megmaradnak** (megőrzi az analitikát). Az archivált program az „Archivált" al-fülre kerül.
+Az **archiválás** leveszi a programot a főoldalról, de **az adatai és a foglalásai megmaradnak** (megőrzi az analitikát). Az archivált program az „Archivált" al-fülre kerül. Ha élő foglalás tartozik hozzá, a rendszer erre figyelmeztet; a foglalásokat az archiválás **nem bántja** (lemondani a Foglalások fülön lehet, vagy egy-egy időpontot „Elmarad"-ra állítani — lásd 6.4).
 
-Az archiválás menete attól függ, van-e **élő foglalás** (vár/jóváhagyott):
-- **Nincs élő foglalás** (vagy múltbéli program): egyszerű megerősítés → archiválás. A foglalások változatlanok.
-- **Jövőbeli/mai program élő foglalással:** a rendszer **választást** ad:
-  - **„Archiválás"** → csak leveszi a főoldalról, a foglalásokat **nem bántja**.
-  - **„Elmarad a program"** → lásd 6.4.
+### 6.4 Hogyan mondok le egy időpontot? — „Elmarad"
+Ha egy **konkrét alkalom** mégsem lesz megtartva (a program többi időpontja maradhat):
+1. Programok → a programnál **Szerkesztés** → az érintett időpont sorában állítsd az állapotot **„Elmarad"**-ra → **Mentés**.
+2. **Következmény:** arra az időpontra **új foglalás már nem adható**.
+3. Ha az időpontnak volt **élő foglalása**, a rendszer rákérdez, mi legyen velük:
+   - **Maradjanak** (nem mondja le) · **Lemondás értesítő nélkül** · **Lemondás + elmaradás-értesítő**.
+4. A **„Lemondás + elmaradás-értesítő"** a foglalásokat „lemondott"-ra állítja, és kiküldi az érintett vendégeknek a *Program elmarad* levelet (a végén jelzi, hány ment ki).
 
-### 6.4 Hogyan mondom le a teljes programot? — „Elmarad a program"
-Ha egy meghirdetett program mégsem lesz megtartva:
-1. Programok → a programnál **Archiválás** → a választóból **„Elmarad a program"**.
-2. **Következmény:** az élő foglalások (vár + jóváhagyott) **„lemondott"** státuszba kerülnek, a **program** pedig **„elmaradt"** állapotot kap és archiválódik.
-3. A rendszer **rákérdez:** *„Kiküldjük az elmaradás-értesítőt a X vendégnek?"* (Igen / Most nem).
-4. **„Igen"** esetén a rendszer **ténylegesen kiküldi** minden érintett vendégnek a *Program elmarad* levelet, és a végén jelzi, hány ment ki.
-
-> **Múltbéli (lezajlott) programnál NINCS „Elmarad a program" opció** — ami már megtörtént, nem tud elmaradni. Ilyenkor csak sima archiválás választható.
+> Ez **időpont-szintű**: egy alkalom elmaradhat, miközben a program többi időpontja megy tovább.
 
 ### 6.5 Program visszaállítása (archiváltból)
 - Az **Archivált** fülön a **„Visszaállítás"** gombbal. Választható, hogy **Aktív** vagy **Hamarosan** állapotban jöjjön vissza (Aktívhoz kell ár + időpont + max létszám).
@@ -249,7 +249,7 @@ Az admin **Beállítások → E-mail sablonok** alatt szerkeszthető (tárgy + t
 ### 8.2 A négy küldési mód
 1. **Automatikus, foglaláskor:** amikor a vendég foglal, magától kimegy a **Visszaigazolás** (neki) + a **Csapat-értesítő** (nektek). *(Beállítás: `install.html` — foglalás-webhook/trigger.)*
 2. **Kézi, a Foglalások fülön:** a **„✉ Levél"** gomb a státusznak megfelelő levelet küldi (Jóváhagyás / Elutasítás / Lemondás), előnézettel, szerkeszthetően (4.6).
-3. **Csoportos, program-elmaradáskor:** az **„Elmarad a program"** folyamat kiküldi a *Program elmarad* levelet az érintett vendégeknek (6.4).
+3. **Csoportos, időpont-elmaradáskor:** amikor egy időpontot „Elmarad"-ra állítasz, választhatod a *Program elmarad* levél kiküldését az érintett vendégeknek (6.4).
 4. **Napi emlékeztető:** minden nap kimegy az **Emlékeztető** a **másnapi, jóváhagyott** foglalásoknak. *(Beállítás: `install.html` — pg_cron.)*
 
 ### 8.3 Ki a feladó, ki a címzett?
@@ -267,6 +267,6 @@ Az admin **Beállítások → E-mail sablonok** alatt szerkeszthető (tárgy + t
 ---
 
 ## 10. Tervezett (még NEM működik)
-- **Excel- és PDF-export** a foglalásokról.
-- **Keep-alive ping** (hogy az ingyenes Supabase ne aludjon el).
 - **Főoldali képek** admin-feltöltéssel (jelenleg fix képek a `web/kepek/` mappában).
+
+*(Az Excel-/PDF-export és a keep-alive ping már működik.)*

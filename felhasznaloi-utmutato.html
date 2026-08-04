@@ -48,6 +48,7 @@
   <h1>🔥 Kemence Akadémia — Felhasználói útmutató</h1>
   <p class="sub">A foglalási rendszer használata: a vendég oldala és az admin felület, lépésről lépésre.</p>
   <p class="updated">A képernyőképek helye jelölve (<span style="color:#8a7458">📷</span>) — ezeket később illesztitek be.</p>
+  <p class="updated">Frissítve: 2026-08-04 — <b>több időpont egy programhoz</b>, előadó mező, foglalás-áthelyezés, „Összes foglalás” nézet, foglalás-szünet.</p>
 </header>
 
 <div class="callout ok">
@@ -80,17 +81,17 @@
   <p class="lead">A vendég a publikus oldalon böngészi a programokat, és pár kattintással foglal. Nem kell regisztrálnia.</p>
 
   <h3>1.1 — A főoldal</h3>
-  <p>A vendég a főoldalon látja a bemutatkozást, a workshop-típusokat, és a <b>Programok</b> résznél a <b>meghirdetett, foglalható</b> alkalmakat (cím, időpont, ár, szabad helyek). Minden programnál egy <b>rövid leírás</b> látszik; a <b>Részletek</b> gombra kattintva a hosszabb, <b>részletes leírás</b> is megjelenik (ha van megadva).</p>
+  <p>A vendég a főoldalon látja a bemutatkozást, a workshop-típusokat, és a <b>Programok</b> résznél a <b>meghirdetett, foglalható</b> programokat. <b>Egy program = egy kártya</b>, akkor is, ha több időpontban is meg lesz tartva. A kártyán: a program címe, az <b>előadó(k)</b> (ha meg van adva: „Előadó: …”), egy <b>rövid leírás</b>, és alul az <b>időpont-csempék</b> — minden csempén egy konkrét alkalom <b>dátuma, ára és szabad helyei</b>. A <b>Részletek</b> gombra kattintva a hosszabb, részletes leírás is megjelenik (ha van megadva).</p>
   <div class="kep">📷 <b>Képernyőkép:</b> a publikus főoldal a programlistával</div>
 
   <h3>1.2 — A foglalás lépései</h3>
   <ol>
-    <li>A vendég kiválaszt egy programot, és a <b>Foglalás</b> gombra kattint.</li>
+    <li>A vendég a programnál <b>rákattint a kívánt időpont-csempére</b> (dátum · ár · szabad hely).</li>
     <li>Kitölti az űrlapot: <b>név, e-mail, telefon, létszám (hány fő), megjegyzés</b> (nem kötelező).</li>
-    <li>Elküldi. Ha van elég szabad hely, a rendszer rögzíti a foglalást.</li>
+    <li>Elküldi. Ha van elég szabad hely az adott <b>időponton</b>, a rendszer rögzíti a foglalást.</li>
   </ol>
   <div class="kep">📷 <b>Képernyőkép:</b> a foglalási űrlap (felugró ablak)</div>
-  <div class="callout"><b>Túlfoglalás elleni védelem:</b> a rendszer nem enged több foglalást, mint ahány szabad hely van, és <b>múltbéli</b> programra sem enged a vendég foglalni.</div>
+  <div class="callout"><b>Túlfoglalás elleni védelem:</b> a rendszer nem enged több foglalást, mint ahány szabad hely van az adott időponton; <b>múltbéli</b> vagy <b>elmaradt</b> időpontra nem enged foglalni; és ha a foglalás átmenetileg <b>szünetel</b> (lásd 7.6), akkor sem.</div>
 
   <h3>1.3 — Mi történik közvetlenül a foglalás után?</h3>
   <ul>
@@ -121,8 +122,9 @@
     <li><b>Elutasított</b> / <b>Lemondott</b>: lezárt állapot, innen nincs további lépés.</li>
   </ul>
 
-  <h3>2.2 — Szabad helyek</h3>
-  <p>A szabad helyek száma = <b>max. létszám − (a „jóváhagyásra vár" + „jóváhagyott" foglalások létszáma)</b>. Ha egy foglalást elutasítasz vagy lemondasz, a helye <b>azonnal felszabadul</b>, és újra foglalható.</p>
+  <h3>2.2 — Szabad helyek (időpontonként)</h3>
+  <p>A szabad helyek <b>időpontonként</b> számítódnak: <b>az időpont max. létszáma − (az adott időpont „jóváhagyásra vár" + „jóváhagyott" foglalásainak létszáma)</b>. Ha egy foglalást elutasítasz vagy lemondasz, a helye <b>azonnal felszabadul azon az időponton</b>, és újra foglalható.</p>
+  <div class="callout"><b>Több időpont egy programhoz:</b> egy programnak több alkalma (időpontja) lehet, mindegyiknek saját ára, kedvezményes ára, létszáma és állapota (Aktív / Elmarad). A foglalás mindig egy <b>konkrét időpontra</b> szól.</div>
 </div>
 
 <!-- =================== 3. E-MAILEK =================== -->
@@ -138,7 +140,7 @@
     <tr><td>Elutasítás</td><td>a vendégnek</td><td>amikor elutasítjátok</td><td>gombbal (✉ Levél)</td></tr>
     <tr><td>Lemondás</td><td>a vendégnek</td><td>lemondás rögzítésekor</td><td>gombbal (✉ Levél)</td></tr>
     <tr><td>Emlékeztető</td><td>a vendégnek</td><td>a program előtti napon</td><td><b>automatikus</b> (napi)</td></tr>
-    <tr><td>Program elmarad</td><td>az érintett foglalóknak</td><td>ha egy programot elmarasztotok</td><td>egy lépésben, tömegesen</td></tr>
+    <tr><td>Program elmarad</td><td>az érintett foglalóknak</td><td>ha egy <b>időpontot</b> „Elmarad”-ra állítotok</td><td>egy lépésben, tömegesen (választható)</td></tr>
   </table>
 
   <div class="callout"><b>A „✉ Levél" gomb:</b> a foglalás sorában megjelenik egy levél-gomb. Rákattintva egy ablak nyílik, ahol <b>látod és szerkesztheted</b> a levél szövegét, mielőtt elküldöd. Így személyre szabhatod, ha kell.</div>
@@ -163,11 +165,11 @@
   <h2><span class="num">5.</span> Foglalások kezelése</h2>
   <p class="lead">A <b>Foglalások</b> fülön látod és intézed a beérkezett foglalásokat.</p>
 
-  <h3>5.1 — A négy státusz-alfül</h3>
-  <p>Fent négy alfül van, státuszonként (mindegyiknél zárójelben a darabszám): <span class="pill o">Jóváhagyásra vár</span> <span class="pill g">Jóváhagyott</span> <span class="pill r">Elutasított</span> <span class="pill x">Lemondott</span>. Kattints egyre, és az adott állapotú foglalások listáját látod.</p>
+  <h3>5.1 — A státusz-alfülek + „Összes foglalás”</h3>
+  <p>Fent alfülek vannak, státuszonként (mindegyiknél zárójelben a darabszám): <span class="pill o">Jóváhagyásra vár</span> <span class="pill g">Jóváhagyott</span> <span class="pill r">Elutasított</span> <span class="pill x">Lemondott</span>, és utolsóként az <b>Összes foglalás</b> (státusztól függetlenül minden foglalás). Kattints egyre, és az adott lista jelenik meg.</p>
 
   <h3>5.2 — Szűrés</h3>
-  <p>A lista szűkíthető: <b>program szerint</b>, <b>vendég neve szerint</b>, és <b>időállapot szerint</b> (jövőbeli / ma / múltbéli).</p>
+  <p>A lista szűkíthető: <b>program + időpont szerint</b> (a legördülőben minden opció egy konkrét alkalom, pl. „Nápolyi pizza este — aug. 22. 18:00”), <b>vendég neve szerint</b>, és <b>időállapot szerint</b> (jövőbeli / ma / múltbéli).</p>
 
   <h3>5.3 — Egy foglalás sora</h3>
   <p>Minden sorban látod: azonosító, program + időpont, időállapot, vendég (név, telefon, e-mail), létszám, megjegyzés, státusz, és a <b>műveletek</b>.</p>
@@ -179,9 +181,10 @@
     <li><b>Jóváhagyás</b> — elfogadod; a hely biztossá válik. Utána a <b>✉ Levél</b> gombbal küldhetsz jóváhagyó értesítőt.</li>
     <li><b>Elutasítás</b> — nem fogadod el; a hely felszabadul. A ✉ Levéllel küldhetsz elutasítót.</li>
     <li><b>Vendég lemondta</b> — ha a vendég jelezte a lemondást, itt rögzíted; a hely felszabadul.</li>
-    <li><b>Szerkesztés</b> — javíthatod a foglalás adatait (név, e-mail, telefon, létszám, megjegyzés, program).</li>
+    <li><b>Szerkesztés / áthelyezés</b> — javíthatod a foglalás adatait (név, e-mail, telefon, létszám, megjegyzés), és <b>áthelyezheted másik időpontra</b> ugyanazon a programon belül — de <b>csak azonos árú</b> időpontra; eltérő árnál a vendégnek újra kell foglalnia.</li>
     <li><b>✉ Levél</b> — a státuszhoz illő levelet küldöd a vendégnek (szerkeszthető szöveggel).</li>
-    <li><b>📝 megjegyzés</b> / <b>kiment levelek</b> — a soron megnézheted a vendég megjegyzését és a hozzá kiment leveleket.</li>
+    <li><b>🗑 Törlés</b> — <b>csak lezárt</b> (elutasított / lemondott) foglalásnál jelenik meg: véglegesen kitörli a foglalást („pucolás”). Élő foglalást nem lehet törölni.</li>
+    <li><b>📝 megjegyzés</b> / <b>kiment levelek</b> — a soron megnézheted a vendég megjegyzését és a hozzá kiment leveleket. (A csapat-értesítő nem számít bele a vendég kiment leveleibe.)</li>
   </ul>
 
   <h3>5.5 — Excel-export</h3>
@@ -194,11 +197,11 @@
   <p class="lead">A <b>Naptár</b> fülön egy éves áttekintést kapsz a programokról, és egy programra kattintva látod a résztvevőket.</p>
 
   <h3>6.1 — Az éves nézet</h3>
-  <p>Léptethetsz az évek között, és látod, melyik hónapban milyen programok vannak. Egy programra kattintva lenyílnak a részletei.</p>
+  <p>Léptethetsz az évek között, és látod, melyik hónapban milyen <b>időpontok</b> vannak (minden alkalom külön esemény a naptárban). Egy időpontra kattintva lenyílnak a részletei.</p>
   <div class="kep">📷 <b>Képernyőkép:</b> a naptár éves nézete a programokkal</div>
 
   <h3>6.2 — Egy program résztvevői</h3>
-  <p>A kiválasztott programnál látod a foglalt/szabad helyeket, a jóváhagyott és váró létszámot, és egy <b>táblázatot az élő foglalókról</b> (jóváhagyott + jóváhagyásra váró): azonosító, vendég neve, <b>telefon, e-mail</b>, létszám, státusz.</p>
+  <p>A kiválasztott <b>időpontnál</b> látod a foglalt/szabad helyeket, a jóváhagyott és váró létszámot, és egy <b>táblázatot az élő foglalókról</b> (jóváhagyott + jóváhagyásra váró): azonosító, vendég neve, <b>telefon, e-mail</b>, létszám, státusz.</p>
 
   <h3>6.3 — Jelentés (PDF)</h3>
   <p>A résztvevő-tábla fölött a <b>📄 Jelentés (PDF)</b> gombbal letöltesz egy nyomtatható PDF-et a programról: a program adatai (a részletes leírás nélkül) + az élő foglalók táblája elérhetőséggel és összesítéssel. Kiválóan használható a helyszínen (ki jön, hány fővel, hogyan érhető el).</p>
@@ -210,34 +213,54 @@
   <h2><span class="num">7.</span> Programok kezelése</h2>
   <p class="lead">A <b>Programok</b> fülön veszed fel és kezeled a workshopokat. Két alfül: <b>Aktuális</b> és <b>Archivált</b> programok.</p>
 
-  <h3>7.1 — Program-státuszok</h3>
+  <h3>7.1 — Program- és időpont-állapotok</h3>
+  <p>A <b>program</b> a közös adatokat tartja (cím, leírások, előadó, kép). A konkrét alkalmak az <b>időpontok</b>: mindegyiknek saját <b>dátuma, ára, kedvezményes ára, létszáma</b> és állapota van.</p>
   <table>
-    <tr><th>Státusz</th><th>Mit jelent</th></tr>
-    <tr><td><b>Aktív</b></td><td>Élő, <b>foglalható</b> program. Kötelező hozzá ár + időpont + létszám. Megjelenik a főoldalon.</td></tr>
-    <tr><td><b>Hamarosan</b></td><td>Előzetes/csalogató. Megjelenik, de <b>még nem foglalható</b> (az ár/időpont lehet üres).</td></tr>
-    <tr><td><b>Elmaradt</b></td><td>A program <b>elmarad</b> (nem lesz megtartva). A felületen „elmarad" jelöléssel látszik.</td></tr>
+    <tr><th>Program állapota</th><th>Mit jelent</th></tr>
+    <tr><td><b>Aktív</b></td><td>Rendes program, <b>időpontokkal</b>. A jövőbeli, aktív időpontjai foglalhatók a főoldalon.</td></tr>
+    <tr><td><b>Hamarosan</b></td><td>Előzetes/csalogató. <b>Nincs időpontja</b>; a főoldalon „Hamarosan” jelöléssel látszik, nem foglalható.</td></tr>
   </table>
-  <div class="callout"><b>Az „archiválás" külön dolog!</b> Az <b>archivált</b> jelző FÜGGETLEN a státusztól, és azt jelenti: <b>látszik-e a főoldalon</b>. Egy program lehet egyszerre „aktív jellegű" ÉS archivált (levettük a főoldalról, de az adatok/foglalások megmaradnak).</div>
+  <table>
+    <tr><th>Időpont állapota</th><th>Mit jelent</th></tr>
+    <tr><td><b>Aktív</b></td><td>Foglalható alkalom.</td></tr>
+    <tr><td><b>Elmarad</b></td><td>Ez az <b>egy alkalom</b> elmarad (a többi időpont mehet tovább); nem foglalható. Az érintett foglalók lemondhatók + értesíthetők (lásd 7.5).</td></tr>
+  </table>
+  <div class="callout"><b>Az „archiválás" külön dolog!</b> Az <b>archivált</b> jelző azt jelenti: <b>látszik-e a főoldalon</b>. Egy program lehet aktív ÉS archivált (levettük a főoldalról, de az adatok/foglalások megmaradnak).</div>
 
   <h3>7.2 — Új program felvitele</h3>
   <ol>
     <li>Programok fül → <b>Új program</b> gomb.</li>
-    <li>Töltsd ki: <b>cím</b>, <b>rövid leírás</b> (kötelező — ez jelenik meg a kártyán), <b>részletes leírás</b> (opcionális — a „Részletek" ablakban; ha üres, nincs „Részletek" gomb), <b>ár</b> (és opcionálisan kedvezményes ár), <b>időpont, várható időtartam, max. létszám</b>, és állítsd be a <b>státuszt</b> (aktív / hamarosan).</li>
-    <li>Ha van kép, <b>tölts fel fotót</b> a programhoz (ez lesz a foglalós kártya képe).</li>
-    <li>Mentés. Ha „aktív", azonnal megjelenik a főoldalon és foglalható.</li>
+    <li>Töltsd ki a <b>közös</b> mezőket: <b>cím</b>, <b>rövid leírás</b> (kötelező — ez jelenik meg a kártyán), <b>részletes leírás</b> (opcionális — a „Részletek" ablakban), <b>előadó</b> (opcionális, több név vesszővel — „Előadó: …”), <b>várható időtartam</b>, és állítsd be az <b>állapotot</b> (aktív / hamarosan). Ha van, <b>tölts fel fotót</b>.</li>
+    <li><b>Időpontok</b> (aktív programnál): a <b>„+ Időpont hozzáadása”</b> gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként <b>dátum + idő, ár, kedvezményes ár (opcionális), max. létszám</b>. (Új időpont mindig „Aktív”.)</li>
+    <li>Mentés. Az aktív program jövőbeli, aktív időpontjai azonnal foglalhatók a főoldalon.</li>
   </ol>
   <div class="kep">📷 <b>Képernyőkép:</b> az új program űrlapja</div>
 
   <h3>7.3 — Mit tehetsz egy programmal?</h3>
   <ul>
-    <li><b>Szerkesztés</b> — bármelyik adat módosítható (ár, időpont, létszám, leírás, kép, státusz).</li>
-    <li><b>Archiválás</b> — <b>leveszi a főoldalról</b>, de az adatok és a <b>foglalások megmaradnak</b> (az „Archivált" alfülre kerül). A foglalásokat nem bántja. Bármikor <b>visszaállítható</b>.</li>
-    <li><b>„Elmarad a program"</b> — a státuszt <b>elmaradt</b>-ra állítja, és <b>egy lépésben értesítő levelet küld</b> az érintett (élő) foglalóknak, hogy a program elmarad.</li>
-    <li><b>Törlés</b> — végleg törli a programot. (Óvatosan: ha van hozzá foglalás, inkább archiválj.)</li>
+    <li><b>Szerkesztés</b> — a program adatai és az <b>időpontjai</b> módosíthatók (dátum, ár, létszám, állapot, hozzáadás/törlés).</li>
+    <li><b>Foglalás felfüggesztése / engedélyezése</b> — átmenetileg letiltja/engedi a foglalást erre a programra (lásd 7.6). Szünetelő programnál a gomb <b>piros</b>, és a főoldalon „Foglalás átmenetileg felfüggesztve” jelenik meg.</li>
+    <li><b>Archiválás</b> — <b>leveszi a főoldalról</b>, de az adatok és a <b>foglalások megmaradnak</b> (az „Archivált" alfülre kerül). Bármikor <b>visszaállítható</b>.</li>
+    <li><b>Törlés</b> — végleg törli a programot (minden időpontjával). Csak akkor, ha <b>nincs hozzá foglalás</b>; ha van, inkább archiválj.</li>
   </ul>
 
   <h3>7.4 — Mit jelent az archiválás a gyakorlatban?</h3>
   <p>Egy megtartott, lezajlott programot érdemes <b>archiválni</b>: eltűnik a főoldalról (a vendégek már nem látják/foglalják), de <b>a foglalások és a statisztika megmarad</b>, és a naptárban/archívumban visszanézhető. Nem törlöd el az adatokat, csak „elteszed".</p>
+
+  <h3>7.5 — Időpontok kezelése (elmarad, törlés)</h3>
+  <ul>
+    <li><b>Elmarad egy időpont:</b> a program szerkesztőjében az adott időpont sorában állítsd az állapotát <b>„Elmarad”</b>-ra, majd Mentés. Ha az időponton van <b>élő foglalás</b>, a rendszer felajánlja: <b>lemondás e-mail értesítő nélkül</b>, vagy <b>lemondás + elmaradás e-mail</b> a vendégeknek (a „sajnos elmarad” levél). A „Mégse” visszaállítja aktívra.</li>
+    <li><b>Időpont törlése (✕):</b> foglalás nélküli időpont simán törölhető. Ha csak <b>lezárt</b> (lemondott/elutasított) foglalás tartozik hozzá, a rendszer rákérdez, és a törléssel azok a rekordok is eltűnnek. <b>Élő</b> foglalásnál nem törölhető — ott az „Elmarad” a helyes út.</li>
+    <li><b>Max. létszám:</b> egy időpont max. létszámát <b>nem lehet a már befoglalt fő alá</b> vinni — a rendszer szól és visszaállítja az eredeti értéket.</li>
+  </ul>
+
+  <h3>7.6 — Foglalás átmeneti felfüggesztése (szünet)</h3>
+  <p>Ha egy programot épp szerkesztesz, vagy még nem biztos, hogy elindul (de már kint vannak az időpontjai), <b>átmenetileg felfüggesztheted a foglalást</b> — az adatok megmaradnak, csak a vendégek nem tudnak addig foglalni.</p>
+  <ul>
+    <li><b>Egy programra:</b> a programnál a <b>„Foglalás felfüggesztése”</b> gomb. Ekkor a kártyán „Foglalás szünetel” jelzés, a főoldalon a programnál <b>„Foglalás átmenetileg felfüggesztve”</b> üzenet jelenik meg (az időpontok látszanak, de nem foglalhatók). Feloldás: <b>„Foglalás engedélyezése”</b>.</li>
+    <li><b>Mindenre egyszerre:</b> a Programok fül tetején a nagy <b>„Minden foglalás felfüggesztése”</b> gomb. A <b>„Minden foglalás feloldása”</b> mindent visszaenged — a kézzel, egyenként felfüggesztett programokat is.</li>
+  </ul>
+  <div class="callout ok"><b>Biztonságos:</b> a felfüggesztés a szervernél is érvényes, tehát a vendég akkor sem tud foglalni, ha megpróbálná megkerülni. Ti az adminból bármikor rögzíthettek foglalást kézzel.</div>
 </div>
 
 <!-- =================== 8. BEÁLLÍTÁSOK =================== -->
