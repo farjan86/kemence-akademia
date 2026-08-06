@@ -36,9 +36,16 @@ function csempe(i, felfuggesztve){
     ? `<span class="i-ar"><span class="old">${HUF(i.ar)}</span><span class="sale">${HUF(i.kedvezmenyes_ar)}</span></span>`
     : `<span class="i-ar">${HUF(i.ar)}</span>`;
 
+  // Csoportos korlátok: lezárt-e, mert elérte a max. foglalásokat, vagy a szabad hely < minimum?
+  const maxElerve = (i.max_foglalasok != null) && ((i.foglalasok_szama || 0) >= i.max_foglalasok);
+  const kevesMint = (i.min_letszam != null) && (i.szabad_helyek < i.min_letszam);
+  const csoportos = (i.min_letszam != null) || (i.max_foglalasok != null);
+
   let allapot, cls, disabled = "";
   if(i.idopont_statusz === "elmaradt"){ allapot = "Elmarad"; cls = "full"; disabled = "disabled"; }
-  else if(i.szabad_helyek <= 0){       allapot = "Betelt";   cls = "full"; disabled = "disabled"; }
+  else if(i.szabad_helyek <= 0 || maxElerve || kevesMint){ allapot = "Betelt"; cls = "full"; disabled = "disabled"; }
+  else if(i.min_letszam != null){      allapot = `Min. ${i.min_letszam} fő`; cls = "free"; }
+  else if(csoportos){                  allapot = "Csoportos"; cls = "free"; }
   else {                               allapot = `${i.max_letszam - i.szabad_helyek}/${i.max_letszam} foglalt`; cls = "free"; }
   if(felfuggesztve) disabled = "disabled";   // szünet: nem foglalható, de a dátum/ár látszik
 
@@ -128,7 +135,8 @@ async function betoltProgramok(){
     if(r.idopont_id){
       const ido = {
         idopont_id: r.idopont_id, idopont: r.idopont, ar: r.ar, kedvezmenyes_ar: r.kedvezmenyes_ar,
-        max_letszam: r.max_letszam, idopont_statusz: r.idopont_statusz, szabad_helyek: r.szabad_helyek
+        max_letszam: r.max_letszam, idopont_statusz: r.idopont_statusz, szabad_helyek: r.szabad_helyek,
+        max_foglalasok: r.max_foglalasok, min_letszam: r.min_letszam, foglalasok_szama: r.foglalasok_szama
       };
       p.idopontok.push(ido);
       idopontIndex[r.idopont_id] = { program: p, ido };

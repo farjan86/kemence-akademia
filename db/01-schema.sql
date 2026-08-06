@@ -46,6 +46,8 @@ create table if not exists public.idopontok (
   ar                 integer not null,            -- Ft
   kedvezmenyes_ar    integer,                     -- opcionális akciós ár (< ar)
   max_letszam        integer not null,            -- férőhely erre az alkalomra
+  max_foglalasok     integer,                     -- hány FOGLALÁS jöhet rá (null = korlátlan)
+  min_letszam        integer,                     -- egy foglalás MIN. létszáma (null = nincs)
   statusz            text not null default 'aktiv'
                        check (statusz in ('aktiv','elmaradt')),   -- 'elmaradt' = ez az alkalom lemondva
   created_at         timestamptz not null default now(),
@@ -54,7 +56,12 @@ create table if not exists public.idopontok (
   constraint idopont_kedvezmeny_kisebb
     check (kedvezmenyes_ar is null or kedvezmenyes_ar < ar),
   constraint idopont_letszam_pozitiv
-    check (max_letszam > 0)
+    check (max_letszam > 0),
+  -- csoportos korlátok: pozitív értékek, és a minimum nem nagyobb a kapacitásnál
+  constraint idopont_max_foglalasok_pozitiv
+    check (max_foglalasok is null or max_foglalasok >= 1),
+  constraint idopont_min_letszam_ervenyes
+    check (min_letszam is null or (min_letszam >= 1 and min_letszam <= max_letszam))
 );
 
 -- ---------------------------------------------------------------------
@@ -164,6 +171,20 @@ as $$
     and statusz in ('jovahagyasra_var','jovahagyott');  -- ezek foglalnak helyet
 $$;
 
+-- Élő foglalások SZÁMA egy időponton (a max_foglalasok korláthoz).
+create or replace function public.foglalasok_szama(p_idopont uuid)
+returns integer
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select count(*)::int
+  from public.bookings
+  where idopont_id = p_idopont
+    and statusz in ('jovahagyasra_var','jovahagyott');
+$$;
+
 -- Publikus programlista nézet: program-mezők × időpontok + szabad helyek,
 -- foglalási sorok kiszivárgása nélkül. LEFT JOIN, hogy az időpont nélküli
 -- ('hamarosan') program is megjelenjen (idopont_id = null sorral).
@@ -177,10 +198,14 @@ select
   i.id                as idopont_id,          -- null, ha a programnak nincs időpontja
   i.idopont,
   i.ar, i.kedvezmenyes_ar, i.max_letszam,
+  i.max_foglalasok, i.min_letszam,
   i.statusz           as idopont_statusz,     -- 'aktiv' / 'elmaradt'
   case when i.id is null then null
        else greatest(coalesce(i.max_letszam,0) - public.foglalt_helyek(i.id), 0)
-  end                 as szabad_helyek
+  end                 as szabad_helyek,
+  case when i.id is null then null
+       else public.foglalasok_szama(i.id)
+  end                 as foglalasok_szama
 from public.workshops w
 left join public.idopontok i on i.workshop_id = w.id;
 
@@ -203,13 +228,18 @@ declare
   v_archivalt    boolean;
   v_felfugg      boolean;
   v_szunet       boolean;
+  v_maxfogl      integer;
+  v_min          integer;
   v_foglalt      integer;
+  v_fogl_szam    integer;
 begin
   -- Csak a helyet foglaló (aktív) státuszoknál ellenőrzünk: így lezárt foglalás
   -- (lemondott/elutasított) bármikor módosítható elmaradt/archivált időponton is.
   if new.statusz in ('jovahagyasra_var','jovahagyott') then
-    select i.max_letszam, i.statusz, i.idopont, w.statusz, w.archivalt, w.foglalas_felfuggesztve
-      into v_max, v_ido_statusz, v_idopont, v_prog_statusz, v_archivalt, v_felfugg
+    select i.max_letszam, i.statusz, i.idopont, w.statusz, w.archivalt, w.foglalas_felfuggesztve,
+           i.max_foglalasok, i.min_letszam
+      into v_max, v_ido_statusz, v_idopont, v_prog_statusz, v_archivalt, v_felfugg,
+           v_maxfogl, v_min
     from public.idopontok i
     join public.workshops w on w.id = i.workshop_id
     where i.id = new.idopont_id;
@@ -241,6 +271,24 @@ begin
        and (v_idopont at time zone 'Europe/Budapest')::date
            < (now()      at time zone 'Europe/Budapest')::date then
       raise exception 'Erre az időpontra már nem lehet foglalni (lezárult).';
+    end if;
+
+    -- Min. létszám / foglalás — csak a publikus (anon) foglalásra (az admin felülbírálhatja).
+    if tg_op = 'INSERT' and coalesce(auth.role(), '') = 'anon'
+       and v_min is not null and new.letszam < v_min then
+      raise exception 'Erre az időpontra legalább % fős foglalás szükséges.', v_min;
+    end if;
+
+    -- Max. foglalások száma — csak a publikus (anon) foglalásra.
+    if tg_op = 'INSERT' and coalesce(auth.role(), '') = 'anon' and v_maxfogl is not null then
+      select count(*) into v_fogl_szam
+      from public.bookings
+      where idopont_id = new.idopont_id
+        and statusz in ('jovahagyasra_var','jovahagyott')
+        and id <> new.id;
+      if v_fogl_szam >= v_maxfogl then
+        raise exception 'Erre az időpontra már nem fogadható több foglalás.';
+      end if;
     end if;
 
     select coalesce(sum(letszam),0) into v_foglalt

@@ -17,16 +17,32 @@ function nyitFoglalas(idopont_id){
   const rec = idopontIndex[idopont_id];   // idopontIndex: app.js
   if(!rec) return;
   const { program, ido } = rec;
+  const maxElerve = (ido.max_foglalasok != null) && ((ido.foglalasok_szama || 0) >= ido.max_foglalasok);
+  const kevesMint = (ido.min_letszam != null) && (ido.szabad_helyek < ido.min_letszam);
   // Nem foglalható időpontra ne nyíljon foglalás
-  if(lezarultNap(ido.idopont) || ido.idopont_statusz === "elmaradt" || ido.szabad_helyek <= 0) return;
+  if(lezarultNap(ido.idopont) || ido.idopont_statusz === "elmaradt" || ido.szabad_helyek <= 0 || maxElerve || kevesMint) return;
 
   aktualisIdopont = { ...ido, cim: program.cim };
 
   document.getElementById("mTitle").textContent = program.cim;
   const datum = formatDatum(ido.idopont);
   const ar = ido.kedvezmenyes_ar ?? ido.ar;
+  const csoportos = (ido.min_letszam != null) || (ido.max_foglalasok != null);
   document.getElementById("mMeta").innerHTML =
-    `${datum ? "<b>"+datum+"</b> · " : ""}${HUF(ar)} · ${ido.max_letszam - ido.szabad_helyek}/${ido.max_letszam} foglalt`;
+    `${datum ? "<b>"+datum+"</b> · " : ""}${HUF(ar)} / fő${csoportos ? "" : ` · ${ido.max_letszam - ido.szabad_helyek}/${ido.max_letszam} foglalt`}`;
+
+  // Csoportos alkalom jelzése + a létszám alsó határa
+  const note = document.getElementById("mCsoportos");
+  if(note){
+    if(csoportos){
+      const reszek = [];
+      if(ido.max_foglalasok != null) reszek.push(`legfeljebb ${ido.max_foglalasok} foglalás tehető`);
+      if(ido.min_letszam != null)    reszek.push(`legalább ${ido.min_letszam} fős foglalás szükséges`);
+      note.textContent = "Csoportos alkalom: " + reszek.join(", ") + ".";
+      note.hidden = false;
+    } else note.hidden = true;
+  }
+  formEl.letszam.min = ido.min_letszam || 1;
 
   // alaphelyzet
   formEl.reset(); errEl.hidden = true; emailFigyelmeztetve = false;
@@ -72,6 +88,8 @@ formEl.addEventListener("submit", async (e) => {
 
   if(!telefonOk(telefon)) return hiba("Érvényes telefonszámot adj meg.", formEl.telefon);
   if(!(letszam >= 1))     return hiba("A létszám legalább 1 fő.", formEl.letszam);
+  if(aktualisIdopont.min_letszam != null && letszam < aktualisIdopont.min_letszam)
+    return hiba(`Erre az időpontra legalább ${aktualisIdopont.min_letszam} fős foglalás szükséges.`, formEl.letszam);
   if(letszam > aktualisIdopont.szabad_helyek)
     return hiba(`Csak ${aktualisIdopont.szabad_helyek} szabad hely van.`, formEl.letszam);
 

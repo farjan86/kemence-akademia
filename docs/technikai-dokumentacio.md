@@ -22,6 +22,8 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   m_05-rovid-leiras.sql     Dev-migráció: rovid_leiras mező (már a 01-ben is benne)
   m_06-naptar-nezet.sql     Dev-migráció: settings.naptar_nezet (már a 01-ben is benne)
   m_07-tobb-idopont.sql     Dev-migráció: „több időpont" átállás (idopontok tábla, bookings.workshop_id→idopont_id, nézet/trigger/RLS). Üres dev-DB-hez; a végleges a 01-ben van. Később törölhető.
+  m_08-foglalas-szunet.sql  Dev-migráció: foglalás-szünet (workshops.foglalas_felfuggesztve + settings.foglalas_szunet). Már a 01-ben is benne. Később törölhető.
+  m_09-foglalasi-korlatok.sql  Dev-migráció: csoportos korlátok (idopontok.max_foglalasok + min_letszam, constraintek, foglalasok_szama() függvény, nézet + túlfoglalás-trigger frissítés). Már a 01-ben is benne. Később törölhető.
   t_start-programok.sql     Technikai: induló (kb. éles) programok + időpontjaik (RESET-tel)
   t_seed-demo-foglalasok.sql  Technikai (CSAK dev): demó programok/időpontok/foglalások (MINDENT töröl + újratölt). Éles DB-n NE fusson.
   t_reset-ures-allapot.sql  Technikai: minden program+időpont+foglalás törlése (üres induló állapot)
@@ -56,8 +58,9 @@ start-szerver.bat           Helyi szerver indító (localhost:5500)
 Az ár/időpont/létszám NEM itt van, hanem **időpontonként** az `idopontok` táblában.
 
 **`idopontok`** — egy program meghirdetett alkalmai (a több-időpont lelke)
-`id` (uuid, PK) · `workshop_id` (FK→workshops, `on delete cascade`) · `idopont` (timestamptz) · `ar` · `kedvezmenyes_ar` (opcionális) · `max_letszam` (>0) · `statusz` (`aktiv`/`elmaradt` — egy alkalom lemondható a többi megtartása mellett) · `created_at`
-Megszorítások: akciós ár < alap ár; létszám>0.
+`id` (uuid, PK) · `workshop_id` (FK→workshops, `on delete cascade`) · `idopont` (timestamptz) · `ar` · `kedvezmenyes_ar` (opcionális) · `max_letszam` (>0) · `max_foglalasok` (opcionális, csoportos korlát) · `min_letszam` (opcionális, csoportos korlát) · `statusz` (`aktiv`/`elmaradt` — egy alkalom lemondható a többi megtartása mellett) · `created_at`
+Megszorítások: akciós ár < alap ár; létszám>0; `max_foglalasok is null or ≥1`; `min_letszam is null or (≥1 and ≤ max_letszam)`.
+**Csoportos korlátok:** `max_foglalasok` = hány foglalás (csapat) fogadható az időpontra (null=korlátlan); `min_letszam` = egy foglalás minimális létszáma (null=nincs). Az időpont lezár, ha eléri a `max_foglalasok`-ot, vagy ha a szabad hely < `min_letszam`.
 
 **`bookings`** — foglalások (mindig egy KONKRÉT IDŐPONTRA)
 `id` (uuid, PK) · `azonosito` (bigint identity, **1-től**) · `idopont_id` (FK→idopontok, `on delete restrict`) · `nev` · `email` · `telefon` · `letszam` (>0) · `megjegyzes` · `statusz` (`jovahagyasra_var`/`jovahagyott`/`elutasitott`/`lemondott`) · `created_at`
@@ -77,15 +80,17 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {idopont} {letsza
 `id` · `latogatasok` (bigint) · `updated_at`. RLS mögött, közvetlenül nem érhető el — csak a lenti függvényeken át.
 
 ### Nézet, függvények, triggerek
-- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, `rovid_leiras`, `leiras`, `eloado`, `varhato_idotartam`, `foto_url`, `archivalt`, `program_statusz`, `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `idopont_statusz`, `szabad_helyek`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
+- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, `rovid_leiras`, `leiras`, `eloado`, `varhato_idotartam`, `foto_url`, `archivalt`, `program_statusz`, `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `max_foglalasok`, `min_letszam`, `idopont_statusz`, `szabad_helyek`, `foglalasok_szama`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
 - **`foglalt_helyek(uuid)`** (függvény, `security definer`): egy **IDŐPONT** foglalt helyeinek száma (a `jovahagyasra_var` + `jovahagyott` foglalások létszám-összege). Anon is hívhatja, de a foglalási sorokat nem látja.
-- **`ellenoriz_szabad_hely()`** + **`trg_szabad_hely`** trigger (bookings, before insert/update): túlfoglalás elleni védelem **időpont-szinten**; **elmaradt** időpontra vagy nem-aktív/archivált programra nem enged foglalni; a **publikus (anon) foglalást múltbéli időpontra elutasítja** (a mai nap még OK; az admin/seed rögzíthet historikusat).
+- **`foglalasok_szama(uuid)`** (függvény, `security definer`): egy **IDŐPONT** élő **foglalásainak (rekordjainak) száma** — a `max_foglalasok` korláthoz (nem a létszám-összeg, hanem a foglalások darabszáma). A nézet is ezt adja vissza `foglalasok_szama` oszlopként, hogy a publikus oldal el tudja dönteni, betelt-e a csoportos alkalom.
+- **`ellenoriz_szabad_hely()`** + **`trg_szabad_hely`** trigger (bookings, before insert/update): túlfoglalás elleni védelem **időpont-szinten**; **elmaradt** időpontra vagy nem-aktív/archivált programra nem enged foglalni; a **publikus (anon) foglalást múltbéli időpontra elutasítja** (a mai nap még OK; az admin/seed rögzíthet historikusat). **Csoportos korlátok (csak anon INSERT-nél):** elutasítja a `min_letszam` alatti létszámot, és ha az élő foglalások száma elérte a `max_foglalasok`-ot. Az **admin** (nem-anon) e két korlátot felülbírálhatja.
 - **`latogatas_rogzites()` / `latogatas_szam()`** (`security definer`): a látogatásszám növelése ill. olvasása. Anon is hívhatja (a tábla RLS-e miatt csak ezeken át).
 - **`trg_uj_foglalas_email()`** + **`trg_uj_foglalas_email`** trigger (bookings, after insert) — **külön fájl (`db/03-auto-visszaigazolo-trigger.sql`), projekt-specifikus értékkel:** új `jovahagyasra_var` foglaláskor `pg_net`-tel meghívja a `send-email` függvényt (auto visszaigazoló + csapat-értesítő). A Supabase Database Webhook SQL-alternatívája; ugyanazt a `{type:INSERT, record}` payloadot küldi.
 - **`pg_cron` napi feladat** (`kemence-napi-emlekezteto`, `db/04-emlekezteto-cron.sql`) — `pg_net`-tel a másnapi jóváhagyott foglalásoknak emlékeztetőt küld.
 
 ### Szabad helyek és azonosító képletei
 - **Szabad helyek (időpontonként):** `idopontok.max_letszam − (az adott időpont `jovahagyasra_var` + `jovahagyott` létszámai)`. Az `elutasitott`/`lemondott` felszabadít.
+- **Csoportos alkalom „betelt"** (a csempén, publikus oldal): `szabad_helyek ≤ 0`, **vagy** `max_foglalasok` elérve (`foglalasok_szama ≥ max_foglalasok`), **vagy** `szabad_helyek < min_letszam`.
 - **Megjelenített azonosító:** `azonosito_elotag + (bookings.azonosito + azonosito_kezdo − 1)`. Alap: `F-` + 100 → `F-100`.
 
 ### Storage

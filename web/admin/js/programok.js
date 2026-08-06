@@ -51,12 +51,18 @@ function idopontSorHtml(i){
     </select>`
     : `<span class="ido-uj-jel">Aktív</span>`;
   return `<div class="idopont-sor${elmaradt ? " elmaradt" : ""}" data-id="${i.id || ""}" data-eredeti-max="${i.max_letszam ?? ""}">
-    <input class="ido-datum" type="datetime-local" value="${i.idopont ? isoToLocalInput(i.idopont) : ""}">
-    <input class="ido-ar" type="number" min="0" step="1" placeholder="Ár" value="${i.ar ?? ""}">
-    <input class="ido-kedv" type="number" min="0" step="1" placeholder="Kedv." value="${i.kedvezmenyes_ar ?? ""}">
-    <input class="ido-max" type="number" min="1" step="1" placeholder="Fő" value="${i.max_letszam ?? ""}">
-    ${allapotCella}
-    <button type="button" class="btn sm ghost ido-torol" title="Időpont törlése">✕</button>
+    <div class="ido-fej">
+      <input class="ido-datum" type="datetime-local" value="${i.idopont ? isoToLocalInput(i.idopont) : ""}">
+      ${allapotCella}
+      <button type="button" class="btn sm ghost ido-torol" title="Időpont törlése">✕</button>
+    </div>
+    <div class="ido-mezok">
+      <label class="ido-mezo">Ár (Ft)<input class="ido-ar" type="number" min="0" step="1" value="${i.ar ?? ""}"></label>
+      <label class="ido-mezo">Kedv. ár<input class="ido-kedv" type="number" min="0" step="1" value="${i.kedvezmenyes_ar ?? ""}"></label>
+      <label class="ido-mezo">Max. létszám<input class="ido-max" type="number" min="1" step="1" value="${i.max_letszam ?? ""}"></label>
+      <label class="ido-mezo">Min. fő/foglalás<input class="ido-min" type="number" min="1" step="1" placeholder="—" value="${i.min_letszam ?? ""}"></label>
+      <label class="ido-mezo">Max. foglalás<input class="ido-maxfogl" type="number" min="1" step="1" placeholder="—" value="${i.max_foglalasok ?? ""}"></label>
+    </div>
   </div>`;
 }
 function renderIdopontSorok(idopontok){
@@ -318,6 +324,8 @@ function gyujtIdopontok(){
     const arv   = sor.querySelector(".ido-ar").value;
     const kedvv = sor.querySelector(".ido-kedv").value;
     const maxv  = sor.querySelector(".ido-max").value;
+    const minv  = sor.querySelector(".ido-min").value;
+    const maxfoglv = sor.querySelector(".ido-maxfogl").value;
     const stEl  = sor.querySelector(".ido-statusz");
     const st    = stEl ? stEl.value : "aktiv";     // új sornál nincs választó → mindig aktív
     const idId  = sor.dataset.id || null;
@@ -326,8 +334,15 @@ function gyujtIdopontok(){
     const ar = arv ? parseInt(arv, 10) : null;
     const max_letszam = maxv ? parseInt(maxv, 10) : null;
     const kedvezmenyes_ar = kedvv ? parseInt(kedvv, 10) : null;
+    const min_letszam = minv ? parseInt(minv, 10) : null;
+    const max_foglalasok = maxfoglv ? parseInt(maxfoglv, 10) : null;
     if(ar == null)          return { hiba:"Minden időpontnál kötelező az ár." };
     if(!(max_letszam >= 1)) return { hiba:"Minden időpontnál kötelező a max létszám (min. 1)." };
+    // Csoportos korlátok validálása (a butaságot tiltjuk):
+    if(min_letszam != null && min_letszam < 1)        return { hiba:"A min. fő/foglalás legalább 1 legyen (vagy hagyd üresen)." };
+    if(max_foglalasok != null && max_foglalasok < 1)  return { hiba:"A max. foglalás legalább 1 legyen (vagy hagyd üresen)." };
+    if(min_letszam != null && min_letszam > max_letszam)
+      return { hiba:`A min. fő/foglalás (${min_letszam}) nem lehet nagyobb a max. létszámnál (${max_letszam}).` };
     // Meglévő időpontnál a max. létszám nem lehet kevesebb a már befoglalt főnél.
     if(idId){
       const foglalt = idopontFoglaltFo.get(idId) || 0;
@@ -338,7 +353,7 @@ function gyujtIdopontok(){
     }
     if(kedvezmenyes_ar != null && kedvezmenyes_ar >= ar)
       return { hiba:"A kedvezményes ár legyen kisebb az alap árnál." };
-    out.push({ id:idId, idopont:new Date(datum).toISOString(), ar, kedvezmenyes_ar, max_letszam, statusz:st });
+    out.push({ id:idId, idopont:new Date(datum).toISOString(), ar, kedvezmenyes_ar, max_letszam, min_letszam, max_foglalasok, statusz:st });
   }
   return { idopontok: out };
 }
@@ -452,7 +467,8 @@ progForm.addEventListener("submit", async e => {
   if(statusz === "aktiv"){
     for(const i of idopontok){
       const rec = { workshop_id:workshopId, idopont:i.idopont, ar:i.ar,
-        kedvezmenyes_ar:i.kedvezmenyes_ar, max_letszam:i.max_letszam, statusz:i.statusz };
+        kedvezmenyes_ar:i.kedvezmenyes_ar, max_letszam:i.max_letszam,
+        min_letszam:i.min_letszam, max_foglalasok:i.max_foglalasok, statusz:i.statusz };
       const { error } = i.id
         ? await db.from("idopontok").update(rec).eq("id", i.id)
         : await db.from("idopontok").insert(rec);

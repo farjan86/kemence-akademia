@@ -390,6 +390,15 @@ szerkForm.addEventListener("submit", async e => {
   if(!telefonOk(telefon)) return szHiba("Érvényes telefonszámot adj meg.");
   if(!(letszam >= 1))     return szHiba("A létszám legalább 1 fő.");
 
+  // Lágy figyelmeztetés (nem tiltás): a cél-időpont minimuma alatti létszám.
+  const celIdo = programok.flatMap(p => p.idopontok).find(i => i.id === idopont_id);
+  if(celIdo && celIdo.min_letszam != null && letszam < celIdo.min_letszam){
+    const ok = await dialog.megerosit(
+      `Erre az időpontra a beállított minimum ${celIdo.min_letszam} fő, te ${letszam} főt adtál meg. Így mentsem?`,
+      { cim:"Létszám a minimum alatt", okCimke:"Igen, mentés", veszelyes:true });
+    if(!ok) return;
+  }
+
   const gomb = szerkForm.querySelector('button[type="submit"]');
   gomb.disabled = true;
   const { error } = await db.from("bookings").update({

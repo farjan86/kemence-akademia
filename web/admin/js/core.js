@@ -93,7 +93,7 @@ async function betoltEmailLog(){
 async function betoltProgramok(){
   const { data: ws } = await db.from("workshops").select("id, cim, statusz, archivalt");
   const { data: idos } = await db.from("idopontok")
-    .select("id, workshop_id, idopont, ar, kedvezmenyes_ar, max_letszam, statusz")
+    .select("id, workshop_id, idopont, ar, kedvezmenyes_ar, max_letszam, min_letszam, max_foglalasok, statusz")
     .order("idopont", { ascending: true });
   const byWs = new Map();
   (idos || []).forEach(i => { if(!byWs.has(i.workshop_id)) byWs.set(i.workshop_id, []); byWs.get(i.workshop_id).push(i); });

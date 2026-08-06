@@ -35,11 +35,20 @@ Minden foglalásnak pontosan egy státusza van. Ez határozza meg, mi a teendő 
 | **Hamarosan** | Beharangozott, **még nincs időpontja** (elég a cím + leírás); a főoldalon „Hamarosan" jelvénnyel látszik. |
 
 ### 1.2b Az időpont állapota (`idopontok.statusz`, 2 érték)
-Egy programnak több **időpontja** (alkalma) lehet; mindegyiknek saját **ára, kedvezményes ára és létszáma** van.
+Egy programnak több **időpontja** (alkalma) lehet; mindegyiknek saját **ára, kedvezményes ára, létszáma** és opcionálisan **csoportos korlátai** (lásd 1.2c) vannak.
 | Állapot | Jelentés |
 |---|---|
 | **Aktív** | Foglalható alkalom. |
 | **Elmaradt** | Ez az **egy alkalom** elmarad (a program többi időpontja megmaradhat); új foglalás nem adható rá, az érintett foglalók lemondhatók + értesíthetők. |
+
+### 1.2c Csoportos korlátok (időpontonként, opcionális)
+Egy alkalom **csoportnak/csapatnak** szánható. Két opcionális mező az `idopontok` táblán:
+| Mező | Jelentés |
+|---|---|
+| **`max_foglalasok`** | Hány **foglalás** (csapat) fogadható az időpontra. `1` = egyetlen csoport foglalja le az egészet. Üresen (null) = korlátlan. |
+| **`min_letszam`** | Egy foglalás **legalább** ennyi fős legyen. `10` = csak 10 főtől felfelé foglalható. Üresen (null) = nincs alsó határ. |
+
+Az időpont **automatikusan lezár** („Betelt"), ha eléri a `max_foglalasok` számát, **vagy** ha a maradék szabad hely kevesebb a `min_letszam`-nál (akkor már egy szabályos foglalás sem férne be). Megkötés: `min_letszam ≤ max_letszam`. Admin utólag módosíthatja; a minimum alá eső **meglévő** foglalásnál szerkesztéskor csak **figyelmeztetés** van, nem tiltás.
 
 ### 1.3 Archivált (igen/nem) — külön dimenzió
 Az **`archivált`** jelző FÜGGETLEN a program állapotától, és azt jelenti: **látszik-e a főoldalon**.
@@ -82,12 +91,12 @@ Minden foglalás kap egy azonosítót, pl. **`F-100`**. A formátum a Beállít�
 - **„Hamarosan" program:** ha nincs jövőbeli, aktív időpontja, csak cím + leírás + „Hamarosan" jelvény, csempe nélkül.
 
 ### 2.3 Hogyan foglal a vendég?
-1. A programnál **rákattint a kívánt időpont-csempére** (dátum · ár · szabad hely).
-2. Kitölti az űrlapot: **név, e-mail, telefon, létszám, megjegyzés** (a megjegyzés nem kötelező).
+1. A programnál **rákattint a kívánt időpont-csempére** (dátum · **ár/fő** · állapot). A csempe állapota: „N/M foglalt", csoportos alkalomnál „Min. N fő" / „Csoportos", betelt esetén „Betelt".
+2. Kitölti az űrlapot: **név, e-mail, telefon, létszám, megjegyzés** (a megjegyzés nem kötelező). Csoportos alkalomnál a foglalóablak kiírja a feltételt (pl. „Csoportos alkalom: legfeljebb 1 foglalás tehető, legalább 10 fős foglalás szükséges").
 3. **Validáció** (hibás adattal nem küldhető el):
    - e-mail: formátum-ellenőrzés + elgépelés-figyelmeztetés (pl. `gmail.coom` → „Talán gmail.com?");
    - telefon: bármilyen formátum megengedett, a mentett érték `+36…`-ra normalizálódik;
-   - létszám: legalább 1 és legfeljebb a szabad helyek száma.
+   - létszám: legalább 1 (vagy a beállított **`min_letszam`**), és legfeljebb a szabad helyek száma.
 4. Egy **info-sáv** tájékoztat (pl. az előre utalásról) — ennek szövege az adminban állítható.
 5. Beküldés után a foglalás **„jóváhagyásra vár"** állapotban jön létre, a vendég **sikerképernyőt** lát, és **azonnal kap egy visszaigazoló e-mailt**. A szabad helyek azonnal csökkennek.
 
@@ -177,7 +186,7 @@ Két al-fül: **Aktuális** (aktív + hamarosan, nem archivált) és **Archivál
    - **Cím**, **Rövid leírás** (a kártyán), **Részletes leírás** (a „Részletek" ablakban).
    - **Előadó** (opcionális; több név vesszővel — a kártyán „Előadó: …").
    - **Várható időtartam** (opcionális, pl. „~4 óra"), **Fotó** (opcionális; feltöltés, előnézettel).
-3. **Időpontok** (csak *Aktív* programnál): a **„+ Időpont hozzáadása"** gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként **dátum + idő, ár, kedvezményes ár (opc.), max létszám**. Új időpont mindig „Aktív" (az „Elmarad" csak meglévő időpontnál választható).
+3. **Időpontok** (csak *Aktív* programnál): a **„+ Időpont hozzáadása"** gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként **dátum + idő, ár (fejenként), kedvezményes ár (opc.), max létszám**, és opcionálisan a **csoportos korlátok** (min. fő/foglalás, max. foglalás — lásd 1.2c). Új időpont mindig „Aktív" (az „Elmarad" csak meglévő időpontnál választható). Az ablak alján info-szöveg magyarázza a korlátokat.
 4. **Kötelező:** cím + rövid leírás; *Aktív* programnál minden felvitt időpontnál **dátum + ár + max létszám**. *Hamarosan*-nál nincs időpont (a mező is eltűnik).
 5. **Mentés.** *(Az ablak csak a Mentés/Mégse gombokra záródik — kattintással/Esc-cel nem.)*
 
@@ -261,7 +270,7 @@ Az admin **Beállítások → E-mail sablonok** alatt szerkeszthető (tárgy + t
 
 ## 9. Közös / UX
 - **Saját felugró ablakok** minden megerősítéshez/üzenethez (nincs böngésző-popup).
-- **Túlfoglalás-védelem** mindenhol: a rendszer nem enged több foglalást, mint a max létszám.
+- **Túlfoglalás-védelem** mindenhol: a rendszer nem enged több foglalást, mint a max létszám; csoportos alkalomnál betartja a `max_foglalasok` és `min_letszam` korlátokat is (szerveroldalon, a triggerben).
 - **Reszponzív**, sötét „parázs" dizájn; mobilon is használható.
 
 ---

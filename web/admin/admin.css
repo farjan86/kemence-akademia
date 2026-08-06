@@ -334,21 +334,27 @@ main h2{font-size:28px; margin:0 0 18px}
 }
 
 /* === Program-szerkesztő: időpont-sorok === */
-.ido-fejlec{display:grid; grid-template-columns:1.7fr 1fr 1fr .8fr 1fr auto; gap:8px; padding:0 8px 4px;
-  font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--hamu-2)}
-#idopontLista{display:flex; flex-direction:column; gap:8px; margin-bottom:10px}
+#idopontLista{display:flex; flex-direction:column; gap:10px; margin-bottom:10px}
 #idopontLista:empty{margin-bottom:0}
-.idopont-sor{display:grid; grid-template-columns:1.7fr 1fr 1fr .8fr 1fr auto; gap:8px; align-items:center;
-  background:var(--korom-2); border:1px solid var(--line); border-radius:12px; padding:8px}
-.idopont-sor input, .idopont-sor select{width:100%; margin:0}
+.idopont-sor{display:flex; flex-direction:column; gap:8px;
+  background:var(--korom-2); border:1px solid var(--line); border-radius:12px; padding:10px}
+.idopont-sor input, .idopont-sor select{margin:0}
 .idopont-sor.elmaradt{opacity:.65}
-.idopont-sor .ido-torol{padding:6px 10px; line-height:1}
-.ido-uj-jel{font-family:"Space Mono",monospace; font-size:12.5px; color:var(--hamu-2); align-self:center}
-@media(max-width:700px){
-  .ido-fejlec{display:none}
-  .idopont-sor{grid-template-columns:1fr 1fr}
-  .idopont-sor .ido-datum{grid-column:1 / -1}
-}
+/* Fejsor: dátum · állapot · törlés */
+.ido-fej{display:flex; align-items:center; gap:8px}
+.ido-fej .ido-datum{flex:1; min-width:0}
+.ido-fej .ido-statusz{flex:none}
+.ido-fej .ido-torol{margin-left:auto; padding:6px 10px; line-height:1}
+.ido-uj-jel{font-family:"Space Mono",monospace; font-size:12.5px; color:var(--hamu-2)}
+/* Számmezők címkékkel, egy rácsban */
+.ido-mezok{display:grid; grid-template-columns:repeat(5, 1fr); gap:8px}
+.ido-mezo{display:flex; flex-direction:column; gap:3px;
+  font-family:"Space Mono",monospace; font-size:10px; letter-spacing:.03em; text-transform:uppercase; color:var(--hamu-2)}
+.ido-mezo input{width:100%}
+.ido-info{font-size:12px; line-height:1.5; color:var(--hamu); background:var(--korom-2);
+  border:1px solid var(--line); border-radius:8px; padding:9px 11px; margin:14px 0 0}
+.ido-info b{color:var(--izzas)}
+@media(max-width:640px){ .ido-mezok{grid-template-columns:repeat(2,1fr)} }
 
 /* === Program-lista: előadó + időpontok a kártyán === */
 .prog-eloado{font-family:"Space Mono",monospace; font-size:13px; color:var(--hamu); margin:2px 0 6px}

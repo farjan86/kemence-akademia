@@ -48,7 +48,7 @@
   <h1>🔥 Kemence Akadémia — Felhasználói útmutató</h1>
   <p class="sub">A foglalási rendszer használata: a vendég oldala és az admin felület, lépésről lépésre.</p>
   <p class="updated">A képernyőképek helye jelölve (<span style="color:#8a7458">📷</span>) — ezeket később illesztitek be.</p>
-  <p class="updated">Frissítve: 2026-08-04 — <b>több időpont egy programhoz</b>, előadó mező, foglalás-áthelyezés, „Összes foglalás” nézet, foglalás-szünet.</p>
+  <p class="updated">Frissítve: 2026-08-05 — <b>csoportos korlátok</b> (időpontonként max. foglalás + min. létszám); korábban: több időpont egy programhoz, előadó mező, foglalás-áthelyezés, „Összes foglalás” nézet, foglalás-szünet.</p>
 </header>
 
 <div class="callout ok">
@@ -86,7 +86,7 @@
 
   <h3>1.2 — A foglalás lépései</h3>
   <ol>
-    <li>A vendég a programnál <b>rákattint a kívánt időpont-csempére</b> (dátum · ár · szabad hely).</li>
+    <li>A vendég a programnál <b>rákattint a kívánt időpont-csempére</b> (dátum · ár/fő · állapot — pl. „2/6 foglalt”, csoportos alkalomnál „Min. 10 fő” / „Csoportos”, betelt esetén „Betelt”).</li>
     <li>Kitölti az űrlapot: <b>név, e-mail, telefon, létszám (hány fő), megjegyzés</b> (nem kötelező).</li>
     <li>Elküldi. Ha van elég szabad hely az adott <b>időponton</b>, a rendszer rögzíti a foglalást.</li>
   </ol>
@@ -231,7 +231,7 @@
   <ol>
     <li>Programok fül → <b>Új program</b> gomb.</li>
     <li>Töltsd ki a <b>közös</b> mezőket: <b>cím</b>, <b>rövid leírás</b> (kötelező — ez jelenik meg a kártyán), <b>részletes leírás</b> (opcionális — a „Részletek" ablakban), <b>előadó</b> (opcionális, több név vesszővel — „Előadó: …”), <b>várható időtartam</b>, és állítsd be az <b>állapotot</b> (aktív / hamarosan). Ha van, <b>tölts fel fotót</b>.</li>
-    <li><b>Időpontok</b> (aktív programnál): a <b>„+ Időpont hozzáadása”</b> gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként <b>dátum + idő, ár, kedvezményes ár (opcionális), max. létszám</b>. (Új időpont mindig „Aktív”.)</li>
+    <li><b>Időpontok</b> (aktív programnál): a <b>„+ Időpont hozzáadása”</b> gombbal annyi alkalmat veszel fel, amennyit szeretnél; időpontonként <b>dátum + idő, ár (fejenként), kedvezményes ár (opcionális), max. létszám</b>, és opcionálisan a <b>csoportos korlátok</b> (min. fő/foglalás, max. foglalás — lásd 7.6). (Új időpont mindig „Aktív”.)</li>
     <li>Mentés. Az aktív program jövőbeli, aktív időpontjai azonnal foglalhatók a főoldalon.</li>
   </ol>
   <div class="kep">📷 <b>Képernyőkép:</b> az új program űrlapja</div>
@@ -239,7 +239,7 @@
   <h3>7.3 — Mit tehetsz egy programmal?</h3>
   <ul>
     <li><b>Szerkesztés</b> — a program adatai és az <b>időpontjai</b> módosíthatók (dátum, ár, létszám, állapot, hozzáadás/törlés).</li>
-    <li><b>Foglalás felfüggesztése / engedélyezése</b> — átmenetileg letiltja/engedi a foglalást erre a programra (lásd 7.6). Szünetelő programnál a gomb <b>piros</b>, és a főoldalon „Foglalás átmenetileg felfüggesztve” jelenik meg.</li>
+    <li><b>Foglalás felfüggesztése / engedélyezése</b> — átmenetileg letiltja/engedi a foglalást erre a programra (lásd 7.7). Szünetelő programnál a gomb <b>piros</b>, és a főoldalon „Foglalás átmenetileg felfüggesztve” jelenik meg.</li>
     <li><b>Archiválás</b> — <b>leveszi a főoldalról</b>, de az adatok és a <b>foglalások megmaradnak</b> (az „Archivált" alfülre kerül). Bármikor <b>visszaállítható</b>.</li>
     <li><b>Törlés</b> — végleg törli a programot (minden időpontjával). Csak akkor, ha <b>nincs hozzá foglalás</b>; ha van, inkább archiválj.</li>
   </ul>
@@ -254,7 +254,17 @@
     <li><b>Max. létszám:</b> egy időpont max. létszámát <b>nem lehet a már befoglalt fő alá</b> vinni — a rendszer szól és visszaállítja az eredeti értéket.</li>
   </ul>
 
-  <h3>7.6 — Foglalás átmeneti felfüggesztése (szünet)</h3>
+  <h3>7.6 — Csoportos korlátok (max. foglalás, min. létszám)</h3>
+  <p>Időpontonként két <b>opcionális</b> korlátot állíthatsz be, ha egy alkalmat <b>csoportnak/csapatnak</b> szánsz (pl. egy céges csapatépítő az egész műhelyt lefoglalja):</p>
+  <ul>
+    <li><b>Max. foglalás</b> — hány <b>foglalás</b> (csapat) fogadható erre az időpontra. Pl. <b>1</b> = egyetlen csoport foglalja le az egészet. Üresen hagyva korlátlan (a max. létszámig annyi külön foglalás jöhet, amennyi belefér).</li>
+    <li><b>Min. fő/foglalás</b> — egy foglalás <b>legalább</b> ennyi fős legyen. Pl. <b>10</b> = csak 10 főtől felfelé foglalható. Üresen hagyva nincs alsó határ.</li>
+  </ul>
+  <p>Az időpont <b>automatikusan lezár</b> (a főoldalon „Betelt”), ha (a) elérte a max. foglalások számát, <b>vagy</b> (b) a maradék szabad hely kevesebb, mint a minimum — hiszen akkor már egy szabályos foglalás sem férne be.</p>
+  <div class="callout"><b>A vendég oldalán:</b> a csempén „Min. N fő” vagy „Csoportos” jelzés látszik; a foglalóablak kiírja a feltételt (pl. „Csoportos alkalom: legfeljebb 1 foglalás tehető, legalább 10 fős foglalás szükséges”), és a minimum alatti létszámot nem engedi elküldeni.</div>
+  <div class="callout"><b>Utólagos módosítás:</b> a két mező bármikor átírható. A rendszer csak a <b>képtelenséget</b> tiltja (a min. fő nem lehet nagyobb a max. létszámnál). Ha egy <b>meglévő</b> foglalás létszáma az új minimum alá esne, szerkesztéskor csak <b>figyelmeztet</b> — a döntés a tiéd, az admin felülbírálhat.</div>
+
+  <h3>7.7 — Foglalás átmeneti felfüggesztése (szünet)</h3>
   <p>Ha egy programot épp szerkesztesz, vagy még nem biztos, hogy elindul (de már kint vannak az időpontjai), <b>átmenetileg felfüggesztheted a foglalást</b> — az adatok megmaradnak, csak a vendégek nem tudnak addig foglalni.</p>
   <ul>
     <li><b>Egy programra:</b> a programnál a <b>„Foglalás felfüggesztése”</b> gomb. Ekkor a kártyán „Foglalás szünetel” jelzés, a főoldalon a programnál <b>„Foglalás átmenetileg felfüggesztve”</b> üzenet jelenik meg (az időpontok látszanak, de nem foglalhatók). Feloldás: <b>„Foglalás engedélyezése”</b>.</li>

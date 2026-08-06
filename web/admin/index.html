@@ -245,8 +245,7 @@
       <label>Várható időtartam <small>opcionális, pl. „~4 óra"</small> <input name="varhato_idotartam" type="text"></label>
 
       <div class="mezo" id="idopontokMezo">
-        <span class="mezo-cimke">Időpontok <small>(időpontonként: dátum, ár, kedvezményes ár, létszám, állapot)</small></span>
-        <div class="ido-fejlec"><span>Dátum + idő</span><span>Ár (Ft)</span><span>Kedv. ár</span><span>Fő</span><span>Állapot</span><span></span></div>
+        <span class="mezo-cimke">Időpontok <small>(időpontonként: dátum, ár, kedvezményes ár, létszám, korlátok, állapot)</small></span>
         <div id="idopontLista"></div>
         <button type="button" class="btn sm ghost" id="idopontAdd">+ Időpont hozzáadása</button>
       </div>
@@ -254,6 +253,7 @@
         <input name="foto" id="pFoto" type="file" accept="image/*">
       </label>
       <div id="pFotoElonezet" class="foto-elonezet" hidden><img id="pFotoImg" alt="program fotó"></div>
+      <p class="ido-info">ℹ️ <b>Csoportos korlátok</b> (időpontonként, opcionális): <b>Max. foglalás</b> = hány foglalás (csapat) fogadható erre az időpontra – üresen hagyva korlátlan. <b>Min. fő/foglalás</b> = egy foglalás legalább ennyi fős legyen – üresen hagyva nincs alsó határ. Az időpont automatikusan lezár, ha eléri a max. foglalások számát, vagy ha a maradék szabad hely kevesebb a minimumnál. Foglalás módosításánál a rendszer csak figyelmeztet, nem tilt.</p>
       <p class="form-err" id="pErr" hidden></p>
       <div class="beall-foot">
         <button class="btn" type="submit">Mentés</button>
