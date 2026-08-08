@@ -11,7 +11,8 @@ const loginForm = document.getElementById("loginForm");
 const loginErr  = document.getElementById("loginErr");
 
 // -------- Közös állapot --------
-let beall = { azonosito_elotag: "F-", azonosito_kezdo: 100 };
+let beall = { azonosito_elotag: "F-", azonosito_kezdo: 100,
+              ajanlat_azonosito_elotag: "A-", ajanlat_azonosito_kezdo: 100 };
 let naptarNezet = "lista";              // admin naptár nézet ('lista' | 'racs')
 let emailLogMap = new Map();            // booking_id → [{tipus, elkuldve}]
 let programok = [];                     // workshops + idopontok (a foglalás-áthelyezéshez)
@@ -20,6 +21,10 @@ let osszesFoglalas = [];                // az összes foglalás (foglalás-lista
 // Azonosító-formátum: elotag + (belső sorszám + kezdő - 1)
 function azon(azonosito){
   return beall.azonosito_elotag + (Number(azonosito) + Number(beall.azonosito_kezdo) - 1);
+}
+// Ajánlat-azonosító (külön előtag + kezdőszám, hogy ne keveredjen a foglaláséval)
+function azonAjanlat(azonosito){
+  return beall.ajanlat_azonosito_elotag + (Number(azonosito) + Number(beall.ajanlat_azonosito_kezdo) - 1);
 }
 
 // -------------------- Bejelentkezés --------------------
@@ -68,10 +73,13 @@ db.auth.onAuthStateChange((_event, session) => frissitNezet(session));
 // Beállítások (azonosító-formátum + naptár nézet)
 async function betoltBeallitasok(){
   const { data } = await db.from("settings")
-    .select("azonosito_elotag, azonosito_kezdo, naptar_nezet").eq("id", 1).maybeSingle();
+    .select("azonosito_elotag, azonosito_kezdo, naptar_nezet, ajanlat_azonosito_elotag, ajanlat_azonosito_kezdo")
+    .eq("id", 1).maybeSingle();
   if(data){
     beall.azonosito_elotag = data.azonosito_elotag ?? "F-";
     beall.azonosito_kezdo  = data.azonosito_kezdo ?? 100;
+    beall.ajanlat_azonosito_elotag = data.ajanlat_azonosito_elotag ?? "A-";
+    beall.ajanlat_azonosito_kezdo  = data.ajanlat_azonosito_kezdo ?? 100;
     naptarNezet = data.naptar_nezet ?? "lista";
   }
 }
@@ -111,9 +119,12 @@ function valtTab(nev){
     beallToltve = true;
     betoltBeallitasokUrlap();   // beallitasok.js
     betoltSablonok();           // beallitasok.js
+    betoltAjSablonok();         // beallitasok.js — ajánlati sablonok
   }
   if(nev === "foglalasok"){ betoltFoglalasok(); }    // foglalasok.js — mindig friss (más fülön történt törlés után is)
   if(nev === "programok"){ betoltProgramLista(); }   // programok.js
+  if(nev === "egyediprogramok"){ betoltEgyediProgramLista(); }   // egyediprogramok.js
+  if(nev === "ajanlatok"){ betoltAjanlatok(); }      // ajanlatok.js
   if(nev === "naptar"){ betoltNaptar(); }            // naptar.js
 }
 

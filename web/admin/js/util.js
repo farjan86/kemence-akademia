@@ -105,6 +105,32 @@ function loadScript(src){
   return _scriptCache[src];
 }
 
+// -------- Drag-and-drop sorrend (SortableJS igény szerint betöltve) --------
+// A `container` közvetlen, [data-id]-s gyerekeit húzhatóvá teszi a `.drag-fogo`
+// fogantyúval; ejtéskor az új sorrendet a `tabla` `sorrend` oszlopába menti
+// (0-tól indexelve). Sikeres mentés után felvillantja a `jelzoEl`-t (ha van).
+// Hiba a lista működését nem töri: legfeljebb húzás nélkül marad.
+async function sortableSorrend(container, tabla, jelzoEl){
+  if(!container) return;
+  try { await loadScript("https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"); }
+  catch(_){ return; }
+  if(typeof Sortable === "undefined") return;
+  Sortable.create(container, {
+    animation: 150,
+    handle: ".drag-fogo",
+    ghostClass: "sortable-ghost",
+    onEnd: async () => {
+      const idk = [...container.querySelectorAll(":scope > [data-id]")].map(el => el.dataset.id);
+      const eredmenyek = await Promise.all(
+        idk.map((id, i) => db.from(tabla).update({ sorrend: i }).eq("id", id))
+      );
+      const rossz = eredmenyek.find(r => r.error);
+      if(rossz){ dialog.uzen("A sorrend mentése nem sikerült: " + rossz.error.message, { cim:"Hiba" }); return; }
+      if(jelzoEl){ jelzoEl.hidden = false; setTimeout(() => { jelzoEl.hidden = true; }, 1600); }
+    }
+  });
+}
+
 // A foglalások közös SELECT-je (időpont + program az idopont_id join mentén)
 const BOOKING_SELECT =
   "*, idopontok ( id, idopont, ar, kedvezmenyes_ar, max_letszam, statusz, workshop_id, workshops ( cim, eloado, archivalt, statusz ) )";

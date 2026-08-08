@@ -39,6 +39,23 @@ async function betoltNaptar(){
     ar: i.ar, kedvezmenyes_ar: i.kedvezmenyes_ar, max_letszam: i.max_letszam,
     varhato_idotartam: i.workshops?.varhato_idotartam, statusz: i.statusz
   }));
+
+  // MÁSODIK eseményforrás: az ELFOGADOTT egyedi ajánlatok (a vegleges_idopont-nál).
+  // Ezek nem idopontok-sorok, ezért _ajanlat jelzővel különböztetjük meg (más render + más részletpanel).
+  const { data: aj } = await db.from("ajanlatok")
+    .select("id, azonosito, vegleges_idopont, vegleges_letszam, vegleges_ar, nev, email, telefon, egyedi_program_id")
+    .eq("statusz", "elfogadva");
+  const { data: epk } = await db.from("egyedi_programok").select("id, cim");
+  const epCim = new Map((epk || []).map(e => [e.id, e.cim]));
+  (aj || []).filter(a => a.vegleges_idopont).forEach(a => {
+    naptarProgramok.push({
+      id: a.id,
+      cim: a.egyedi_program_id ? (epCim.get(a.egyedi_program_id) || "Egyedi program") : "Egyedi program",
+      idopont: a.vegleges_idopont, max_letszam: a.vegleges_letszam || 0, statusz: "elfogadva",
+      _ajanlat: a,
+    });
+  });
+
   const most0 = new Date();
   if(naptarEv === null) naptarEv = most0.getFullYear();
   if(naptarHo === null) naptarHo = most0.getMonth();
@@ -64,10 +81,15 @@ function renderNaptar(){
     : `${naptarEv}`;
 
   const honapok = Array.from({ length:12 }, () => []);
-  let evi = { db:0, elo:0, max:0, betelt:0 };
+  let evi = { db:0, elo:0, max:0, betelt:0, ajanlat:0 };
   naptarProgramok.forEach(p => {
     const d = new Date(p.idopont);
     if(d.getFullYear() !== naptarEv) return;
+    if(p._ajanlat){   // elfogadott egyedi ajánlat — külön esemény, nem számít a foglalás-statokba
+      honapok[d.getMonth()].push({ p, elo: p._ajanlat.vegleges_letszam || 0, max: p.max_letszam || 0, d, ajanlat: true });
+      evi.ajanlat++;
+      return;
+    }
     const elo = eloLetszam(foglalasokIdoponthoz(p.id));
     honapok[d.getMonth()].push({ p, elo, max:p.max_letszam || 0, d });
     evi.db++; evi.elo += elo; evi.max += (p.max_letszam || 0);
@@ -75,8 +97,8 @@ function renderNaptar(){
   });
   honapok.forEach(arr => arr.sort((a, b) => a.d - b.d));
 
-  document.getElementById("naptarOssz").innerHTML = evi.db
-    ? `<b>${evi.db}</b> időpont · <b>${evi.elo}/${evi.max}</b> hely foglalt${evi.betelt ? ` · <b>${evi.betelt}</b> betelt` : ""}`
+  document.getElementById("naptarOssz").innerHTML = (evi.db || evi.ajanlat)
+    ? `<b>${evi.db}</b> időpont · <b>${evi.elo}/${evi.max}</b> hely foglalt${evi.betelt ? ` · <b>${evi.betelt}</b> betelt` : ""}${evi.ajanlat ? ` · <b>${evi.ajanlat}</b> egyedi ajánlat` : ""}`
     : `Ebben az évben nincs időzített program.`;
 
   const most = new Date();
@@ -107,9 +129,15 @@ function naptarListaHtml(honapok, maHo){
     const uresCls = progs.length ? "" : " ures";
     const sorok = progs.length
       ? progs.map(r => {
+          const nap = new Date(r.p.idopont).getDate();
+          if(r.ajanlat){
+            return `<button class="ev-prog ajanlat" data-wid="${r.p.id}" title="${escapeHtml(r.p.cim)}">`
+              + `<span class="ev-nap">${nap}.</span>`
+              + `<span class="ev-cim">✨ ${escapeHtml(r.p.cim)}</span>`
+              + `<span class="ev-ar">${r.elo} fő</span></button>`;
+          }
           const szint = fillSzint(r.elo, r.max);
           const elmarad = r.p.statusz === "elmaradt";
-          const nap = new Date(r.p.idopont).getDate();
           const val = r.max ? `${r.elo}/${r.max}` : `${r.elo}`;
           return `<button class="ev-prog fill-${szint}${elmarad ? " elmarad" : ""}" data-wid="${r.p.id}" title="${escapeHtml(r.p.cim)}">`
             + `<span class="ev-nap">${nap}.</span>`
@@ -178,6 +206,11 @@ function naptarHonapHtml(monthProgs){
     const unnep = unnepNev ? " hn-unnep" : "";
     const unnepHtml = unnepNev ? `<span class="hn-unnep-nev">${unnepNev}</span>` : "";
     const progHtml = progs ? progs.map(r => {
+      if(r.ajanlat){
+        return `<button class="hn-prog ajanlat" data-wid="${r.p.id}" title="${escapeHtml(r.p.cim)}">`
+          + `<span class="hn-prog-cim">✨ ${escapeHtml(r.p.cim)}</span>`
+          + `<span class="hn-prog-hely">${r.elo} fő</span></button>`;
+      }
       const szint = fillSzint(r.elo, r.max);
       const elmarad = r.p.statusz === "elmaradt";
       const hely = r.max ? `${r.elo}/${r.max}` : `${r.elo}`;
@@ -205,6 +238,7 @@ function nyitNaptarProgram(idopont_id){
   naptarKivalasztott = idopont_id;
   const p = naptarProgramok.find(x => x.id === idopont_id);
   if(!p) return;
+  if(p._ajanlat){ nyitNaptarAjanlat(p); return; }   // elfogadott egyedi ajánlat — más részletpanel
   const bk  = foglalasokIdoponthoz(idopont_id);
   const elo = eloLetszam(bk);
   const foN = st => bk.filter(b => b.statusz === st).reduce((s, b) => s + (Number(b.letszam) || 0), 0);
@@ -245,6 +279,30 @@ function nyitNaptarProgram(idopont_id){
     </table>
     <p class="hint">A foglalások kezelése (jóváhagyás, lemondás, szerkesztés) a <b>Foglalások</b> fülön történik.</p>`;
   document.getElementById("jelentesBtn")?.addEventListener("click", () => naptarJelentes(idopont_id));
+  document.getElementById("naptarReszletek").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+// Elfogadott egyedi ajánlat részletpanele (nincs foglalás-lista — a végleges adatok látszanak)
+function nyitNaptarAjanlat(p){
+  const a = p._ajanlat;
+  document.getElementById("naptarReszletek").innerHTML = `
+    <div class="reszlet-fej">
+      <h3>${escapeHtml(p.cim)} <span class="pill e">Egyedi ajánlat</span></h3>
+      <div class="reszlet-meta">${formatDatum(p.idopont)} · ${azonAjanlat(a.azonosito)}</div>
+    </div>
+    <div class="reszlet-szamok">
+      <div class="szam-kartya"><b>${a.vegleges_letszam ?? "—"}</b><span>fő</span></div>
+      <div class="szam-kartya"><b>${a.vegleges_ar != null ? HUF(a.vegleges_ar) : "—"}</b><span>összár</span></div>
+    </div>
+    <table class="tbl reszlet-tabla">
+      <thead><tr><th>Vendég</th><th>Telefon</th><th>E-mail</th></tr></thead>
+      <tbody><tr>
+        <td data-cim="Vendég">${escapeHtml(a.nev || "—")}</td>
+        <td data-cim="Telefon">${escapeHtml(a.telefon || "—")}</td>
+        <td data-cim="E-mail">${escapeHtml(a.email || "—")}</td>
+      </tr></tbody>
+    </table>
+    <p class="hint">Az egyedi ajánlatok kezelése (módosítás, lemondás, levél) az <b>Ajánlatok</b> fülön történik.</p>`;
   document.getElementById("naptarReszletek").scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 

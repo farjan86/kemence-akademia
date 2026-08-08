@@ -180,6 +180,21 @@
     </div>
   </section>
 
+  <!-- ===================== EGYEDI PROGRAMOK (ajánlatkérés, élő adat) ===================== -->
+  <section class="section" id="egyedi-programok">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Egyedi programok</p>
+        <h2>Rendezvényre, csapatnak, ünnepre</h2>
+        <p class="section-sub">Leánybúcsú, szülinap, csapatépítő, óvodás- vagy családi program — mondd el, mit szeretnél, és személyre szabott ajánlatot küldünk.</p>
+      </div>
+
+      <div id="egyedi-programok-lista" class="ep-grid" aria-live="polite">
+        <p class="status">Betöltés…</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ===================== WEBSHOP (Kandalló-Futár) ===================== -->
   <section class="section webshop" id="webshop">
     <div class="wrap">
@@ -368,12 +383,45 @@
   </div>
 </div>
 
+<!-- Ajánlatkérő ablak (rejtve) -->
+<div class="modal" id="ajanlatModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+    <button class="modal-close" id="aClose" aria-label="Bezárás">×</button>
+
+    <div id="aFormWrap">
+      <p class="eyebrow">Egyedi ajánlatkérés</p>
+      <h2 id="aTitle" class="m-title">…</h2>
+      <p class="m-meta" id="aMeta">Mondd el a részleteket, és személyre szabott ajánlattal keresünk meg e-mailben.</p>
+
+      <form id="ajanlatForm" novalidate>
+        <label>Név <input name="nev" type="text" autocomplete="name" required></label>
+        <label>E-mail <input name="email" type="email" autocomplete="email" required></label>
+        <label>Telefonszám <input name="telefon" type="tel" autocomplete="tel" required></label>
+        <label>Létszám (fő) <input name="letszam" type="number" min="1" step="1" required></label>
+        <label>Kívánt időpont <input name="kivant_idopont" type="datetime-local" required></label>
+        <label>Mit szeretnél? <span class="opt">(pár mondat)</span> <textarea name="keres_szoveg" rows="3" required></textarea></label>
+        <p class="form-err" id="aErr" hidden></p>
+        <button class="btn" type="submit" id="aSubmit">Ajánlatkérés elküldése</button>
+        <p class="privacy">A beküldéssel elfogadod az <a href="https://kandallo-futar.hu/index.php?id_cms=7&controller=cms" target="_blank" rel="noopener">adatvédelmi tájékoztatót</a>.</p>
+      </form>
+    </div>
+
+    <div class="m-success" id="aSuccess" hidden>
+      <div class="tick">✓</div>
+      <h3>Ajánlatkérésed megkaptuk!</h3>
+      <p>Hamarosan személyre szabott ajánlattal keresünk meg e-mailben. Egy visszaigazolót is küldtünk.</p>
+      <button class="btn ghost" id="aDone">Rendben</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/util.js" defer></script>
 <script src="js/dialog.js" defer></script>
 <script src="js/app.js" defer></script>
 <script src="js/foglalas.js" defer></script>
+<script src="js/ajanlat.js" defer></script>
 <script src="js/szikrak.js" defer></script>
 <script src="js/reveal.js" defer></script>
 

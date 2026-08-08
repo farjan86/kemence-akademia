@@ -136,7 +136,8 @@ async function betoltProgramLista(){
   frissitGlobalSzunetGomb();
 
   const { data: ws, error } = await db.from("workshops").select("*")
-    .eq("archivalt", progArchivNezet).order("cim", { ascending:true });
+    .eq("archivalt", progArchivNezet)
+    .order("sorrend", { ascending:true }).order("cim", { ascending:true });
   if(error){ cel.innerHTML = `<p class="status">Hiba: ${error.message}</p>`; return; }
 
   const { data: idos } = await db.from("idopontok").select("*").order("idopont", { ascending:true });
@@ -191,6 +192,7 @@ async function betoltProgramLista(){
         }).join("") + `</ul>`
       : `<div class="prog-nincs-ido">Nincs időpont${hamarosan ? "" : " — a főoldalon „Hamarosan”-ként jelenik meg"}.</div>`;
 
+    const fogo = progArchivNezet ? "" : `<span class="drag-fogo" title="Húzd a sorrend átrendezéséhez">⠿</span>`;
     const foglSzam = progFoglalasSzam.get(p.id) || 0;
     let gombok;
     if(progArchivNezet){
@@ -203,9 +205,9 @@ async function betoltProgramLista(){
                (foglSzam === 0 ? `<button class="btn sm ghost" data-progdel="${p.id}">Törlés</button>` : "");
     }
 
-    return `<article class="prog-kartya${szunetel ? " szunetel" : ""}">
+    return `<article class="prog-kartya${szunetel ? " szunetel" : ""}" data-id="${p.id}">
       ${szunetJel}
-      <div class="fej"><h4>${escapeHtml(p.cim)}</h4>${badge}</div>
+      <div class="fej"><span class="fej-cim">${fogo}<h4>${escapeHtml(p.cim)}</h4></span>${badge}</div>
       ${eloadoSor}
       <p class="leiras">${tisztitHtml(p.rovid_leiras || p.leiras || "")}</p>
       ${idoSorok}
@@ -218,6 +220,11 @@ async function betoltProgramLista(){
   cel.querySelectorAll("[data-progarch]").forEach(b => b.addEventListener("click", () => archivalProgram(b.dataset.progarch)));
   cel.querySelectorAll("[data-progrestore]").forEach(b => b.addEventListener("click", () => visszaallitProgram(b.dataset.progrestore)));
   cel.querySelectorAll("[data-progsusp]").forEach(b => b.addEventListener("click", () => valtSzunet(b.dataset.progsusp)));
+
+  // Húzással átrendezhető (csak az Aktuális nézetben) — a főoldal ezt a sorrendet követi
+  if(!progArchivNezet){
+    sortableSorrend(cel.querySelector(".prog-lista"), "workshops", document.getElementById("progSorrendMentve"));
+  }
 }
 
 // Al-fül váltás (Aktuális / Archivált) — a Programok fül al-fülei
@@ -457,7 +464,8 @@ progForm.addEventListener("submit", async e => {
     const { error } = await db.from("workshops").update(sor).eq("id", id);
     if(error){ gomb.disabled = false; return pHiba("Mentési hiba: " + error.message); }
   } else {
-    const { data, error } = await db.from("workshops").insert(sor).select("id").single();
+    // Új program a lista VÉGÉRE kerül (sorrend = jelenlegi elemszám); utána húzással átrendezhető.
+    const { data, error } = await db.from("workshops").insert({ ...sor, sorrend: progLista.length }).select("id").single();
     if(error){ gomb.disabled = false; return pHiba("Mentési hiba: " + error.message); }
     workshopId = data.id;
   }

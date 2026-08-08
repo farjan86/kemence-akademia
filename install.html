@@ -47,7 +47,7 @@
 <header>
   <h1>🔥 Kemence Akadémia — Telepítési útmutató</h1>
   <p class="sub">Teljes, <b>sorrendi</b> checklist az éles (production) telepítéshez. Fentről lefelé haladj.</p>
-  <p class="updated">Utolsó frissítés: 2026-07-30</p>
+  <p class="updated">Utolsó frissítés: 2026-08-07 (Egyedi programok + Ajánlatok ág)</p>
 </header>
 
 <div class="callout warn">
@@ -95,17 +95,23 @@
   <h3>1.2 — <code>db/01-schema.sql</code> lefuttatása (a VÁZ)</h3>
   <p>Supabase → <b>SQL Editor</b> → másold be és futtasd le a <code>db/01-schema.sql</code> teljes tartalmát. <b>Ezzel indul minden.</b> Ez létrehozza:</p>
   <ul>
-    <li>a táblákat: <code>workshops</code>, <code>bookings</code>, <code>settings</code>, <code>email_sablonok</code>, <code>email_log</code>;</li>
+    <li>a foglalás-táblákat: <code>workshops</code>, <code>bookings</code>, <code>settings</code>, <code>email_sablonok</code>, <code>email_log</code>;</li>
+    <li>az <b>Egyedi programok + Ajánlatok</b> ág tábláit: <code>egyedi_programok</code>, <code>ajanlatok</code>, <code>ajanlat_log</code>, <code>ajanlat_sablonok</code> (+ <b>5 ajánlat-sablon</b>);</li>
     <li>a biztonságot (RLS-szabályok), a <code>programok</code> nézetet, a <code>foglalt_helyek()</code> függvényt;</li>
     <li>a <b>túlfoglalás-védelmi triggert</b> (múltbéli publikus foglalást is tilt);</li>
-    <li>a <b>7 e-mail sablont</b> és a beállítások alap-sorát.</li>
+    <li>a <b>7 foglalási e-mail sablont</b> és a beállítások alap-sorát.</li>
   </ul>
   <div class="callout">
     Az <b>automatikus visszaigazoló trigger</b> és a <b>napi emlékeztető cron</b> NINCS a 01-ben (projekt-specifikus értékek kellenek hozzá) — azok a <b>3. szakaszban</b> jönnek.
   </div>
 
-  <h3>1.3 — Storage bucket a program-fotókhoz</h3>
-  <p>Futtasd le a <code>db/02-storage.sql</code>-t, VAGY: Supabase → <b>Storage → New bucket</b> → név <code>program-fotok</code>, <b>public</b>.</p>
+  <h3>1.3 — Storage bucketek (KÉTTŐ)</h3>
+  <p>Futtasd le a <code>db/02-storage.sql</code>-t — ez létrehoz <b>két</b> buckettet a szükséges jogosultságokkal:</p>
+  <ul>
+    <li><code>program-fotok</code> — <b>PUBLIC</b> (a program- és egyedi program-képek innen jelennek meg a főoldalon);</li>
+    <li><code>ajanlat-csatolmanyok</code> — <b>PRIVATE</b> (az elfogadott ajánlatok csatolmányai; csak admin + a <code>send-ajanlat-email</code> éri el).</li>
+  </ul>
+  <p><small>Ha az SQL jogosultsági hibát ad, hozd létre őket kézzel: Supabase → <b>Storage → New bucket</b> → <code>program-fotok</code> (Public), majd <code>ajanlat-csatolmanyok</code> (Private).</small></p>
 
   <h3>1.4 — <code>web/js/config.js</code> kitöltése</h3>
   <p>Írd bele a projekt <b>Supabase URL</b>-jét és az <b>anon public</b> kulcsot:</p>
@@ -149,16 +155,23 @@ window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
   </table>
   <div class="callout ok"><b>✔ Automatikus:</b> a <code>SUPABASE_URL</code> és <code>SUPABASE_SERVICE_ROLE_KEY</code> magától elérhető — ezeket NE add hozzá.</div>
 
-  <h3>2.4 — A <code>send-email</code> Edge Function deploy</h3>
+  <h3>2.4 — Edge Function-ök deploy (KÉT külön függvény)</h3>
   <div class="callout warn">
     <b>⚠️ Ne keverd össze:</b> az <b>Edge Functions</b> menü kell (TypeScript), NEM a <b>Database → Functions</b> (SQL). Ott csak <b>név + kód-szerkesztő + Deploy</b> van.
   </div>
+  <p>A rendszernek <b>két, egymástól teljesen független</b> levélküldő függvénye van — <b>mindkettőt</b> deployold (külön-külön, „Deploy a new function"):</p>
+  <table>
+    <tr><th>Függvény neve (PONTOSAN ez legyen)</th><th>Mit küld</th><th>Mit másolj be</th></tr>
+    <tr><td><code>send-email</code></td><td>foglalási levelek</td><td><code>supabase/functions/send-email/index.ts</code> teljes tartalma</td></tr>
+    <tr><td><code>send-ajanlat-email</code></td><td>ajánlati levelek (egyedi programok)</td><td><code>supabase/functions/send-ajanlat-email/index.ts</code> teljes tartalma</td></tr>
+  </table>
   <ol>
     <li>Supabase → <b>Edge Functions → Deploy a new function</b> (Via Editor).</li>
-    <li>Név: <b>pontosan</b> <code>send-email</code>.</li>
-    <li>Másold be a <code>supabase/functions/send-email/index.ts</code> teljes tartalmát → <b>Deploy</b>.</li>
-    <li>Hívási URL: <code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/functions/v1/send-email</code>. Hibák: a függvény <b>Logs</b> fülén.</li>
+    <li>Név: <b>pontosan</b> a fenti táblázat szerint (a névnek egyeznie kell — erre hivatkozik a trigger és az admin is).</li>
+    <li>Másold be a hozzá tartozó <code>index.ts</code> teljes tartalmát → <b>Deploy</b>. Ismételd meg a másik függvényre is.</li>
+    <li>Hívási URL: <code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/functions/v1/<b>&lt;függvény-neve&gt;</b></code>. Hibák: a függvény <b>Logs</b> fülén.</li>
   </ol>
+  <div class="callout ok"><b>A két függvény KÖZÖS secreteket használ</b> (a 2.3-ban beállított <code>RESEND_API_KEY</code>, <code>MAIL_FROM</code>, <code>DEV_REDIRECT_TO</code>) — nem kell újra beállítani. A <code>send-ajanlat-email</code> a privát <code>ajanlat-csatolmanyok</code> bucketből mellékeli a csatolmányt (base64).</div>
 
   <h3>2.5 — Limitek (Resend ingyenes csomag)</h3>
   <p><b>3 000 levél/hó</b>, <b>100/nap</b>, <b>1 domain</b>, 30 napos napló. Ehhez a projekthez bőven elég. (Pro: $20/hó, 50 000 — nem kell.) A saját <code>email_log</code> táblánk korlátlanul őrzi a küldéseket.</p>
@@ -239,6 +252,29 @@ from public.bookings b where b.statusz = 'jovahagyott' limit 3;</pre>
   <div class="callout ok">
     <b>Fontos a különbség:</b> az <b>ütemezett cron (fent) MÁR tartalmazza a „másnap" dátumszűrőt</b> — magától, naponta fut, és <b>csak a következő napi</b> program jóváhagyott foglalóinak küld. Nincs vele több teendő. Az „azonnali teszt" ezzel szemben <b>egyszeri</b>, dátumszűrő nélküli próba (nem ismétlődik). Ellenőrzés, hogy be van-e ütemezve: <code>select jobname, schedule, active from cron.job;</code>
   </div>
+
+  <h3>3.4 — Ajánlat auto-visszaigazoló + csapat-értesítő (trigger)</h3>
+  <p>Ugyanaz, mint a 3.2, csak az <b>ajánlatkérésekre</b> — a <code>send-ajanlat-email</code> függvényt hívja. A <code>db/03-auto-visszaigazolo-trigger.sql</code> immár EZT IS tartalmazza; futtasd le az SQL Editorban (ugyanaz a <span class="repl">két helykitöltő</span>, mint a 3.2-nél):</p>
+  <pre>create or replace function public.trg_uj_ajanlat_email()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.statusz = 'ajanlatra_var' then
+    perform net.http_post(
+      url     := 'https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/functions/v1/send-ajanlat-email',
+      headers := jsonb_build_object('Content-Type','application/json',
+                                    'Authorization','Bearer <span class="repl">&lt;ANON_KEY&gt;</span>'),
+      body    := jsonb_build_object('type','INSERT','table','ajanlatok','record', to_jsonb(new))
+    );
+  end if;
+  return new;
+end; $$;
+
+drop trigger if exists trg_uj_ajanlat_email on public.ajanlatok;
+create trigger trg_uj_ajanlat_email
+after insert on public.ajanlatok
+for each row execute function public.trg_uj_ajanlat_email();</pre>
+  <p><small>Előfeltétel: a <code>send-ajanlat-email</code> deployolva (2.4), a <code>pg_net</code> bekapcsolva (3.1). Kikapcsolás: <code>drop trigger trg_uj_ajanlat_email on public.ajanlatok;</code></small></p>
+</div>
 
 <!-- ============================ 4. HOSTING / ÉLESÍTÉS ============================ -->
 <div class="card" id="hosting">

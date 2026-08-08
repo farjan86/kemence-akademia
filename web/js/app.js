@@ -128,7 +128,8 @@ async function betoltProgramok(){
       p = {
         workshop_id: r.workshop_id, cim: r.cim, rovid_leiras: r.rovid_leiras, leiras: r.leiras,
         eloado: r.eloado, varhato_idotartam: r.varhato_idotartam, foto_url: r.foto_url,
-        program_statusz: r.program_statusz, foglalas_felfuggesztve: r.foglalas_felfuggesztve, idopontok: []
+        program_statusz: r.program_statusz, foglalas_felfuggesztve: r.foglalas_felfuggesztve,
+        sorrend: r.sorrend, idopontok: []
       };
       map.set(r.workshop_id, p);
     }
@@ -144,12 +145,13 @@ async function betoltProgramok(){
   }
   programLista = Array.from(map.values());
 
-  // Sorrend: a legközelebbi jövőbeli időpont szerint; a „hamarosan"/időpont nélküliek a végére.
+  // Sorrend: az admin által húzással beállított KÉZI sorrend (workshops.sorrend);
+  // azonos sorrendnél a legközelebbi jövőbeli időpont szerint (a régi viselkedés tie-breakként).
   const kulcs = p => {
     const jovo = p.idopontok.filter(i => !lezarultNap(i.idopont)).map(i => +new Date(i.idopont));
     return jovo.length ? Math.min(...jovo) : Infinity;
   };
-  programLista.sort((a, b) => kulcs(a) - kulcs(b));
+  programLista.sort((a, b) => ((a.sorrend || 0) - (b.sorrend || 0)) || (kulcs(a) - kulcs(b)));
 
   cel.innerHTML = programLista.map(kartya).join("");
   cel.querySelectorAll(".idopont-btn[data-idopont]").forEach(b =>
