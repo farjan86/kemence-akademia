@@ -1,7 +1,7 @@
 # Kemence Akadémia — Felhasználói kézikönyv
 
 > A rendszer teljes, felhasználó- és admin-szemszögű leírása. Ebből a dokumentumból közvetlenül
-> generálható a felhasználói kézikönyv. Utolsó frissítés: 2026-08-04 (a „több időpont" átalakítás után).
+> generálható a felhasználói kézikönyv. Utolsó frissítés: 2026-08-07 (Egyedi programok + Ajánlatok ág).
 
 A rendszer két részből áll:
 - **Publikus oldal** (`/`) — a vendégek itt böngészik a programokat és foglalnak.
@@ -27,6 +27,19 @@ Minden foglalásnak pontosan egy státusza van. Ez határozza meg, mi a teendő 
 - **Helyet foglal:** a *jóváhagyásra vár* és a *jóváhagyott* foglalás **csökkenti a szabad helyeket**. Már az új (kifizetetlen) foglalás is „lefoglalja" a helyet.
 - **Felszabadít:** az *elutasított* és a *lemondott* foglalás **visszaadja** a helyet.
 - A *jóváhagyásra vár* és *jóváhagyott* a **„élő" foglalás**; az *elutasított* és *lemondott* a **lezárt** (végleges) állapot.
+
+### 1.1b Az ajánlat státusza (5 érték) — az EGYEDI ág
+Az **egyedi programoknál** (időpont nélküli ötletek) a vendég nem foglal, hanem **ajánlatot kér**. Az ajánlatnak külön státusz-készlete van:
+
+| Státusz | Szín | Jelentés |
+|---|---|---|
+| **Ajánlatra vár** | 🟠 narancs | Új ajánlatkérés érkezett, még nincs válasz |
+| **Ajánlat kiküldve** | 🟣 lila | A szervező (a rendszeren KÍVÜL, e-mailben) ajánlatot adott, várja a választ |
+| **Elfogadva** | 🟢 zöld | A vendég igent mondott; rögzültek a végleges adatok (időpont, létszám, ár) |
+| **Elutasítva** | 🔴 piros | Az ajánlatot elutasították |
+| **Lemondva** | ⚪ szürke | Lemondva (a vendég vagy a szervező — akár elfogadás után is) |
+
+> Az ajánlat teljesen **külön ág** a foglalástól: külön tábla, külön e-mailek, külön napló. A foglalások és az ajánlatok nem keverednek.
 
 ### 1.2 A program állapota (`statusz`, 2 érték)
 | Állapot | Jelentés |
@@ -69,18 +82,22 @@ Az **`archivált`** jelző FÜGGETLEN a program állapotától, és azt jelenti:
 ### 1.5 Foglalási azonosító
 Minden foglalás kap egy azonosítót, pl. **`F-100`**. A formátum a Beállításokban állítható (előtag + kezdő sorszám).
 
+### 1.6 Ajánlat-azonosító
+Minden ajánlatkérés kap egy azonosítót, pl. **`A-100`** — a foglalásétól **függetlenül** állítható (előtag + kezdő sorszám a Beállításokban), hogy ne keveredjen az `F-100` foglalásokkal.
+
 ---
 
 ## 2. Publikus oldal (a vendég szemszögéből)
 
 ### 2.1 A főoldal felépítése
+- **Fejléc:** logó + menü, és **két gomb: „Foglalj időpontot"** (a Programokhoz ugrik) és **„Kérj ajánlatot"** (az Egyedi programokhoz). Mobilon a menü egy **hamburger (☰)** ikon mögött legördül, a két gomb megmarad.
 - **Hero:** teljes szélességű, 3 kép filmszerű váltakozásával + bemutatkozó szöveg és gombok.
-- **Workshopjaink:** az 5 workshop-típus bemutatása (Pizza, Burek, Kovászos tészták, Leánybúcsú, Bejgli [Hamarosan]).
 - **Milyen egy nap nálunk?:** az élmény bemutatása.
 - **Rólunk:** a filozófia + csapatkép.
-- **Programok:** az élő, foglalható programok (lásd lentebb).
-- **Kapcsolat:** cím + e-mail + telefon + beágyazott Google-térkép.
-- **Lábléc:** linkek (Facebook, mobilkemence.xyz, webshop, adatvédelem) + egy nem feltűnő **látogatás-számláló** (böngészőnként 6 óránként max. 1 új látogatás).
+- **Programok:** az élő, foglalható programok (lásd 2.2–2.3).
+- **Egyedi programok:** időpont nélküli ötletek (leánybúcsú, csapatépítő, szülinap…), amikre a vendég **ajánlatot kér** (lásd 2.4).
+- **Kandalló-Futár webshop:** a kerti tűzhöz kapcsolódó termékek bemutatása + link a webshopra.
+- **Lábléc:** a **kapcsolati infó** (cím, e-mail, telefon, beágyazott térkép) + linkek + egy nem feltűnő **látogatás-számláló** (böngészőnként 6 óránként max. 1 új látogatás). *(A korábbi külön „Kapcsolat" szekció megszűnt — minden infó a láblécben van.)*
 
 ### 2.2 A program-kártyák
 - **Csak a nem archivált** programok jelennek meg, **programonként egy kártya** (nem időpontonként külön).
@@ -100,12 +117,19 @@ Minden foglalás kap egy azonosítót, pl. **`F-100`**. A formátum a Beállít�
 4. Egy **info-sáv** tájékoztat (pl. az előre utalásról) — ennek szövege az adminban állítható.
 5. Beküldés után a foglalás **„jóváhagyásra vár"** állapotban jön létre, a vendég **sikerképernyőt** lát, és **azonnal kap egy visszaigazoló e-mailt**. A szabad helyek azonnal csökkennek.
 
+### 2.4 Egyedi programok — ajánlatkérés (a vendég szemszögéből)
+Az **Egyedi programok** blokk időpont nélküli ötleteket mutat (kép + cím + rövid leírás + „Részletek"). Minden kártyán egy **„Kérjen egyedi ajánlatot"** gomb.
+1. A gomb megnyit egy **ajánlatkérő űrlapot** (rögzíti, melyik ötletre kér ajánlatot).
+2. A vendég kitölti: **név, e-mail, telefon, létszám, kívánt időpont, „mit szeretne"** — ezen a formon **minden mező kötelező** (e-mail/telefon formátum-ellenőrzéssel).
+3. Beküldés után az ajánlatkérés **„ajánlatra vár"** állapotban jön létre, a vendég **sikerképernyőt** lát, és **visszaigazoló e-mailt** kap („megkaptuk, hamarosan válaszolunk").
+4. Az ár-egyeztetés a **rendszeren KÍVÜL, e-mailben** történik (a szervező személyre szabott ajánlatot küld). Az admin a rendszerben csak az **állapotot** és az elfogadáskori **végleges adatokat** rögzíti.
+
 ---
 
 ## 3. Admin — belépés
 - Az `/admin/` címen **e-mail + jelszó** (Supabase Auth).
 - **Nincs önregisztráció** — az admin fiókot a Supabase-ben hozzuk létre. Ugyanaz az e-mail cím léphet be, ami a levelezésre szolgál.
-- A felület három fület tartalmaz: **Foglalások · Naptár · Programok · Beállítások**, és mobilon is jól használható (nem kell natív app).
+- A felület fülei: **Foglalások · Naptár · Programok · Egyedi programok · Ajánlatok · Beállítások**, és mobilon is jól használható (nem kell natív app).
 
 ---
 
@@ -171,6 +195,7 @@ Minden soron a **„✉ N kiment levél"** link → külön ablak listázza, mil
 - **Évi összesítő** a fejlécben: hány program · összes foglalt/összes hely · hány betelt.
 - **Programra kattintva** a naptár alatt megnyílik az adott program **analitikája**: foglalt/szabad hely, jóváhagyva/vár (fő), majd az **élő jelentkezők listája** (azonosító · vendég · fő · státusz). A foglalások kezelése a Foglalások fülön történik.
 - Minden **időpont külön eseményként** kerül a naptárba (az időpont nélküli „Hamarosan" program nem).
+- Az **elfogadott egyedi ajánlatok** is megjelennek a naptárban (a **végleges időpontjuknál**), **lila „✨" jelöléssel**, hogy egy pillantással elkülönüljenek a foglalásoktól. Rájuk kattintva a végleges adatok (létszám, összár, vendég) látszanak; a kezelésük az **Ajánlatok** fülön történik.
 
 ---
 
@@ -214,34 +239,82 @@ Ha egy **konkrét alkalom** mégsem lesz megtartva (a program többi időpontja 
 - **Törlés csak akkor lehetséges, ha a programhoz NINCS egyetlen foglalás sem** (végleges művelet).
 - Ha van foglalás, törölni nem lehet → **archiválni** kell (megőrzi az adatokat).
 
+### 6.7 Sorrend a főoldalon (húzással)
+Az **Aktuális** al-fülön a program-kártyák a **⠿ fogantyúval húzva átrendezhetők** — a főoldal ezt a **kézi sorrendet** követi (azonos sorrendnél a legközelebbi időpont a döntő). Új program a lista végére kerül; átrendezéskor „Sorrend mentve ✓" villan.
+
 ---
 
-## 7. Admin — Beállítások
+## 7. Admin — Egyedi programok
+Az időpont nélküli „ötlet"-kártyák kezelése (amikre a vendég ajánlatot kér). Két al-fül: **Aktuális** és **Archivált**.
 
-### 7.1 Csapat e-mail cím
+### 7.1 Új egyedi program / szerkesztés
+- **„+ Új egyedi program"** → **cím** + **rövid leírás** (a kártyán) + **részletes leírás** (a „Részletek" ablakban, rich-text) + **fotó** (a program-fotókkal közös, publikus tárolóba).
+- Nincs időpont / ár / létszám — ez a lényegi különbség a Programoktól.
+
+### 7.2 Sorrend, archiválás, törlés
+- **Sorrend:** húzással (⠿), mint a Programoknál — a főoldal ezt követi.
+- **Archiválás:** leveszi a főoldalról; a beérkezett ajánlatkérések megmaradnak.
+- **Törlés:** végleges; a hozzá tartozó ajánlatkérések **NEM** törlődnek, csak elvesztik a kapcsolatot ezzel az ötlettel.
+
+---
+
+## 8. Admin — Ajánlatok
+A beérkezett ajánlatkérések kezelése. **Státusz-fülek:** Ajánlatra vár · Kiküldve · Elfogadva · Elutasítva · Lemondva · Összes (számlálókkal), + **név-szűrő** és **📊 Excel-export** (a jelenlegi nézet).
+
+### 8.1 A táblázat
+Oszlopok: **azonosító** (`A-100`) · **program/ötlet** · **vendég** (név, telefon, e-mail, kiment levelek) · **fő** · **kívánt időpont** · **státusz** · **művelet**.
+
+### 8.2 Az ajánlat életciklusa és a gombok
+1. **Ajánlatra vár** — a friss kérés. Gombok: **Részletek · Ajánlat kiküldve · Elfogad · Elutasítás · Lemondás**.
+   - **„Ajánlat kiküldve"** csak **jelzés**: azt rögzíti, hogy a rendszeren KÍVÜL, e-mailben adtál ajánlatot, és várod a választ. *(A rendszer itt nem küld levelet.)*
+2. **Elfogad** → megnyílik az **elfogadás-űrlap** (lásd 8.3).
+3. **Elutasítás / Lemondás** → megerősítés után beáll a státusz. Lemondani **elfogadás után is** lehet (vendég vagy szervező).
+4. **Lezárt** (elutasítva/lemondva) soron **🗑 Törlés** is megjelenik (pucolás).
+
+### 8.3 Elfogadás — a végleges adatok
+Az **Elfogad** gomb űrlapot nyit, ahol **minden mező kötelező**:
+- **Végleges időpont** · **végleges létszám** · **végleges ár** (ez **ÖSSZÁR** — a teljes rendezvényre, NEM fő/ár) · **ajánlat szövege** (lehet „Ajánlat a csatolmány szerint").
+- **Csatolmány** (opcionális): pdf/docx/kép — egy **privát** tárolóba kerül, és a megerősítő levélhez mellékelhető.
+
+Mentés után a státusz **„elfogadva"**, és az ajánlat bekerül a **naptárba** (a végleges időpontnál).
+
+### 8.4 Részletek + belső jegyzet
+A **„Részletek"** ablak mutatja a teljes kérést (kívánt időpont, üzenet…), és — elfogadott ajánlatnál — a végleges adatokat + a **csatolmány letöltését**. Van egy **belső jegyzet** mező is (privát — a vendég sosem látja). Elfogadottnál a **„Végleges adatok módosítása / megtekintése"** gombbal újranyitható az elfogadás-űrlap.
+
+### 8.5 Levél a vendégnek — „✉ Levél"
+Az **elfogadva / elutasítva / lemondva** soron a **„✉ Levél"** gomb a státusznak megfelelő sablonlevelet küldi — **Megerősítés** (a végleges adatokkal + a csatolmánnyal) / **Elutasítás** / **Lemondás** —, előnézettel, szerkeszthetően. A kiment levelek a **„✉ N kiment levél"** linknél nézhetők vissza.
+
+---
+
+## 9. Admin — Beállítások
+
+### 9.1 Csapat e-mail cím
 Kettős szerepe van:
-1. **Ide érkeznek** a foglalás-értesítők (a csapat értesítése új foglalásról).
+1. **Ide érkeznek** a foglalás- és ajánlat-értesítők (a csapat értesítése új foglalásról / ajánlatkérésről).
 2. Ez a **válaszcím (Reply-To)** a vendégeknek menő leveleken (ha a vendég válaszol, ide fut be).
 
 > Ez **NEM a feladó** — a feladó a küldő szolgáltató (Resend) beállított címe. Részletek: `docs/email.md`.
 
-### 7.2 Foglalási azonosító formátuma
+### 9.2 Foglalási azonosító formátuma
 Előtag (max 2 karakter) + kezdő sorszám (1–999), **élő előnézettel** (pl. `F-` + 100 → `F-100`). Mentés után a foglalások azonosítói eszerint jelennek meg.
 
-### 7.3 Foglalási info-sáv
+### 9.3 Ajánlat-azonosító formátuma
+Ugyanígy, de **külön** az ajánlatoknak (pl. `A-` + 100 → `A-100`), hogy ne keveredjen a foglalásokéval.
+
+### 9.4 Foglalási info-sáv
 A foglalási űrlapon megjelenő tájékoztató szöveg (pl. az előre utalásról).
 
-### 7.4 E-mail sablonok
-Lásd a 8. fejezetet.
+### 9.5 E-mail sablonok — foglalási ÉS ajánlati (külön blokkban)
+A sablonok **két, vizuálisan elkülönített csoportban** szerkeszthetők (tárgy + törzsszöveg, külön menthető): **Foglalási e-mail sablonok** és **Ajánlati e-mail sablonok**. Részletek a 10. fejezetben.
 
 ---
 
-## 8. E-mail rendszer — hogyan működik (minden típus)
+## 10. E-mail rendszer — hogyan működik
 
-A rendszer a **Resend** szolgáltatáson át küld. Minden kiküldött levél naplózódik (a foglalásnál „✉ N kiment levél"). A koncepció és a beállítás: `docs/email.md`.
+A rendszer a **Resend** szolgáltatáson át küld. Minden kiküldött levél naplózódik (a foglalásnál/ajánlatnál „✉ N kiment levél"). **Két, egymástól független küldő** van: a `send-email` (foglalás) és a `send-ajanlat-email` (ajánlat). A koncepció és a beállítás: `docs/email.md`, `install.html`.
 
-### 8.1 A 7 e-mail sablon
-Az admin **Beállítások → E-mail sablonok** alatt szerkeszthető (tárgy + törzsszöveg, külön menthető):
+### 10.1 A foglalási e-mail sablonok (7 db)
+A **Beállítások → Foglalási e-mail sablonok** alatt szerkeszthető (tárgy + törzsszöveg, külön menthető):
 
 | Sablon | Mikor / kinek |
 |---|---|
@@ -255,27 +328,40 @@ Az admin **Beállítások → E-mail sablonok** alatt szerkeszthető (tárgy + t
 
 **Behelyettesíthető mezők** a tárgyban/törzsben: `{nev} {email} {telefon} {program} {idopont} {letszam} {azonosito}`.
 
-### 8.2 A négy küldési mód
+### 10.2 A foglalási levelek négy küldési módja
 1. **Automatikus, foglaláskor:** amikor a vendég foglal, magától kimegy a **Visszaigazolás** (neki) + a **Csapat-értesítő** (nektek). *(Beállítás: `install.html` — foglalás-webhook/trigger.)*
 2. **Kézi, a Foglalások fülön:** a **„✉ Levél"** gomb a státusznak megfelelő levelet küldi (Jóváhagyás / Elutasítás / Lemondás), előnézettel, szerkeszthetően (4.6).
 3. **Csoportos, időpont-elmaradáskor:** amikor egy időpontot „Elmarad"-ra állítasz, választhatod a *Program elmarad* levél kiküldését az érintett vendégeknek (6.4).
 4. **Napi emlékeztető:** minden nap kimegy az **Emlékeztető** a **másnapi, jóváhagyott** foglalásoknak. *(Beállítás: `install.html` — pg_cron.)*
 
-### 8.3 Ki a feladó, ki a címzett?
+### 10.3 Ki a feladó, ki a címzett?
 - **Feladó (From):** mindig a beállított küldő cím (a `MAIL_FROM`).
 - **Vendég-levelek:** címzett = a vendég; válaszcím = a **Csapat e-mail cím** (a vendég válasza a csapathoz fut be).
 - **Csapat-értesítő:** címzett = a **Csapat e-mail cím**; válaszcím = a vendég (a csapat egy „Válasz"-szal a vendégnek írhat).
 
+### 10.4 Az ajánlati e-mailek (5 sablon, külön küldővel)
+A **Beállítások → Ajánlati e-mail sablonok** alatt szerkeszthető (a foglalásiaktól elkülönítve). A `send-ajanlat-email` küldi őket, `{…}` behelyettesítéssel (`{nev} {azonosito} {program} {vegleges_idopont} {vegleges_letszam} {vegleges_ar} {ajanlat_szoveg}` stb.):
+
+| Sablon | Mikor / kinek |
+|---|---|
+| **Visszaigazolás** | ajánlatkéréskor, a vendégnek (automatikus) |
+| **Csapat-értesítő** | ajánlatkéréskor, a csapatnak (automatikus) |
+| **Megerősítés** | elfogadáskor, a vendégnek (kézzel; a végleges adatokkal + opcionális csatolmánnyal) |
+| **Elutasítás** | kézzel, a vendégnek |
+| **Lemondás** | kézzel, a vendégnek |
+
+> Az **ajánlat-egyeztetés maga a rendszeren KÍVÜL** zajlik (a szervező személyes e-mailben ad ajánlatot). Ezek a sablonok az állapot-jelzést és a végleges megerősítést szolgálják.
+
 ---
 
-## 9. Közös / UX
+## 11. Közös / UX
 - **Saját felugró ablakok** minden megerősítéshez/üzenethez (nincs böngésző-popup).
 - **Túlfoglalás-védelem** mindenhol: a rendszer nem enged több foglalást, mint a max létszám; csoportos alkalomnál betartja a `max_foglalasok` és `min_letszam` korlátokat is (szerveroldalon, a triggerben).
 - **Reszponzív**, sötét „parázs" dizájn; mobilon is használható.
 
 ---
 
-## 10. Tervezett (még NEM működik)
+## 12. Tervezett (még NEM működik)
 - **Főoldali képek** admin-feltöltéssel (jelenleg fix képek a `web/kepek/` mappában).
 
 *(Az Excel-/PDF-export és a keep-alive ping már működik.)*
