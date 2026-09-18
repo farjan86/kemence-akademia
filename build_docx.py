@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Kemence Akadémia - Felhasználói útmutató -> .docx"""
+import os
 from docx import Document
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -193,5 +194,5 @@ callout([('Méret: ', True), 'ne tölts fel több MB-os / 4K képet, mert lassí
 
 callout([('Röviden a napi rutin: ', True), 'új foglalás jön → e-mailben értesültök → az admin a Foglalások fülön jóváhagyja (és a ✉ Levéllel értesíti a vendéget) → a program előtti nap a rendszer emlékeztetőt küld → a helyszínre a Naptár → Jelentés (PDF) viszi a résztvevőlistát.'], 'EEF7F0')
 
-doc.save(r'D:\kemence-akademia\felhasznaloi-utmutato.docx')
+doc.save(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'felhasznaloi-utmutato.docx'))
 print('KESZ: felhasznaloi-utmutato.docx')
