@@ -19,7 +19,7 @@ from docx.oxml import OxmlElement
 GYOKER = os.path.dirname(os.path.abspath(__file__))
 CIM = "Kemence Akadémia — Admin kézikönyv"
 ALCIM = "Rövid, gyakorlati útmutató: mit hol találsz, és mit csinálj egy-egy helyzetben."
-FRISSITVE = "Frissítve: 2026-09-18"
+FRISSITVE = "Frissítve: 2026-09-21"
 
 # ---------------------------------------------------------------------
 #  TARTALOM — blokkok:
@@ -82,6 +82,14 @@ TARTALOM = [
     "Ha van rá foglalás, a rendszer megkérdezi: lemondja őket **levél nélkül**, vagy **„sajnos elmarad” levéllel**.",
 ]),
 ("tipp", "Foglalással rendelkező időpontot ne törölj — az „Elmarad” megőrzi a nyomát és értesíti a vendégeket. Törölni (✕) a foglalás nélküli időpontot lehet."),
+
+("h2", "Lejártak egy program időpontjai — mi látszik kint?"),
+("p", "A főoldal csak a **jövőbeli** alkalmakat mutatja. Ha egy programnak nincs ilyenje, a kártyája ott marad, de foglalni nem lehet rajta:"),
+("lista", [
+    "**Hamarosan** jelvény — ha a program állapota „Hamarosan” (beharangozás, még nincs kitűzött dátum);",
+    "**Új időpontok egyeztetés alatt** sáv a kártya alján — ha a program „Aktív”, de nincs jövőbeli időpontja.",
+]),
+("tipp", "Ha tervezed újra megtartani: **Szerkesztés → + Időpont hozzáadása**. Ha nem: **archiváld**, különben ott marad a főoldalon. Az adminban a programnál is kiírja: „Nincs jövőbeli időpont”."),
 
 ("h2", "Egy időre leállítanám a foglalást"),
 ("lista", [

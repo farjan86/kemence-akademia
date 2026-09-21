@@ -36,9 +36,9 @@
 </head>
 <body>
 <div class="wrap">
-<header><h1>🔥 Kemence Akadémia — Admin kézikönyv</h1><p>Rövid, gyakorlati útmutató: mit hol találsz, és mit csinálj egy-egy helyzetben.</p><p class="frissitve">Frissítve: 2026-09-18 · A 📷 jelölés a később beillesztendő képernyőképek helye.</p></header>
+<header><h1>🔥 Kemence Akadémia — Admin kézikönyv</h1><p>Rövid, gyakorlati útmutató: mit hol találsz, és mit csinálj egy-egy helyzetben.</p><p class="frissitve">Frissítve: 2026-09-21 · A 📷 jelölés a később beillesztendő képernyőképek helye.</p></header>
 <div class="doboz"><b>A rendszer két része</b><ul><li><b>Nyilvános oldal</b> — a vendégek itt foglalnak időpontra, vagy kérnek egyedi ajánlatot.</li><li><b>Admin felület</b> (<code>/admin/</code>) — itt kezeled mindezt. Belépés a kapott e-mail címmel és jelszóval; regisztráció nincs.</li></ul></div>
-<div class="tartalom"><b>Tartalom</b><a href="#f1">1. Eligazodás az admin felületen</a><a href="#f6">2. Programok és időpontok</a><a href="#f27">3. Foglalások</a><a href="#f46">4. Egyedi programok és ajánlatok</a><a href="#f61">5. Közös eszközök</a></div>
+<div class="tartalom"><b>Tartalom</b><a href="#f1">1. Eligazodás az admin felületen</a><a href="#f6">2. Programok és időpontok</a><a href="#f31">3. Foglalások</a><a href="#f50">4. Egyedi programok és ajánlatok</a><a href="#f65">5. Közös eszközök</a></div>
 <h1 class="fejezet" id="f1">1. Eligazodás az admin felületen</h1>
 <p>A fülsor két üzletágra oszlik, mindkettőnek saját színe van:</p>
 <table><tr><th>Csoport</th><th>Fülek</th><th>Mire való</th></tr><tr><td><b>Nyilvános programok</b> (narancs)</td><td>Foglalások, Programok</td><td>Meghirdetett időpontok, amikre a vendég azonnal foglal.</td></tr><tr><td><b>Egyedi megrendelések</b> (lila)</td><td>Ajánlatok, Egyedi programok</td><td>Időpont nélküli ötletek (pl. leánybúcsú, csapatépítő), amikre a vendég ajánlatot kér.</td></tr><tr><td>jobb oldalt</td><td>Naptár, ⚙ Beállítások</td><td>A Naptár mindkét ágat mutatja. A Beállításokban a címek, azonosítók és levélsablonok vannak.</td></tr></table>
@@ -59,13 +59,17 @@
 <h2>Elmarad egy alkalom</h2>
 <ol><li>A programnál <b>Szerkesztés</b> → az időpont állapota: <b>Elmarad</b> → <b>Mentés</b>.</li><li>Ha van rá foglalás, a rendszer megkérdezi: lemondja őket <b>levél nélkül</b>, vagy <b>„sajnos elmarad” levéllel</b>.</li></ol>
 <div class="doboz tipp">💡 Foglalással rendelkező időpontot ne törölj — az „Elmarad” megőrzi a nyomát és értesíti a vendégeket. Törölni (✕) a foglalás nélküli időpontot lehet.</div>
+<h2>Lejártak egy program időpontjai — mi látszik kint?</h2>
+<p>A főoldal csak a <b>jövőbeli</b> alkalmakat mutatja. Ha egy programnak nincs ilyenje, a kártyája ott marad, de foglalni nem lehet rajta:</p>
+<ul><li><b>Hamarosan</b> jelvény — ha a program állapota „Hamarosan” (beharangozás, még nincs kitűzött dátum);</li><li><b>Új időpontok egyeztetés alatt</b> sáv a kártya alján — ha a program „Aktív”, de nincs jövőbeli időpontja.</li></ul>
+<div class="doboz tipp">💡 Ha tervezed újra megtartani: <b>Szerkesztés → + Időpont hozzáadása</b>. Ha nem: <b>archiváld</b>, különben ott marad a főoldalon. Az adminban a programnál is kiírja: „Nincs jövőbeli időpont”.</div>
 <h2>Egy időre leállítanám a foglalást</h2>
 <ul><li><b>Egy programra:</b> a programnál <b>Foglalás felfüggesztése</b>. A főoldalon látszik, de nem foglalható. Visszakapcsolás: <b>Foglalás engedélyezése</b>.</li><li><b>Mindenre:</b> a Programok fül tetején <b>Minden foglalás felfüggesztése</b>. A feloldás mindent visszaenged.</li></ul>
 <div class="doboz tipp">💡 Akkor hasznos, ha még nem biztos, hogy elindul egy program, vagy épp átírod az adatait. A meglévő foglalások megmaradnak.</div>
 <h2>Lement a program — eltenném vagy törölném</h2>
 <ul><li><b>Archiválás</b> — lekerül a főoldalról, de az adatok és a foglalások megmaradnak (<b>Archivált programok</b> alfül). Bármikor visszaállítható. <b>Általában ezt válaszd.</b></li><li><b>Törlés</b> — végleg eltűnik minden időpontjával. Csak foglalás nélküli programnál jelenik meg.</li></ul>
 <p>Hogy milyen sorrendben látszanak a főoldalon: a programlistában a <b>⠿</b> fogantyúnál húzd át őket.</p>
-<h1 class="fejezet" id="f27">3. Foglalások</h1>
+<h1 class="fejezet" id="f31">3. Foglalások</h1>
 <h2>Egy foglalás útja</h2>
 <table><tr><th>Státusz</th><th>Mit jelent</th><th>Foglal helyet?</th></tr><tr><td><b>Jóváhagyásra vár</b></td><td>Új foglalás, még nem döntöttél.</td><td>Igen</td></tr><tr><td><b>Jóváhagyott</b></td><td>Elfogadtad, a hely biztos.</td><td>Igen</td></tr><tr><td><b>Elutasított</b></td><td>Nem fogadtad el.</td><td>Nem — a hely felszabadul</td></tr><tr><td><b>Lemondott</b></td><td>A vendég lemondta.</td><td>Nem — a hely felszabadul</td></tr></table>
 <p>A <b>Foglalások</b> fülön minden státusz külön alfül (zárójelben a darabszám); az <b>Összes foglalás</b> mindent mutat. Szűrhetsz időpontra, névre, és arra, hogy jövőbeli / mai / múltbéli.</p>
@@ -84,7 +88,7 @@
 <p>A foglalásnál <b>Jóváhagyás visszavonása</b> — visszakerül „Jóváhagyásra vár” állapotba.</p>
 <h2>Takarítás: régi, lezárt foglalások</h2>
 <p>Elutasított vagy lemondott foglalásnál megjelenik a <b>🗑 Törlés</b>, ami véglegesen eltávolítja. Élő (váró vagy jóváhagyott) foglalást nem lehet törölni.</p>
-<h1 class="fejezet" id="f46">4. Egyedi programok és ajánlatok</h1>
+<h1 class="fejezet" id="f50">4. Egyedi programok és ajánlatok</h1>
 <p>Az egyedi ág <b>időpont és ár nélküli ötleteket</b> kínál (pl. leánybúcsú, céges csapatépítő). A vendég ezekre <b>ajánlatot kér</b>; az árat és az időpontot e-mailben egyeztetitek, a rendszer pedig nyilvántartja, hol tart az ügy.</p>
 <h2>Új ötletet tennék ki a főoldalra</h2>
 <ol><li><b>Egyedi programok</b> fül → <b>+ Új egyedi program</b>.</li><li>Cím, rövid leírás (a kártyára), részletes leírás (nem kötelező), fotó.</li><li><b>Mentés</b>. A kártyán a vendég a <b>„Kérjen egyedi ajánlatot”</b> gombot látja.</li></ol>
@@ -99,7 +103,7 @@
 <h2>Nem lesz belőle rendezvény</h2>
 <ul><li><b>Elutasítás</b> — ha te nem vállalod.</li><li><b>Lemondás</b> — ha a vendég lépett vissza (elfogadott ajánlatnál is).</li></ul>
 <p>Mindkettő után küldhetsz levelet (<b>✉ Levél</b>). A lezárt ajánlatok a <b>🗑 Törlés</b> gombbal takaríthatók.</p>
-<h1 class="fejezet" id="f61">5. Közös eszközök</h1>
+<h1 class="fejezet" id="f65">5. Közös eszközök</h1>
 <h2>Ki jön holnap? — Naptár és résztvevőlista</h2>
 <ol><li><b>Naptár</b> fül → lépj a kívánt időszakra.</li><li>Kattints az alkalomra: látod a foglalókat elérhetőséggel és létszámmal.</li><li><b>📄 Jelentés (PDF)</b> — nyomtatható résztvevőlista a helyszínre.</li></ol>
 <p>A színek a telítettséget jelzik (zöld = van hely, narancs = majdnem tele, piros = betelt); a <b>lila</b> az elfogadott egyedi ajánlat. Éves lista vagy havi rács nézet: a Beállításokban választod.</p>
