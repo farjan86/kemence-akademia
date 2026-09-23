@@ -7,7 +7,7 @@
 <!-- GENERÁLT FÁJL — ne kézzel szerkeszd! Forrás: build_docx.py (TARTALOM) -->
 <style>
   :root{--bg:#faf6f0; --card:#fff; --ink:#241a12; --muted:#7a6a58; --line:#e7ddd0;
-    --accent:#e4571b; --accent-2:#b8430f; --egyedi:#8a5cc7; --code:#f3ece2}
+    --accent:#e4571b; --accent-2:#b8430f; --egyedi:#8a5cc7; --pelda:#2f7d4f; --code:#f3ece2}
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--ink);
     font-family:"Segoe UI",system-ui,-apple-system,sans-serif; line-height:1.6; font-size:16px}
@@ -26,97 +26,125 @@
   .doboz{border-left:4px solid var(--accent); background:#fff4ee; padding:10px 15px; border-radius:8px; margin:12px 0}
   .doboz.tipp{border-color:#d9a441; background:#fdf7e3}
   .doboz.osszeg{border-color:var(--egyedi); background:#f5effb}
-  .doboz ul{margin:4px 0}
+  .doboz.pelda{border-color:var(--pelda); background:#eef6ef}
+  .doboz.pelda .pelda-cim{display:block; margin-bottom:4px; color:#25623e}
+  .doboz ul,.doboz ol{margin:4px 0}
   .kep{border:2px dashed #c9b79f; background:#faf3e9; color:#8a7458; border-radius:10px;
     padding:16px; margin:12px 0; text-align:center; font-size:14px}
   .tartalom{margin:18px 0}
   .tartalom a{display:block; padding:2px 0; text-decoration:none; color:var(--accent-2)}
+  .tartalom .toc-resz{font-weight:700; margin-top:10px}
+  .tartalom .toc-helyzet{padding-left:22px; font-size:15px; color:var(--muted)}
+  .tartalom .toc-helyzet:hover{color:var(--accent-2)}
   @media print{ body{background:#fff} .kep{display:none} }
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><h1>🔥 Kemence Akadémia — Admin kézikönyv</h1><p>Rövid, gyakorlati útmutató: mit hol találsz, és mit csinálj egy-egy helyzetben.</p><p class="frissitve">Frissítve: 2026-09-21 · A 📷 jelölés a később beillesztendő képernyőképek helye.</p></header>
-<div class="doboz"><b>A rendszer két része</b><ul><li><b>Nyilvános oldal</b> — a vendégek itt foglalnak időpontra, vagy kérnek egyedi ajánlatot.</li><li><b>Admin felület</b> (<code>/admin/</code>) — itt kezeled mindezt. Belépés a kapott e-mail címmel és jelszóval; regisztráció nincs.</li></ul></div>
-<div class="tartalom"><b>Tartalom</b><a href="#f1">1. Eligazodás az admin felületen</a><a href="#f6">2. Programok és időpontok</a><a href="#f31">3. Foglalások</a><a href="#f50">4. Egyedi programok és ajánlatok</a><a href="#f65">5. Közös eszközök</a></div>
-<h1 class="fejezet" id="f1">1. Eligazodás az admin felületen</h1>
-<p>A fülsor két üzletágra oszlik, mindkettőnek saját színe van:</p>
-<table><tr><th>Csoport</th><th>Fülek</th><th>Mire való</th></tr><tr><td><b>Nyilvános programok</b> (narancs)</td><td>Foglalások, Programok</td><td>Meghirdetett időpontok, amikre a vendég azonnal foglal.</td></tr><tr><td><b>Egyedi megrendelések</b> (lila)</td><td>Ajánlatok, Egyedi programok</td><td>Időpont nélküli ötletek (pl. leánybúcsú, csapatépítő), amikre a vendég ajánlatot kér.</td></tr><tr><td>jobb oldalt</td><td>Naptár, ⚙ Beállítások</td><td>A Naptár mindkét ágat mutatja. A Beállításokban a címek, azonosítók és levélsablonok vannak.</td></tr></table>
-<div class="doboz tipp">💡 Mindkét ágban ugyanaz a logika: a <b>Programok</b> / <b>Egyedi programok</b> fülön azt állítod be, <b>mit kínálsz</b>; a <b>Foglalások</b> / <b>Ajánlatok</b> fülön azt intézed, <b>ami beérkezett</b>.</div>
-<div class="kep">📷 <b>Képernyőkép:</b> az admin fülsora</div>
-<h1 class="fejezet" id="f6">2. Programok és időpontok</h1>
-<h2>Új programot hirdetnék meg</h2>
-<ol><li><b>Programok</b> fül → <b>+ Új program</b>.</li><li>Töltsd ki: <b>cím</b>, <b>rövid leírás</b> (ez látszik a kártyán), és ha kell: részletes leírás, előadó, várható időtartam, fotó.</li><li>Állapot: <b>Aktív</b>, ha már foglalható. <b>Hamarosan</b>, ha csak előre beharangoznád (időpont nélkül, nem foglalható).</li><li><b>+ Időpont hozzáadása</b> — minden alkalomhoz: dátum és idő, ár/fő, kedvezményes ár (nem kötelező), max. létszám.</li><li><b>Mentés</b>. A jövőbeli, aktív időpontok azonnal foglalhatók a főoldalon.</li></ol>
-<div class="doboz tipp">💡 Egy program = egy kártya a főoldalon, akárhány időponttal. Ha ugyanazt a workshopot többször tartod, ne csinálj új programot, csak adj hozzá időpontot.</div>
-<h2>Módosítanék egy programot vagy időpontot</h2>
-<ol><li>A programnál <b>Szerkesztés</b>.</li><li>Írd át, amit kell (szöveg, fotó, ár, létszám), új alkalomhoz <b>+ Időpont hozzáadása</b>.</li><li><b>Mentés</b>.</li></ol>
-<div class="doboz tipp">💡 A max. létszámot nem viheted a már lefoglalt létszám alá — a rendszer szól, és visszaállítja.</div>
-<h2>Csak csoportoknak szánt (zártkörű) alkalmat hirdetnék</h2>
+<header><h1>🔥 Kemence Akadémia — Admin kézikönyv</h1><p>Három rész, sok példa: mit hol találsz, és mit csinálj egy-egy helyzetben.</p><p class="frissitve">Frissítve: 2026-09-21 · A 📷 jelölés a később beillesztendő képernyőképek helye.</p></header>
+<div class="doboz"><b>A rendszer két része</b><ul><li><b>Nyilvános oldal</b> — a vendégek itt foglalnak egy meghirdetett időpontra, vagy kérnek egyedi ajánlatot.</li><li><b>Admin felület</b> (<code>/admin/</code>) — itt intézed mindezt. Ez az útmutató erről szól.</li></ul></div>
+<div class="tartalom"><b>Tartalom</b><a class="toc-resz" href="#f3">1. rész — Eligazodás és beállítások</a><a class="toc-helyzet" href="#f4">Belépés</a><a class="toc-helyzet" href="#f7">A felület felépítése</a><a class="toc-helyzet" href="#f12">A Naptár — ki jön és mikor</a><a class="toc-helyzet" href="#f16">Partnerek — járt már nálunk ez az ember?</a><a class="toc-helyzet" href="#f22">Beállítások</a><a class="toc-helyzet" href="#f29">Főoldali képek cseréje</a><a class="toc-helyzet" href="#f31">Ha valami nem működik</a><a class="toc-resz" href="#f34">2. rész — Nyilvános programok és foglalások</a><a class="toc-helyzet" href="#f37">Új programot hirdetnék meg</a><a class="toc-helyzet" href="#f40">Új időpontot adnék hozzá, vagy módosítanék</a><a class="toc-helyzet" href="#f43">Zártkörű alkalmat hirdetnék (csoportoknak)</a><a class="toc-helyzet" href="#f48">Elmarad egy alkalom — lemondás és értesítés mindenkinek</a><a class="toc-helyzet" href="#f53">Lejártak az időpontok — mi látszik kint?</a><a class="toc-helyzet" href="#f57">Egy időre leállítanám a foglalást</a><a class="toc-helyzet" href="#f60">Lement a program — archiválás vagy törlés</a><a class="toc-helyzet" href="#f63">Egy foglalás útja</a><a class="toc-helyzet" href="#f66">Új foglalás érkezett — mit csináljak?</a><a class="toc-helyzet" href="#f72">Lemondás, módosítás, áthelyezés</a><a class="toc-helyzet" href="#f75">Milyen levelek mennek ki a foglalásoknál?</a><a class="toc-helyzet" href="#f78">Résztvevőlista, Excel, takarítás</a><a class="toc-resz" href="#f80">3. rész — Egyedi megrendelések (ajánlatok)</a><a class="toc-helyzet" href="#f83">Új egyedi programot teszek ki a főoldalra</a><a class="toc-helyzet" href="#f87">Ajánlatkérés érkezett — a menet</a><a class="toc-helyzet" href="#f92">Változott az időpont vagy az ár</a><a class="toc-helyzet" href="#f94">Nem lesz belőle rendezvény</a><a class="toc-helyzet" href="#f96">Milyen levelek mennek ki az ajánlatoknál?</a><a class="toc-helyzet" href="#f99">Hol látom, mi van folyamatban?</a></div>
+<p>Az útmutató <b>három részből</b> áll: az elsőben eligazodsz a felületen és beállítod a rendszert, a másodikban a meghirdetett programokat és a rájuk érkező foglalásokat kezeled, a harmadikban az egyedi ajánlatkéréseket.</p>
+<table><tr><th>Ezt szeretném…</th><th>Itt találod</th></tr><tr><td>Jóváhagyok egy foglalást</td><td><b>Foglalások</b> fül → „Jóváhagyásra vár” (2. rész)</td></tr><tr><td>Új alkalmat hirdetek meg</td><td><b>Programok</b> fül → „Szerkesztés” → „+ Időpont hozzáadása” (2. rész)</td></tr><tr><td>Megnézem, ki jön szombaton</td><td><b>Naptár</b> gomb, jobb felül (1. rész)</td></tr><tr><td>Átírom egy levél szövegét</td><td><b>Beállítások</b> → a megfelelő alfül (1. rész)</td></tr><tr><td>Válaszolok egy ajánlatkérésre</td><td><b>Ajánlatok</b> fül (3. rész)</td></tr><tr><td>Kicserélem a főoldal képeit</td><td>1. rész vége</td></tr><tr><td>Lemondok egy egész alkalmat</td><td><b>Programok</b> → „Szerkesztés” → az időpont állapota: <b>Elmarad</b> (2. rész)</td></tr><tr><td>Megnézem egy vendég számlázási címét</td><td><b>Foglalások</b> → „Szerkesztés”, illetve <b>Ajánlatok</b> → „Részletek” (2. és 3. rész)</td></tr><tr><td>Megnézem, járt-e már nálunk valaki</td><td><b>Partnerek</b> gomb, jobb felül (1. rész)</td></tr><tr><td>Valami nem működik</td><td>1. rész: „Ha valami nem működik”</td></tr></table>
+<h1 class="fejezet" id="f3">1. rész — Eligazodás és beállítások</h1>
+<h2 id="f4">Belépés</h2>
+<ol><li>Nyisd meg az oldal <code>/admin/</code> címét (pl. <code>kemence-akademia.xyz/admin/</code>).</li><li>Írd be az e-mail címed és a jelszavad.</li><li>Kilépés: jobb felül a <b>Kilépés</b> gomb.</li></ol>
+<div class="doboz tipp">💡 <b>Regisztráció nincs</b>, és <b>minden admin fiók teljes jogú</b> — aki belép, mindent lát és mindent módosíthat. Új kolléga hozzáférését, vagy elfelejtett jelszó esetén az újat, a fejlesztő állítja be.</div>
+<h2 id="f7">A felület felépítése</h2>
+<p>A fülsor a rendszer <b>két ágát</b> követi, mindkettőnek saját színe van:</p>
+<table><tr><th>Csoport</th><th>Fülek</th><th>Mire való</th></tr><tr><td><b>Nyilvános programok</b> (narancs)</td><td>Foglalások, Programok</td><td>Meghirdetett időpontok, amikre a vendég azonnal foglal.</td></tr><tr><td><b>Egyedi megrendelések</b> (lila)</td><td>Ajánlatok, Egyedi programok</td><td>Időpont és ár nélküli egyedi programok (leánybúcsú, csapatépítő), amikre a vendég ajánlatot kér.</td></tr><tr><td><b>Rendszer</b></td><td>⚙ Beállítások</td><td>Csapat e-mail cím, azonosítók, levélsablonok.</td></tr><tr><td>jobb szélen</td><td>👥 <b>Partnerek</b> · 📅 <b>Naptár</b></td><td>Mindkét ág egy helyen: a Naptár időrendben, a Partnerek pedig emberek szerint.</td></tr></table>
+<div class="doboz tipp">💡 A logika mindkét ágban ugyanaz: a <b>Programok</b> és az <b>Egyedi programok</b> fülön azt állítod be, <b>mit kínálsz</b>; a <b>Foglalások</b> és az <b>Ajánlatok</b> fülön azt intézed, <b>ami beérkezett</b>.</div>
+<div class="kep">📷 <b>Képernyőkép:</b> az admin fülsora a két színes csoporttal</div>
+<h2 id="f12">A Naptár — ki jön és mikor</h2>
+<ol><li>Kattints a jobb felső <b>Naptár</b> gombra.</li><li>Lépj a kívánt hónapra vagy évre.</li><li>Kattints egy alkalomra: látod a foglalókat névvel, létszámmal, elérhetőséggel.</li><li><b>📄 Jelentés (PDF)</b> — nyomtatható résztvevőlista.</li></ol>
+<p>A színek a telítettséget mutatják (<b>zöld</b> = van hely, <b>narancs</b> = majdnem tele, <b>piros</b> = betelt), a <b>lila</b> pedig az elfogadott egyedi ajánlat. Éves lista vagy havi rács nézet: a Beállításokban választod.</p>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Szombat reggel, indulás a helyszínre</b><ol><li><b>Naptár</b> → a szombati alkalomra kattintasz.</li><li>Látod: „Nápolyi pizza este — 9/12 fő, 4 foglalás”.</li><li><b>📄 Jelentés (PDF)</b> → kinyomtatod: ki jön, hány fővel, milyen telefonszámon.</li><li>A helyszínen a lista alapján fogadod a vendégeket.</li></ol></div>
+<h2 id="f16">Partnerek — járt már nálunk ez az ember?</h2>
+<p>A <b>Partnerek</b> fülön egy listában szerepel mindenki, aki valaha <b>foglalt</b> egy programra vagy <b>ajánlatot kért</b>. Egy sor = egy ember: a rendszer az <b>e-mail cím</b> alapján vonja össze az alkalmait, így akkor is egy sorban látod, ha négyszer jelentkezett.</p>
+<ul><li><b>Alkalmak</b> oszlop: például „2 foglalás · 1 ajánlat”, mellette <b>Visszatérő</b> jelvény, ha egynél több alkalma volt.</li><li><b>Kereső minden oszlop fölött</b>: név, telefon, e-mail, lakcím és az alkalmak szerint.</li><li><b>Időszak</b>: szűkíthetsz egy adott időszakra (pl. csak az idei év).</li><li><b>Csak megvalósult alkalmak</b>: ha bekapcsolod, csak a jóváhagyott foglalások és az elfogadott ajánlatok számítanak.</li><li><b>✕ Szűrők törlése</b>: egy kattintással minden kereső és szűrő alaphelyzetbe áll. A gomb csak akkor jelenik meg, ha van mit törölni.</li><li><b>📊 Excel</b>: az éppen látott lista letölthető.</li></ul>
+<div class="doboz tipp">💡 A sorra kattintva <b>lenyílnak az alkalmai</b>: azonosító, program vagy egyedi program, időpont, létszám, státusz. Az <b>azonosítóra kattintva</b> (pl. <code>F-101</code>) helyben megnyílik az adott foglalás szerkesztője, illetve az ajánlat részletei — nem kell fület váltanod, és bezárás után ugyanott folytatod, ahol abbahagytad.</div>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Telefonál valaki, hogy „tavaly már voltunk nálatok”</b><ol><li><b>Partnerek</b> gomb.</li><li>A <b>Név</b> oszlop keresőjébe beírod: „Kovács”.</li><li>Egy sor marad: Kovács Anna, „2 foglalás · 1 ajánlat”, <b>Visszatérő</b> jelvénnyel.</li><li>Rákattintasz a sorra: látod, hogy tavaly júniusban lemondta, novemberben viszont ott volt, és decemberre ajánlatot is kért.</li></ol></div>
+<div class="doboz">⚠️ A lista mindig a <b>meglévő</b> foglalásokból és ajánlatokból épül fel — nincs külön partner-nyilvántartás. Ha egy foglalást vagy ajánlatot véglegesen törölsz (🗑), az a partner is eltűnik innen. A törlő ablakok erre figyelmeztetnek is.</div>
+<h2 id="f22">Beállítások</h2>
+<p>A <b>Beállítások</b> fül három alfülből áll:</p>
+<ul><li><b>Általános</b> — csapat e-mail cím, a <b>két info-sáv</b> (a foglalási és az ajánlatkérő űrlap tetején megjelenő szöveg), és hogy a Naptár lista vagy rács nézetben nyíljon.</li><li><b>Nyilvános programok</b> — a foglalási azonosító formátuma (pl. <code>F-100</code>) és a foglalási levelek sablonjai.</li><li><b>Egyedi megrendelések</b> — az ajánlat-azonosító formátuma (pl. <code>A-100</code>) és az ajánlati levelek sablonjai.</li></ul>
+<div class="doboz tipp">💡 A sablonokban a kapcsos zárójeles mezők (<code>{nev}</code>, <code>{program}</code>, <code>{idopont}</code>) küldéskor magától kitöltődnek. Minden kártyának <b>saját Mentés gombja</b> van — arra a kártyára vonatkozik, amelyikben van. Hogy melyik levél mikor megy ki, a <b>2. és a 3. részben</b> találod, a saját ágánál.</div>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Kiírom, hogy a számlát magánszemély nevére állítjuk</b><ol><li><b>Beállítások</b> → <b>Általános</b> alfül.</li><li>Az <b>Ajánlatkérési info-sáv</b> mezőbe beírod a szöveget, pl. „A számlát magánszemély nevére állítjuk ki!”.</li><li>Ugyanezt a <b>Foglalási info-sáv</b> mezőbe is beírhatod, ha a foglalási űrlapon is látszódjon.</li><li><b>Mentés</b> → a szöveg azonnal megjelenik az űrlap tetején. Ha kiüríted a mezőt, a sáv eltűnik.</li></ol></div>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Átírom a visszaigazoló levél szövegét</b><ol><li><b>Beállítások</b> → <b>Nyilvános programok</b> alfül.</li><li>Görgess a „Foglalási e-mail sablonok” kártyához, keresd meg a „Visszaigazolás” blokkot.</li><li>Írd át a törzsszöveget, de a <code>{nev}</code> és a <code>{program}</code> maradjon benne — ezeket a rendszer tölti ki.</li><li><b>Mentés</b>. A következő foglalásnál már az új szöveg megy ki.</li></ol></div>
+<div class="kep">📷 <b>Képernyőkép:</b> a Beállítások három alfüle</div>
+<h2 id="f29">Főoldali képek cseréje</h2>
+<p>A program-fotókat az adminban cseréled, a program szerkesztőjében. A főoldal fix képei (felső diavetítés, csapatkép, logó, workshop-képek) fájlok: a <code>web/kepek/</code> mappában vannak, az új képet <b>ugyanazon a néven</b> kell menteni, majd újra ki kell tenni az oldalt. Ideális méret: 1400–2000 képpont széles, 200–400 KB-os JPG.</p>
+<h2 id="f31">Ha valami nem működik</h2>
+<ul><li><b>Nem látszik a módosításod</b> a főoldalon → frissíts <b>Ctrl+F5</b>-tel (a böngésző a régit tartotta meg).</li><li><b>Nem jött meg egy levél</b> → nézd meg a vendég sorában a „✉ N kiment levél” linket. Ha ott szerepel, a levél elment: a spam mappában lesz. Ha nem szerepel, szólj a fejlesztőnek.</li><li><b>Nektek nem jön értesítő</b> → Beállítások → Általános → a „Csapat e-mail cím” valódi, olvasott postafiók legyen.</li><li><b>A vendég nem tud foglalni</b> → az alkalom betelt, lejárt, elmaradt, vagy a foglalás szünetel (lásd 2. rész).</li><li><b>Elfelejtett jelszó</b> → a fejlesztő tud újat beállítani.</li></ul>
+<div class="doboz tipp">💡 Az admin felület <b>telefonon is használható</b> — a listák keskeny képernyőn kártyákká rendeződnek. Hosszabb munkához (program felvitele, sablonszerkesztés) azért kényelmesebb a gép.</div>
+<h1 class="fejezet" id="f34">2. rész — Nyilvános programok és foglalások</h1>
+<p>Ez a rendszer nagyobbik fele: meghirdetsz egy alkalmat, a vendég foglal rá, te pedig jóváhagyod és levelet küldesz neki.</p>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Meghirdetek egy pizzás estét — az elejétől a végéig</b><ol><li><b>Programok</b> fül → <b>+ Új program</b>.</li><li>Cím: „Nápolyi pizza este”. Rövid leírás: „Tésztától a kemencéig — egy estébe sűrítve.”</li><li>Állapot: <b>Aktív</b>.</li><li><b>+ Időpont hozzáadása</b> → dátum: „2026-11-08 18:00”, ár: „15 000”, max. létszám: „12”.</li><li><b>Mentés</b> → a program azonnal megjelenik a főoldalon, foglalható időponttal.</li><li>Pár nap múlva érkezik az első foglalás, és a <b>Foglalások</b> fülön már intézheted is.</li></ol></div>
+<h2 id="f37">Új programot hirdetnék meg</h2>
+<ol><li><b>Programok</b> fül → <b>+ Új program</b>.</li><li>Cím és rövid leírás (ez látszik a kártyán). Ha van: részletes leírás, előadó, várható időtartam, fotó.</li><li>Állapot: <b>Aktív</b>, ha foglalható. <b>Hamarosan</b>, ha csak beharangoznád (ilyenkor nincs időpont).</li><li><b>+ Időpont hozzáadása</b> — alkalmanként: dátum és idő, ár/fő, kedvezményes ár (nem kötelező), max. létszám.</li><li><b>Mentés</b>.</li></ol>
+<div class="doboz tipp">💡 Egy program <b>egy kártya</b> a főoldalon, akárhány időponttal. Ha ugyanazt a workshopot többször tartod, ne vegyél fel új programot — adj hozzá időpontot.</div>
+<h2 id="f40">Új időpontot adnék hozzá, vagy módosítanék</h2>
+<ol><li>A programnál <b>Szerkesztés</b>.</li><li>Új alkalomhoz: <b>+ Időpont hozzáadása</b>. Módosításhoz írd át a mezőket (dátum, ár, létszám).</li><li><b>Mentés</b>.</li></ol>
+<div class="doboz tipp">💡 A max. létszámot nem viheted a már lefoglalt létszám alá — a rendszer szól, és visszaállítja az eredeti értéket.</div>
+<h2 id="f43">Zártkörű alkalmat hirdetnék (csoportoknak)</h2>
 <p>Az időpont sorában két nem kötelező mező van:</p>
-<ul><li><b>Min. fő/foglalás</b> — egy foglalás legalább ennyi fős lehet (pl. 8).</li><li><b>Max. foglalás</b> — összesen ennyi foglalás (csapat) jöhet (pl. 1 = egy csapat viszi az egészet).</li></ul>
-<p>A kettő független, bármelyik megadható egyedül is. Az időpont magától lezár, ha elérte a max. foglalások számát, vagy ha a maradék hely kevesebb a minimumnál.</p>
-<div class="doboz tipp">💡 Zártkörű alkalomhoz add meg <b>mindkettőt</b> (pl. Max. 1 foglalás + Min. 10 fő) — különben egy 2 fős foglalás is lezárja az egész alkalmat. Példák: a mezők alatti <b>?</b> gomb.</div>
-<h2>Elmarad egy alkalom</h2>
-<ol><li>A programnál <b>Szerkesztés</b> → az időpont állapota: <b>Elmarad</b> → <b>Mentés</b>.</li><li>Ha van rá foglalás, a rendszer megkérdezi: lemondja őket <b>levél nélkül</b>, vagy <b>„sajnos elmarad” levéllel</b>.</li></ol>
-<div class="doboz tipp">💡 Foglalással rendelkező időpontot ne törölj — az „Elmarad” megőrzi a nyomát és értesíti a vendégeket. Törölni (✕) a foglalás nélküli időpontot lehet.</div>
-<h2>Lejártak egy program időpontjai — mi látszik kint?</h2>
+<ul><li><b>Min. fő/foglalás</b> — egy foglalás legalább ennyi fős lehet.</li><li><b>Max. foglalás</b> — összesen ennyi foglalás (csapat) jöhet, akármekkorák.</li></ul>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Céges csapatépítő: az egész műhely egy csapaté</b><ol><li>A programnál <b>Szerkesztés</b> → a november 20-i időpont sorában:</li><li><b>Max. foglalás</b> = <code>1</code> → csak egyetlen csapat jöhet.</li><li><b>Min. fő/foglalás</b> = <code>10</code> → de legalább 10 fősnek kell lennie.</li><li><b>Mentés</b>. Ezután egy 10 fős csapat lefoglalja az egész estét, és az alkalom lezár.</li><li>Ha csak a „Max. foglalás = 1” lenne beállítva, egy <b>2 fős</b> foglalás is lezárná a teljes alkalmat.</li></ol></div>
+<div class="doboz tipp">💡 A két mező <b>független</b>, bármelyik megadható a másik nélkül. Részletes magyarázat és további példák: az időpont-mezők alatti <b>?</b> gomb.</div>
+<h2 id="f48">Elmarad egy alkalom — lemondás és értesítés mindenkinek</h2>
+<p>Nincs külön „lemondom az egészet” gomb: az <b>időpont állapotán</b> keresztül megy, és a rendszer intézi a foglalásokat is.</p>
+<ol><li>A programnál <b>Szerkesztés</b> → az adott időpont állapota: <b>Elmarad</b> → <b>Mentés</b>.</li><li>Ha van rajta élő foglalás, a rendszer megáll és megkérdezi, hogyan folytassa.</li><li>Három választásod van: <b>Mégse</b> (mégsem marad el) · <b>Lemondás, e-mail értesítő nélkül</b> · <b>Lemondás + elmaradás e-mail értesítő</b> — ez utóbbi egy lépésben, mindenkinek kiküldi a „sajnos elmarad” levelet.</li></ol>
+<div class="doboz tipp">💡 Az elmaradás-levél szövegét előre a <b>Beállítások → Nyilvános programok → Foglalási e-mail sablonok</b> alatt szerkeszted, mert tömegesen megy ki — itt nincs egyenkénti szerkesztés, mint a <b>✉ Levél</b> gombnál.</div>
+<div class="doboz tipp">💡 Foglalással rendelkező időpontot <b>ne törölj</b> — az „Elmarad” megőrzi a nyomát és értesíti a vendégeket. Törölni (✕) csak foglalás nélküli időpontot érdemes.</div>
+<h2 id="f53">Lejártak az időpontok — mi látszik kint?</h2>
 <p>A főoldal csak a <b>jövőbeli</b> alkalmakat mutatja. Ha egy programnak nincs ilyenje, a kártyája ott marad, de foglalni nem lehet rajta:</p>
-<ul><li><b>Hamarosan</b> jelvény — ha a program állapota „Hamarosan” (beharangozás, még nincs kitűzött dátum);</li><li><b>Új időpontok egyeztetés alatt</b> sáv a kártya alján — ha a program „Aktív”, de nincs jövőbeli időpontja.</li></ul>
-<div class="doboz tipp">💡 Ha tervezed újra megtartani: <b>Szerkesztés → + Időpont hozzáadása</b>. Ha nem: <b>archiváld</b>, különben ott marad a főoldalon. Az adminban a programnál is kiírja: „Nincs jövőbeli időpont”.</div>
-<h2>Egy időre leállítanám a foglalást</h2>
-<ul><li><b>Egy programra:</b> a programnál <b>Foglalás felfüggesztése</b>. A főoldalon látszik, de nem foglalható. Visszakapcsolás: <b>Foglalás engedélyezése</b>.</li><li><b>Mindenre:</b> a Programok fül tetején <b>Minden foglalás felfüggesztése</b>. A feloldás mindent visszaenged.</li></ul>
+<ul><li><b>Hamarosan</b> jelvény — ha a program állapota „Hamarosan” (beharangozás, még nincs dátum);</li><li><b>Új időpontok egyeztetés alatt</b> sáv — ha a program „Aktív”, de nincs jövőbeli időpontja.</li></ul>
+<div class="doboz tipp">💡 Ha tervezed újra megtartani: <b>Szerkesztés → + Időpont hozzáadása</b>. Ha nem: <b>archiváld</b>, különben ott marad a főoldalon.</div>
+<h2 id="f57">Egy időre leállítanám a foglalást</h2>
+<ul><li><b>Egy programra:</b> a programnál <b>Foglalás felfüggesztése</b>. A kártya látszik, de nem foglalható. Vissza: <b>Foglalás engedélyezése</b>.</li><li><b>Mindenre:</b> a Programok fül tetején <b>Minden foglalás felfüggesztése</b>.</li></ul>
 <div class="doboz tipp">💡 Akkor hasznos, ha még nem biztos, hogy elindul egy program, vagy épp átírod az adatait. A meglévő foglalások megmaradnak.</div>
-<h2>Lement a program — eltenném vagy törölném</h2>
-<ul><li><b>Archiválás</b> — lekerül a főoldalról, de az adatok és a foglalások megmaradnak (<b>Archivált programok</b> alfül). Bármikor visszaállítható. <b>Általában ezt válaszd.</b></li><li><b>Törlés</b> — végleg eltűnik minden időpontjával. Csak foglalás nélküli programnál jelenik meg.</li></ul>
-<p>Hogy milyen sorrendben látszanak a főoldalon: a programlistában a <b>⠿</b> fogantyúnál húzd át őket.</p>
-<h1 class="fejezet" id="f31">3. Foglalások</h1>
-<h2>Egy foglalás útja</h2>
+<h2 id="f60">Lement a program — archiválás vagy törlés</h2>
+<ul><li><b>Archiválás</b> — lekerül a főoldalról, de az adatok és a foglalások megmaradnak („Archivált programok” alfül). Bármikor visszaállítható. <b>Általában ezt válaszd.</b></li><li><b>Törlés</b> — végleg eltűnik minden időpontjával. Csak foglalás nélküli programnál jelenik meg.</li></ul>
+<p>A főoldali sorrendet a programlistában a <b>⠿</b> fogantyúnál húzva állítod be.</p>
+<h2 id="f63">Egy foglalás útja</h2>
 <table><tr><th>Státusz</th><th>Mit jelent</th><th>Foglal helyet?</th></tr><tr><td><b>Jóváhagyásra vár</b></td><td>Új foglalás, még nem döntöttél.</td><td>Igen</td></tr><tr><td><b>Jóváhagyott</b></td><td>Elfogadtad, a hely biztos.</td><td>Igen</td></tr><tr><td><b>Elutasított</b></td><td>Nem fogadtad el.</td><td>Nem — a hely felszabadul</td></tr><tr><td><b>Lemondott</b></td><td>A vendég lemondta.</td><td>Nem — a hely felszabadul</td></tr></table>
-<p>A <b>Foglalások</b> fülön minden státusz külön alfül (zárójelben a darabszám); az <b>Összes foglalás</b> mindent mutat. Szűrhetsz időpontra, névre, és arra, hogy jövőbeli / mai / múltbéli.</p>
-<h2>Új foglalás érkezett — mit csináljak?</h2>
-<p>A vendég azonnal kap egy automatikus visszaigazolást („megkaptuk”), te pedig értesítőt a csapat e-mail címére.</p>
-<ol><li><b>Foglalások</b> → <b>Jóváhagyásra vár</b>.</li><li>Nézd meg a foglalást (a 📝 jel = van megjegyzése). Ha rendben van (pl. megjött az utalás): <b>Jóváhagyás</b>.</li><li>Utána a sorban <b>✉ Levél</b> → elküldöd a jóváhagyó levelet. A szöveg küldés előtt átírható.</li><li>Ha nem tudod fogadni: <b>Elutasítás</b>, majd <b>✉ Levél</b> az elutasítóval.</li></ol>
-<div class="doboz tipp">💡 <b>Miért két lépés?</b> A státuszváltás magától nem küld levelet. Így előbb dönthetsz, és a levelet személyre szabhatod.</div>
+<p>A <b>Foglalások</b> fülön minden státusz külön alfül (zárójelben a darabszám); az „Összes foglalás” mindent mutat. Szűrhetsz időpontra, névre, és arra, hogy jövőbeli / mai / múltbéli.</p>
+<h2 id="f66">Új foglalás érkezett — mit csináljak?</h2>
+<ol><li><b>Foglalások</b> → <b>Jóváhagyásra vár</b> alfül.</li><li>Nézd meg a foglalást (a 📝 jel = a vendég írt megjegyzést).</li><li>Ha rendben van: <b>Jóváhagyás</b>.</li><li>Utána a sorban <b>✉ Levél</b> → a jóváhagyó levél. Küldés előtt átírhatod a szöveget.</li><li>Ha nem tudod fogadni: <b>Elutasítás</b>, majd <b>✉ Levél</b> az elutasítóval.</li></ol>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Kovács Anna foglalása, az elejétől a végéig</b><ol><li>Anna 4 főre foglal a november 8-i pizzás estére. <b>Azonnal kap</b> egy automatikus visszaigazolást, ti pedig értesítőt a csapat címére.</li><li>A foglalás „Jóváhagyásra vár” állapotban áll. Megérkezik az utalás.</li><li><b>Jóváhagyás</b> → a státusz „Jóváhagyott” lesz.</li><li><b>✉ Levél</b> → elküldöd a jóváhagyó levelet; beleírod, hogy hozzon kötényt.</li><li>November 7-én a rendszer <b>magától</b> küld neki emlékeztetőt.</li><li>November 8-án reggel: <b>Naptár</b> → az alkalom → <b>📄 Jelentés (PDF)</b>, és Anna neve rajta van a listán.</li></ol></div>
+<div class="doboz tipp">💡 <b>Miért két lépés a jóváhagyás és a levél?</b> Mert a státusz átállítása magától nem küld levelet. Így előbb döntesz, és csak utána, személyre szabott szöveggel értesíted a vendéget. Ha tévedésből hagytál jóvá: <b>Jóváhagyás visszavonása</b>.</div>
+<div class="doboz tipp">💡 <b>Számlázási cím:</b> a vendég a foglaláskor megadja az <b>irányítószámot</b>, a <b>helységet</b> és a <b>további címadatot</b> — enélkül nem tudja elküldeni az űrlapot. A listában nem látszik (hogy ne legyen zsúfolt), de a <b>Szerkesztés</b> ablakban megnézheted és javíthatod is.</div>
 <div class="kep">📷 <b>Képernyőkép:</b> a Foglalások lista egy sorral és a gombokkal</div>
-<h2>A vendég lemondta</h2>
-<ol><li>A foglalásnál <b>Vendég lemondta</b>.</li><li>Ha kell, <b>✉ Levél</b> a lemondás visszaigazolásával.</li></ol>
-<div class="doboz tipp">💡 A hely azonnal felszabadul, és újra foglalható.</div>
-<h2>Más létszámmal jönnének, vagy másik időpontra mennének</h2>
-<ol><li>A foglalásnál <b>Szerkesztés</b>.</li><li>Átírhatod a nevet, elérhetőségeket, létszámot, megjegyzést, és áthelyezheted <b>ugyanannak a programnak</b> egy másik időpontjára.</li><li><b>Mentés</b>.</li></ol>
-<div class="doboz tipp">💡 Áthelyezni csak <b>azonos árú</b> időpontra lehet — eltérő árnál a vendégnek újra kell foglalnia. A férőhelyet a rendszer itt is betartja; a csoportos minimum alá viszont engedi (csak rákérdez).</div>
-<h2>Tévedésből hagytam jóvá</h2>
-<p>A foglalásnál <b>Jóváhagyás visszavonása</b> — visszakerül „Jóváhagyásra vár” állapotba.</p>
-<h2>Takarítás: régi, lezárt foglalások</h2>
-<p>Elutasított vagy lemondott foglalásnál megjelenik a <b>🗑 Törlés</b>, ami véglegesen eltávolítja. Élő (váró vagy jóváhagyott) foglalást nem lehet törölni.</p>
-<h1 class="fejezet" id="f50">4. Egyedi programok és ajánlatok</h1>
-<p>Az egyedi ág <b>időpont és ár nélküli ötleteket</b> kínál (pl. leánybúcsú, céges csapatépítő). A vendég ezekre <b>ajánlatot kér</b>; az árat és az időpontot e-mailben egyeztetitek, a rendszer pedig nyilvántartja, hol tart az ügy.</p>
-<h2>Új ötletet tennék ki a főoldalra</h2>
-<ol><li><b>Egyedi programok</b> fül → <b>+ Új egyedi program</b>.</li><li>Cím, rövid leírás (a kártyára), részletes leírás (nem kötelező), fotó.</li><li><b>Mentés</b>. A kártyán a vendég a <b>„Kérjen egyedi ajánlatot”</b> gombot látja.</li></ol>
-<div class="doboz tipp">💡 Ha egy ötletet már nem kínálsz: <b>Archiválás</b> — a beérkezett kérések megmaradnak. Sorrend: a <b>⠿</b> fogantyúnál húzd.</div>
-<h2>Ajánlatkérés érkezett — a teljes menet</h2>
-<p>A vendég automatikus visszaigazolást kap, te értesítőt a csapat címére. A kérés <b>Ajánlatra vár</b> állapotban jelenik meg.</p>
-<ol><li><b>Ajánlatok</b> → <b>Részletek</b>: mit kér (létszám, kívánt időpont, üzenet). Ide írhatsz <b>belső jegyzetet</b> is — a vendég soha nem látja.</li><li>Állítsd össze az ajánlatot, és küldd el a vendégnek <b>a saját leveleződből</b>.</li><li>Jelöld a rendszerben: <b>Ajánlat kiküldve</b>. Így látszik, hogy a válaszára vársz.</li><li>Ha elfogadta: <b>Elfogad</b> → a <b>végleges</b> időpont, létszám, <b>összár</b> (a teljes rendezvényre, nem fejenként) és az ajánlat szövege (lehet „Ajánlat a csatolmány szerint”). Fájlt is csatolhatsz.</li><li>Végül <b>✉ Levél</b> → megerősítő levél a végleges adatokkal (a csatolmánnyal együtt).</li></ol>
-<div class="doboz tipp">💡 <b>Miért érdemes elfogadni a rendszerben is?</b> Az elfogadott ajánlat <b>lilával a Naptárba</b> kerül, így egy helyen látod a foglalásokkal.</div>
+<h2 id="f72">Lemondás, módosítás, áthelyezés</h2>
+<ul><li><b>A vendég lemondta</b> → a foglalásnál „Vendég lemondta”, majd ha kell, <b>✉ Levél</b>. A hely azonnal felszabadul.</li><li><b>Más létszám vagy adat</b> → „Szerkesztés”, átírod, <b>Mentés</b>.</li><li><b>Másik időpontra menne</b> → „Szerkesztés”, és ugyanannak a programnak egy másik időpontját választod.</li></ul>
+<div class="doboz tipp">💡 Áthelyezni csak <b>azonos árú</b> időpontra lehet — eltérő árnál a vendégnek újra kell foglalnia. A férőhelyet a rendszer itt is betartja.</div>
+<h2 id="f75">Milyen levelek mennek ki a foglalásoknál?</h2>
+<table><tr><th>Levél</th><th>Mikor</th><th>Hogyan</th></tr><tr><td>Visszaigazolás a vendégnek („megkaptuk”)</td><td>amint leadja a foglalást</td><td>automatikus</td></tr><tr><td>Értesítő nektek, a csapat címére</td><td>amint leadja a foglalást</td><td>automatikus</td></tr><tr><td>Jóváhagyás / elutasítás / lemondás</td><td>miután átállítod a státuszt</td><td>te küldöd: <b>✉ Levél</b></td></tr><tr><td>Emlékeztető a vendégnek</td><td>a program előtti napon</td><td>automatikus</td></tr><tr><td>„Sajnos elmarad”</td><td>amikor egy időpontot elmaradóra állítasz</td><td>választható, mindenkinek egyszerre</td></tr></table>
+<div class="doboz tipp">💡 A vendég <b>válasza a csapat e-mail címre</b> érkezik. A foglalás sorában a „<b>✉ N kiment levél</b>” linkre kattintva látod, mi ment már ki neki — ez a leggyorsabb ellenőrzés, ha a vendég azt mondja, nem kapott semmit. A levelek szövegét a <b>Beállítások → Nyilvános programok</b> alfülön írhatod át.</div>
+<h2 id="f78">Résztvevőlista, Excel, takarítás</h2>
+<ul><li><b>📄 Jelentés (PDF)</b> — a Naptárban, egy alkalomra kattintva: nyomtatható résztvevőlista.</li><li><b>📊 Excel</b> — a Foglalások fülön az éppen látott listát tölti le (az aktív alfül és a szűrők szerint). A <b>számlázási cím</b> külön oszlopokban benne van, így számlázáshoz is jó.</li><li><b>🗑 Törlés</b> — csak elutasított vagy lemondott foglalásnál jelenik meg. Élő foglalást nem lehet törölni.</li></ul>
+<h1 class="fejezet" id="f80">3. rész — Egyedi megrendelések (ajánlatok)</h1>
+<p>Az egyedi ág <b>időpont és ár nélküli egyedi programokat</b> kínál (leánybúcsú, céges csapatépítő, gyerekzsúr). A vendég ezekre <b>ajánlatot kér</b>, az árat és az időpontot pedig e-mailben egyeztetitek. A rendszer azt tartja nyilván, hol tart az ügy.</p>
+<div class="doboz pelda"><b class="pelda-cim">📋 Példa — Leánybúcsú ajánlatkérés — az elejétől a végéig</b><ol><li>Szabó Rita ajánlatot kér a „Leánybúcsú a kemencénél” egyedi programra: 14 fő, november 22., „szombat délután szeretnénk, pezsgővel”.</li><li>Rita <b>azonnal kap</b> visszaigazolást, ti értesítőt. Az ügy „Ajánlatra vár” állapotba kerül.</li><li><b>Ajánlatok</b> fül → <b>Részletek</b>: elolvasod a kérést. A <b>belső jegyzetbe</b> felírod: „„kérdezd meg a tortát”” — ezt a vendég soha nem látja.</li><li>Összeállítod az ajánlatot, és <b>a saját leveleződből</b> elküldöd neki: 14 fő, 210 000 Ft, 15:00-tól.</li><li>Visszajössz az adminba: <b>Ajánlat kiküldve</b> — így látszik, hogy a válaszára vársz.</li><li>Rita igent mond. <b>Elfogad</b> → végleges időpont: „2026-11-22 15:00”, létszám: „14”, összár: „210 000”, az ajánlat szövege bemásolva.</li><li><b>✉ Levél</b> → megerősítő levél a végleges adatokkal.</li><li>A rendezvény ettől kezdve <b>lilával látszik a Naptárban</b>, a foglalások mellett.</li></ol></div>
+<h2 id="f83">Új egyedi programot teszek ki a főoldalra</h2>
+<ol><li><b>Egyedi programok</b> fül → <b>+ Új egyedi program</b>.</li><li>Cím, rövid leírás (a kártyára), ha kell részletes leírás és fotó.</li><li><b>Mentés</b>. A kártyán a vendég a <b>„Kérjen egyedi ajánlatot”</b> gombot látja.</li></ol>
+<div class="doboz tipp">💡 Nincs rajta időpont és ár — ez a lényege. Ha már nem kínálod: <b>Archiválás</b>; a beérkezett kérések megmaradnak. Sorrend: a <b>⠿</b> fogantyúnál húzd.</div>
+<div class="doboz tipp">💡 <b>Törölni csak olyan egyedi programot lehet, amire még nem érkezett ajánlatkérés</b> — ugyanaz a szabály, mint a programoknál. Ha már jött rá kérés, a kártyán ott a darabszám, és csak az <b>Archiválás</b> marad. Így az Ajánlatok listájában sosem vész el, hogy a vendég mire kért ajánlatot.</div>
+<h2 id="f87">Ajánlatkérés érkezett — a menet</h2>
+<ol><li><b>Ajánlatok</b> fül → <b>Részletek</b>: létszám, kívánt időpont, üzenet. Ide írhatsz <b>belső jegyzetet</b> is.</li><li>Állítsd össze az ajánlatot, és küldd el <b>a saját leveleződből</b>.</li><li>Jelöld a rendszerben: <b>Ajánlat kiküldve</b>.</li><li>Ha elfogadta: <b>Elfogad</b> → végleges időpont, létszám, <b>összár</b> (a teljes rendezvényre, nem fejenként) és az ajánlat szövege. Fájlt is csatolhatsz.</li><li><b>✉ Levél</b> → megerősítés a végleges adatokkal (a csatolmány is megy vele).</li></ol>
+<div class="doboz tipp">💡 <b>Miért érdemes az adminban is elfogadni?</b> Mert az elfogadott ajánlat bekerül a <b>Naptárba</b>, így egy helyen látod a foglalásokkal — és nem foglalsz rá véletlenül másik rendezvényt.</div>
+<div class="doboz tipp">💡 <b>Számlázási cím:</b> az ajánlatkérő is megadja (irányítószám, helység, további címadat). A <b>Részletek</b> ablakban látod, és ott javíthatod is — a belső jegyzettel együtt, egy <b>Mentés</b> gombbal.</div>
 <div class="kep">📷 <b>Képernyőkép:</b> az Ajánlatok lista és az Elfogad ablak</div>
-<h2>Változott a megbeszélt időpont vagy ár</h2>
-<ol><li>Az ajánlatnál <b>Részletek</b> → <b>Végleges adatok módosítása / megtekintése</b>.</li><li>Írd át, <b>Mentés</b>. Ha kell, küldj új megerősítést (<b>✉ Levél</b>).</li></ol>
-<h2>Nem lesz belőle rendezvény</h2>
-<ul><li><b>Elutasítás</b> — ha te nem vállalod.</li><li><b>Lemondás</b> — ha a vendég lépett vissza (elfogadott ajánlatnál is).</li></ul>
-<p>Mindkettő után küldhetsz levelet (<b>✉ Levél</b>). A lezárt ajánlatok a <b>🗑 Törlés</b> gombbal takaríthatók.</p>
-<h1 class="fejezet" id="f65">5. Közös eszközök</h1>
-<h2>Ki jön holnap? — Naptár és résztvevőlista</h2>
-<ol><li><b>Naptár</b> fül → lépj a kívánt időszakra.</li><li>Kattints az alkalomra: látod a foglalókat elérhetőséggel és létszámmal.</li><li><b>📄 Jelentés (PDF)</b> — nyomtatható résztvevőlista a helyszínre.</li></ol>
-<p>A színek a telítettséget jelzik (zöld = van hely, narancs = majdnem tele, piros = betelt); a <b>lila</b> az elfogadott egyedi ajánlat. Éves lista vagy havi rács nézet: a Beállításokban választod.</p>
-<h2>Kiexportálnám Excelbe</h2>
-<p>A <b>Foglalások</b> és az <b>Ajánlatok</b> fülön a <b>📊 Excel</b> gomb az éppen látott listát tölti le (az aktív alfül és a szűrők szerint).</p>
-<h2>Milyen levelek mennek ki?</h2>
-<table><tr><th>Levél</th><th>Mikor</th><th>Hogyan</th></tr><tr><td>Visszaigazolás a vendégnek + értesítő nektek</td><td>foglaláskor és ajánlatkéréskor</td><td>automatikus</td></tr><tr><td>Jóváhagyás / elutasítás / lemondás (foglalás)</td><td>státuszváltás után</td><td>te küldöd: <b>✉ Levél</b></td></tr><tr><td>Megerősítés / elutasítás / lemondás (ajánlat)</td><td>státuszváltás után</td><td>te küldöd: <b>✉ Levél</b></td></tr><tr><td>Emlékeztető</td><td>a program előtti napon</td><td>automatikus</td></tr><tr><td>„Sajnos elmarad”</td><td>időpont elmaradásakor</td><td>választható, mindenkinek egyszerre</td></tr><tr><td>Maga az ajánlat</td><td>egyeztetéskor</td><td>a saját leveleződből, a rendszeren kívül</td></tr></table>
-<p>A vendégek válasza a <b>csapat e-mail címre</b> érkezik. A soron a „✉ N kiment levél” linken látod, mi ment már ki.</p>
-<h2>Beállítások</h2>
-<ul><li><b>Csapat e-mail cím</b> — ide jönnek az értesítők, és erre válaszolnak a vendégek. Valódi, olvasott postafiók legyen.</li><li><b>Foglalási info-sáv</b> — rövid szöveg a foglalási űrlapon (pl. „előre utalás szükséges”).</li><li><b>Naptár megjelenítése</b> — éves lista vagy havi rács.</li><li><b>Azonosító-formátum</b> — külön a foglalásoknak (pl. F-100) és az ajánlatoknak (pl. A-100).</li><li><b>E-mail sablonok</b> — külön a foglalási és az ajánlati levelekhez. A kapcsos zárójeles mezők (pl. <code>{nev}</code>, <code>{program}</code>) küldéskor kitöltődnek, és a ✉ Levél ablakban még átírhatod a szöveget.</li></ul>
-<h2>Főoldali képek cseréje</h2>
-<p>A program-fotókat az adminban, a program szerkesztőjében cseréled. A főoldal fix képei (felső diavetítés, csapatkép, logó, workshop-képek) a <code>web/kepek/</code> mappában vannak: az új képet <b>ugyanazon a néven</b> mentsd, majd tedd ki újra az oldalt. Ideális méret: 1400–2000 px széles, 200–400 KB-os JPG.</p>
-<div class="doboz osszeg"><b>Röviden, a napi rutin</b><ul><li><b>Foglalás:</b> értesítő e-mail → <b>Jóváhagyás</b> + <b>✉ Levél</b> → előző nap automatikus emlékeztető → Naptár → <b>Jelentés (PDF)</b> a helyszínre.</li><li><b>Ajánlat:</b> értesítő e-mail → <b>Részletek</b> → ajánlat a saját leveleződből → <b>Ajánlat kiküldve</b> → <b>Elfogad</b> → <b>✉ Levél</b> → lilával a Naptárban.</li></ul></div>
+<h2 id="f92">Változott az időpont vagy az ár</h2>
+<ol><li>Az ajánlatnál <b>Részletek</b> → <b>Végleges adatok módosítása / megtekintése</b>.</li><li>Írd át, <b>Mentés</b>.</li><li>Ha kell, küldj új megerősítést: <b>✉ Levél</b>.</li></ol>
+<h2 id="f94">Nem lesz belőle rendezvény</h2>
+<ul><li><b>Elutasítás</b> — ha te nem vállalod.</li><li><b>Lemondás</b> — ha a vendég lép vissza (elfogadott ajánlatnál is).</li><li>Mindkettő után küldhetsz levelet (<b>✉ Levél</b>), a lezárt ajánlatokat pedig a <b>🗑 Törlés</b> takarítja.</li></ul>
+<h2 id="f96">Milyen levelek mennek ki az ajánlatoknál?</h2>
+<table><tr><th>Levél</th><th>Mikor</th><th>Hogyan</th></tr><tr><td>Visszaigazolás a vendégnek („megkaptuk a kérésed”)</td><td>amint beküldi az ajánlatkérést</td><td>automatikus</td></tr><tr><td>Értesítő nektek, a csapat címére</td><td>amint beküldi az ajánlatkérést</td><td>automatikus</td></tr><tr><td><b>Maga az ajánlat</b></td><td>amikor összeállítottad</td><td>a <b>saját leveleződből</b>, a rendszeren kívül</td></tr><tr><td>Megerősítés a végleges adatokkal</td><td>miután <b>Elfogad</b>-tad</td><td>te küldöd: <b>✉ Levél</b> (a csatolmánnyal)</td></tr><tr><td>Elutasítás / lemondás</td><td>miután átállítod a státuszt</td><td>te küldöd: <b>✉ Levél</b></td></tr></table>
+<div class="doboz tipp">💡 Az <b>ajánlatot magát a rendszer nem küldi el</b> — azt te írod meg a saját leveleződben, mert minden ajánlat más. A rendszer azt tartja nyilván, hogy hol tart az ügy, és a végleges adatokról küld megerősítést. A szövegeket a <b>Beállítások → Egyedi megrendelések</b> alfülön írhatod át.</div>
+<h2 id="f99">Hol látom, mi van folyamatban?</h2>
+<p>Az <b>Ajánlatok</b> fülön a státuszok külön alfülek, zárójelben a darabszámmal: „Ajánlatra vár”, „Kiküldve”, „Elfogadva”, „Elutasítva”, „Lemondva”, „Összes”. Az elfogadott rendezvények a <b>Naptárban</b> is megjelennek lilával, és a <b>📊 Excel</b> gombbal az éppen látott lista letölthető — a számlázási címmel együtt.</p>
+<div class="doboz osszeg"><b>Röviden, a napi rutin</b><ul><li><b>Foglalás:</b> értesítő e-mail → <b>Jóváhagyás</b> + <b>✉ Levél</b> → előző nap automatikus emlékeztető → Naptár → <b>📄 Jelentés (PDF)</b> a helyszínre.</li><li><b>Ajánlat:</b> értesítő e-mail → <b>Részletek</b> → ajánlat a saját leveleződből → <b>Ajánlat kiküldve</b> → <b>Elfogad</b> → <b>✉ Levél</b> → lilával a Naptárban.</li></ul></div>
 </div>
 </body>
 </html>

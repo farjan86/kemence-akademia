@@ -34,3 +34,7 @@ npm-debug.log*
 # PUBLIKUS Supabase URL + anon kulcs van benne (a böngészőbe való, RLS véd).
 # Ha valaha ide service_role kulcs kerülne, AZT ki kell zárni!
 # ---------------------------------------------------------------------
+
+# --- Python ---
+__pycache__/
+*.pyc

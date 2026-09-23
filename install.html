@@ -99,6 +99,8 @@
     <li>az <b>Egyedi programok + Ajánlatok</b> ág tábláit: <code>egyedi_programok</code>, <code>ajanlatok</code>, <code>ajanlat_log</code>, <code>ajanlat_sablonok</code> (+ <b>5 ajánlat-sablon</b>);</li>
     <li>a biztonságot (RLS-szabályok), a <code>programok</code> nézetet, a <code>foglalt_helyek()</code> függvényt;</li>
     <li>a <b>túlfoglalás-védelmi triggert</b> (múltbéli publikus foglalást is tilt);</li>
+    <li>a <b>számlázási cím</b> mezőit (<code>iranyitoszam</code>, <code>helyseg</code>, <code>cim_tovabbi</code>) mindkét ágon, és az őrző triggert: a <b>nyilvános</b> beküldésnél mindhárom kötelező (az adminból mentett sor lehet cím nélküli);</li>
+    <li>a <b>két info-sáv</b> beállítását (<code>foglalas_infosav</code>, <code>ajanlat_infosav</code>) — ezek a nyilvános űrlapok tetején jelennek meg, az admin írja őket;</li>
     <li>a <b>7 foglalási e-mail sablont</b> és a beállítások alap-sorát.</li>
   </ul>
   <div class="callout">
@@ -106,7 +108,7 @@
   </div>
   <div class="callout warn"><b>Melyik fájl kell egy ÜRES projekthez?</b> Csak a számozottak: <code>01</code>–<code>04</code>.
     <ul>
-      <li><code>m_</code> előtagúak (pl. <code>m_09-foglalasi-korlatok.sql</code>) = a <b>fejlesztői</b> adatbázis utólagos foltjai. Üres projekten <b>NE futtasd</b> őket — a <code>01-schema.sql</code> már mindent tartalmaz, amit hozzáadtak.</li>
+      <li><code>m_</code> előtagúak (pl. <code>m_10-cimadatok-es-infosav.sql</code>) = a <b>fejlesztői</b> és <b>demó</b> adatbázis utólagos foltjai. Üres projekten <b>NE futtasd</b> őket — a <code>01-schema.sql</code> már mindent tartalmaz, amit hozzáadtak.</li>
       <li><code>t_</code> előtagúak = technikai eszközök (demó-adat, üres állapot, Minup-import). Nem részei a telepítésnek, csak akkor futtatod, ha épp arra van szükség.</li>
     </ul>
   </div>
