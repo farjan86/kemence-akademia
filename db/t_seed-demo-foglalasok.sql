@@ -36,17 +36,17 @@ declare
   i_sut1 uuid; i_mez1 uuid; i_mez2 uuid;
 begin
   -- ===================== PROGRAMOK =====================
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, statusz)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, statusz)
   values ('Kovászos kenyér workshop',
     'Kézműves kovászos kenyér sütése hagyományos kemencében — saját kovászt és cipót hazaviszel.',
     'Tanuld meg a kovász gondozását és a kézműves kenyér sütését hagyományos kemencében. A résztvevők saját kovászt és friss cipót is hazavihetnek.',
-    'Nagy Andrea', '~5 óra', 'aktiv') returning id into w_kov;
+    '~5 óra', 'aktiv') returning id into w_kov;
 
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, statusz)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, statusz)
   values ('Nápolyi pizza este',
     'Igazi nápolyi pizza a kemencéből — tésztától a sütésig, saját pizzákkal.',
     'Igazi nápolyi pizza a kemencéből: tészta-kelesztés, nyújtás, feltétek és a sütés fortélyai. Mindenki több saját pizzát is süt és megkóstol.',
-    'Szabó Zoltán', '~3 óra', 'aktiv') returning id into w_piz;
+    '~3 óra', 'aktiv') returning id into w_piz;
 
   insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, statusz)
   values ('Cipó és bagett workshop',
@@ -54,11 +54,11 @@ begin
     'Ropogós héjú cipó és klasszikus francia bagett a dagasztástól a kemencés sütésig. Kis létszámú, intenzív műhely.',
     '~4 óra', 'aktiv') returning id into w_cip;
 
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, statusz)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, statusz)
   values ('Sütőtökös péksütemények',
     'Őszi sütőtökös péksütemények a kemencéből — vidd haza a finomságokat.',
     'Őszi ízek a kemencéből: sütőtökös kenyér, briós és fűszeres teasütemény. A kész finomságokat hazavihetitek.',
-    'Kis Petra, Nagy Andrea', '~4 óra', 'aktiv') returning id into w_sut;
+    '~4 óra', 'aktiv') returning id into w_sut;
 
   insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, statusz)
   values ('Mézeskalács-díszítő műhely',

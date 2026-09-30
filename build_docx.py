@@ -47,6 +47,7 @@ TARTALOM = [
     ["Lemondok egy egész alkalmat", "**Programok** → „Szerkesztés” → az időpont állapota: **Elmarad** (2. rész)"],
     ["Megnézem egy vendég számlázási címét", "**Foglalások** → „Szerkesztés”, illetve **Ajánlatok** → „Részletek” (2. és 3. rész)"],
     ["Megnézem, járt-e már nálunk valaki", "**Partnerek** gomb, jobb felül (1. rész)"],
+    ["Felveszek egy új előadót", "**Előadóink** fül (1. rész)"],
     ["Valami nem működik", "1. rész: „Ha valami nem működik”"],
 ]),
 
@@ -66,6 +67,7 @@ TARTALOM = [
 ("tabla", ["Csoport", "Fülek", "Mire való"], [
     ["**Nyilvános programok** (narancs)", "Foglalások, Programok", "Meghirdetett időpontok, amikre a vendég azonnal foglal."],
     ["**Egyedi megrendelések** (lila)", "Ajánlatok, Egyedi programok", "Időpont és ár nélküli egyedi programok (leánybúcsú, csapatépítő), amikre a vendég ajánlatot kér."],
+    ["**Csapat**", "Előadóink", "A csapattagok, akik a programokat tartják — nevük a főoldalon és a program-kártyákon."],
     ["**Rendszer**", "⚙ Beállítások", "Csapat e-mail cím, azonosítók, levélsablonok."],
     ["jobb szélen", "👥 **Partnerek** · 📅 **Naptár**", "Mindkét ág egy helyen: a Naptár időrendben, a Partnerek pedig emberek szerint."],
 ]),
@@ -106,6 +108,26 @@ TARTALOM = [
 ]),
 ("figyelem", "A lista mindig a **meglévő** foglalásokból és ajánlatokból épül fel — nincs külön partner-nyilvántartás. Ha egy foglalást vagy ajánlatot véglegesen törölsz (🗑), az a partner is eltűnik innen. A törlő ablakok erre figyelmeztetnek is."),
 
+("h2", "Előadóink — a csapat bemutatása"),
+("p", "Az **Előadóink** fülön tartod nyilván a csapattagokat. A nevük két helyen jelenik meg a főoldalon: a **Rólunk** szakaszban, a szöveg alatt, és azoknak a **programoknak a kártyáján**, amelyeket ők tartanak. A névre kattintva a vendég megnézheti a bemutatkozást a fényképpel."),
+("lepesek", [
+    "**Előadóink** fül → **+ Új előadó**.",
+    "Név, bemutatkozás (formázható), és ha van, fénykép.",
+    "**Mentés**. A név azonnal megjelenik a főoldalon.",
+    "Sorrend: a **⠿** fogantyúnál húzd — a főoldali névsor ezt követi.",
+]),
+("lista", [
+    "**Rejtés** — bármikor megteheted. A rejtett előadó **nem jelenik meg** a Rólunk névsorban; ha programhoz van kötve, a kártyán a neve látszik, de nem kattintható.",
+    "**Törlés** — csak olyan előadónál jelenik meg, aki **egyetlen programhoz sincs hozzárendelve**. Ha van kapcsolata, a soron ott a „N program” jelzés; előbb vedd le a programról, vagy használd a Rejtést.",
+]),
+("tipp", "**Hogyan kerül egy előadó a programhoz?** A program **Szerkesztés** ablakában, az „Előadók” résznél pipáld be a nevét — többet is jelölhetsz. A kártyán vesszővel elválasztva jelennek meg."),
+("pelda", "Új kolléga érkezett a csapatba", [
+    "**Előadóink** → **+ Új előadó** → név: „Kis Petra”, pár mondat bemutatkozás, fénykép.",
+    "**Mentés** → a neve megjelenik a Rólunk szakaszban.",
+    "**Programok** → a workshopnál **Szerkesztés** → az Előadók résznél bepipálod Petrát → **Mentés**.",
+    "A program kártyáján ettől kezdve ott áll: „Előadó: Szabó Zoltán, Kis Petra” — mindkét név kattintható.",
+]),
+
 ("h2", "Beállítások"),
 ("p", "A **Beállítások** fül három alfülből áll:"),
 ("lista", [
@@ -137,6 +159,7 @@ TARTALOM = [
     "**Nem jött meg egy levél** → nézd meg a vendég sorában a „✉ N kiment levél” linket. Ha ott szerepel, a levél elment: a spam mappában lesz. Ha nem szerepel, szólj a fejlesztőnek.",
     "**Nektek nem jön értesítő** → Beállítások → Általános → a „Csapat e-mail cím” valódi, olvasott postafiók legyen.",
     "**A vendég nem tud foglalni** → az alkalom betelt, lejárt, elmaradt, vagy a foglalás szünetel (lásd 2. rész).",
+    "**Nem látom a Törlés gombot egy előadónál** → csak akkor törölhető, ha egyetlen programhoz sincs hozzárendelve. A soron lévő „N program” jelzés mutatja, hányhoz. Vedd le a programokról, vagy használd a **Rejtés**t.",
     "**Elfelejtett jelszó** → a fejlesztő tud újat beállítani.",
 ]),
 ("tipp", "Az admin felület **telefonon is használható** — a listák keskeny képernyőn kártyákká rendeződnek. Hosszabb munkához (program felvitele, sablonszerkesztés) azért kényelmesebb a gép."),
@@ -157,11 +180,13 @@ TARTALOM = [
 ("h2", "Új programot hirdetnék meg"),
 ("lepesek", [
     "**Programok** fül → **+ Új program**.",
-    "Cím és rövid leírás (ez látszik a kártyán). Ha van: részletes leírás, előadó, várható időtartam, fotó.",
+    "Cím és rövid leírás (ez látszik a kártyán). Ha van: részletes leírás, várható időtartam, fotó.",
     "Állapot: **Aktív**, ha foglalható. **Hamarosan**, ha csak beharangoznád (ilyenkor nincs időpont).",
+    "**Előadók**: pipáld be, ki tartja — a nevek az Előadóink fülről jönnek (1. rész).",
     "**+ Időpont hozzáadása** — alkalmanként: dátum és idő, ár/fő, kedvezményes ár (nem kötelező), max. létszám.",
     "**Mentés**.",
 ]),
+("tipp", "Ha **egyetlen előadót sem** pipálsz be, a kártyán egyszerűen nincs „Előadó:” sor — a program ettől még teljesen működik."),
 ("tipp", "Egy program **egy kártya** a főoldalon, akárhány időponttal. Ha ugyanazt a workshopot többször tartod, ne vegyél fel új programot — adj hozzá időpontot."),
 
 ("h2", "Új időpontot adnék hozzá, vagy módosítanék"),

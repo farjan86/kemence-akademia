@@ -1,6 +1,6 @@
 # Egyedi programok & Ajánlatok — funkcióterv
 
-> Állapot: **IMPLEMENTÁLVA (2026-08-07)** — a teljes funkció (1–6. fázis) kész, és a **base-fájlokba beolvasztva** (`db/01-schema.sql`, `db/02-storage.sql`, `db/03-auto-visszaigazolo-trigger.sql` + `install.html`). A dev-migrációk (`m_10/m_11/m_12`) törölve.
+> Állapot: **IMPLEMENTÁLVA (2026-08-07)** — a teljes funkció (1–6. fázis) kész, és a **base-fájlokba beolvasztva** (`db/01-schema.sql`, `db/02-storage.sql`, `db/03-auto-visszaigazolo-trigger.sql` + `install.html`). A dev-migrációk (`m_10/m_11/m_12`) törölve. **Figyelem:** a mai `db/m_10-…` és `db/m_11-…` fájlok MÁS migrációk (számlázási cím, illetve Előadóink) — a sorszámok újrahasznosultak.
 > Készült: 2026-08-06. Ez a dokumentum a közösen egyeztetett tervet és a megvalósítást rögzíti. Egyetlen külső lépés maradt: a `send-ajanlat-email` Edge Function deploy + a trigger éles `<PROJECT_REF>`/`<ANON_KEY>` kitöltése (lásd install.html).
 
 ---

@@ -10,7 +10,6 @@
 --  ⚠️ NÉZD ÁT ÉS IGAZÍTSD a valós adatokra: ÁRAK, IDŐPONTOK, LÉTSZÁM, ELŐADÓ.
 --  rovid_leiras = a kártyán megjelenő rövid szöveg (sima szöveg);
 --  leiras       = a részletes leírás HTML-ben (félkövér/dőlt/felsorolás);
---  eloado       = előadó(k) neve (a kártyán „Előadó: …"); akár több név vesszővel.
 --  Az ÁR / KEDVEZMÉNYES ÁR / LÉTSZÁM mostantól IDŐPONTONKÉNT értendő.
 --  A foto_url a helyi képekre mutat (/kepek/...); az admin később felülírhatja.
 -- =====================================================================
@@ -26,18 +25,18 @@ declare
   w_kovasz uuid;
 begin
   -- 1) Kakaós csiga - gyermektábor (1 időpont)
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, foto_url, statusz, archivalt)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, foto_url, statusz, archivalt)
   values ('Kakaós csiga - gyermektábor',
     'A gyerekek a táborban saját kezűleg gyúrják, töltik és tekerik a kakaós csigát, majd a fatüzelésű kemencében sütjük ki.',
     '<p>A gyerekek egyik nagy kedvence, puha kelt tésztából, bőséges kakaós töltelékkel és azzal a semmivel össze nem téveszthető, frissen sült illattal. A táborban a kicsik saját kezűleg gyúrják, töltik és tekerik fel a csigákat, majd együtt sütjük ki őket a fatüzelésű kemencében. A saját maguk készített, még meleg kakaós csiga íze garantáltan felejthetetlen élmény.</p>',
-    null, 'kb. 3 óra', '/kepek/csiga.jpg', 'aktiv', false)
+    'kb. 3 óra', '/kepek/csiga.jpg', 'aktiv', false)
   returning id into w_csiga;
 
   insert into public.idopontok (workshop_id, idopont, ar, kedvezmenyes_ar, max_letszam)
   values (w_csiga, timestamptz '2026-08-12 09:00+02', 6000, null, 6);
 
   -- 2) Nápolyi Pizza Workshop Szabó Zolival (1 időpont)
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, foto_url, statusz, archivalt)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, foto_url, statusz, archivalt)
   values ('Nápolyi Pizza Workshop Szabó Zolival',
     'Igazi nápolyi pizza a kemencéből: tészta-kelesztés, nyújtás, feltétek és a sütés fortélyai. Mindenki több saját pizzát is süt és megkóstol. A vacsora ára az árban benne van.',
     '<p><strong>Pizza Workshop – Kemencés Nápolyi Pizza készítés Olasz Caputo alapanyagokkal</strong></p>
@@ -60,14 +59,14 @@ begin
 <li>Kemence Akadémiás kötény.</li>
 </ul>
 <p>A workshop végén lehetőség nyílik a felmerülő kérdések megbeszélésére, online mentori segítség igénybevételére, valamint a használt konyhai eszközök, kemencék és kerti konyhák megvásárlására vagy megrendelésére.</p>',
-    'Szabó Zoltán', 'kb. 5 óra', '/kepek/kemences_pizza_workshop.jpg', 'aktiv', false)
+    'kb. 5 óra', '/kepek/kemences_pizza_workshop.jpg', 'aktiv', false)
   returning id into w_pizza;
 
   insert into public.idopontok (workshop_id, idopont, ar, kedvezmenyes_ar, max_letszam)
   values (w_pizza, timestamptz '2026-08-14 16:00+02', 20000, null, 5);
 
   -- 3) Kovászos Kenyér és Kalács Workshop Andival (KÉT időpont — az új képesség demója)
-  insert into public.workshops (cim, rovid_leiras, leiras, eloado, varhato_idotartam, foto_url, statusz, archivalt)
+  insert into public.workshops (cim, rovid_leiras, leiras, varhato_idotartam, foto_url, statusz, archivalt)
   values ('Kovászos Kenyér és Kalács Workshop Andival',
     'Kemencés kalács és kenyér vadkovászos tésztából, felejtsd el az élesztőt! Illatos, finom és egészséges házi kenyerek.',
     '<p><strong>Élesztős és kovászos tészták Workshop – Kemencés kenyér és kalács</strong></p>
@@ -100,7 +99,7 @@ begin
 </ul>
 <p>A rendezvény teljes időtartama alatt kávét, teát és frissítőket biztosítunk.</p>
 <p>A workshop végén lehetőség nyílik a nap során használt konyhai eszközök megvásárlására, valamint kemencék és kerti konyhák megrendelésére.</p>',
-    'Nagy Andrea', 'kb. 7 óra', '/kepek/kovaszos_tesztak_workshop.jpg', 'aktiv', false)
+    'kb. 7 óra', '/kepek/kovaszos_tesztak_workshop.jpg', 'aktiv', false)
   returning id into w_kovasz;
 
   insert into public.idopontok (workshop_id, idopont, ar, kedvezmenyes_ar, max_letszam)
@@ -112,6 +111,6 @@ end $$;
 -- Ellenőrzés: program × időpont
 select cim,
        coalesce(to_char(idopont, 'YYYY-MM-DD HH24:MI'), '(nincs időpont)') as idopont,
-       eloado, ar, max_letszam, szabad_helyek
+       ar, max_letszam, szabad_helyek
 from public.programok
 order by cim, idopont nulls last;

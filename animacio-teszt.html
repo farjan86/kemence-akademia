@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Animáció-teszt — Kemence Akadémia</title>
+<style>
+  body{font:16px/1.6 system-ui,Segoe UI,sans-serif; background:#16100B; color:#F1E4D2;
+       margin:0; padding:28px; max-width:760px}
+  h1{font-size:22px; margin:0 0 6px}
+  p.sub{color:#B49E86; margin:0 0 22px}
+  .box{background:#271B12; border:1px solid #3C2A1C; border-radius:12px; padding:18px 20px; margin:0 0 16px}
+  .nagy{font-size:20px; font-weight:700}
+  .jo{color:#7ED957} .rossz{color:#FF6B4A}
+  code{background:#1E150E; padding:2px 6px; border-radius:4px}
+  /* mozgó négyzet — ha ez áll, a böngésző NEM játszik le animációt */
+  .teszt{width:56px; height:56px; border-radius:10px; background:#F59E1B;
+         animation:ide-oda 1.4s ease-in-out infinite}
+  @keyframes ide-oda{0%,100%{transform:translateX(0)} 50%{transform:translateX(220px)}}
+  /* szándékosan NINCS prefers-reduced-motion kivétel: ez a nyers böngésző-viselkedést mutatja */
+  ul{margin:8px 0 0; padding-left:20px} li{margin:4px 0}
+</style>
+</head>
+<body>
+<h1>Animáció-teszt</h1>
+<p class="sub">Ez a lap semmit nem tölt le, csak azt mutatja meg, hogy a böngésződ lejátssza-e az animációkat.</p>
+
+<div class="box">
+  <p><strong>1. Mozog-e a narancs négyzet?</strong></p>
+  <div class="teszt"></div>
+  <p class="sub" style="margin-top:10px">Ha áll, a böngésző vagy a rendszer állítja le az animációkat — nem az oldal kódja.</p>
+</div>
+
+<div class="box">
+  <p><strong>2. Mit mond a böngésző?</strong></p>
+  <p class="nagy" id="rm">…</p>
+  <p id="magyarazat" class="sub"></p>
+</div>
+
+<div class="box">
+  <p><strong>3. Hol kapcsolható vissza?</strong></p>
+  <ul>
+    <li><strong>Windows:</strong> Beállítások → Kisegítő lehetőségek → Vizuális effektusok → <em>Animációs effektusok</em> = Be</li>
+    <li><strong>Windows akkumulátorkímélő:</strong> Beállítások → Rendszer → Energiaellátás → Akkumulátorkímélő ki (töltőre téve)</li>
+    <li><strong>Chrome:</strong> <code>chrome://settings/performance</code> → Energiatakarékos mód ki</li>
+    <li><strong>Chrome grafikus gyorsítás:</strong> <code>chrome://settings/system</code> → „Hardveres gyorsítás használata" = Be</li>
+  </ul>
+</div>
+
+<div class="box">
+  <p><strong>4. Technikai adatok</strong></p>
+  <pre id="info" style="white-space:pre-wrap; margin:0; color:#B49E86; font-size:13.5px"></pre>
+</div>
+
+<script>
+(function(){
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function frissit(){
+    var csokkentett = mq.matches;
+    var e = document.getElementById('rm');
+    e.textContent = csokkentett
+      ? '⚠ A rendszer CSÖKKENTETT MOZGÁST kér (prefers-reduced-motion: reduce)'
+      : '✓ Normál mozgás engedélyezett (prefers-reduced-motion: no-preference)';
+    e.className = 'nagy ' + (csokkentett ? 'rossz' : 'jo');
+    document.getElementById('magyarazat').textContent = csokkentett
+      ? 'Emiatt a Kemence Akadémia oldalon szándékosan áll a kemence tüze, a füst, a szikrák és a nyitókép áttűnése is. A lenti 3. pont szerint kapcsold vissza.'
+      : 'Ebben az esetben az oldal animációinak menniük kell. Ha mégsem, a grafikus gyorsítás vagy az energiatakarékos mód a gyanús.';
+  }
+  mq.addEventListener ? mq.addEventListener('change', frissit) : mq.addListener(frissit);
+  frissit();
+
+  var an = document.getAnimations ? document.getAnimations() : [];
+  var sorok = [
+    'futó animációk ezen a lapon: ' + an.length +
+      (an.length ? '  (állapot: ' + an.map(function(a){return a.playState;}).join(', ') + ')' : ''),
+    'ablak: ' + window.innerWidth + '×' + window.innerHeight + '  (képpont-arány: ' + window.devicePixelRatio + ')',
+    'böngésző: ' + navigator.userAgent
+  ];
+  document.getElementById('info').textContent = sorok.join('\n');
+})();
+</script>
+</body>
+</html>

@@ -1,7 +1,11 @@
 # Terv — több időpont egy programhoz
 
-**Állapot:** TERVEZÉS KÉSZ — a megrendelői döntések véglegesítve. Kód még nem készült.
-Utolsó frissítés: 2026-08-04.
+**Állapot:** **IMPLEMENTÁLVA** — a funkció régóta éles a fejlesztői/demó rendszerben.
+Ez a dokumentum **történeti terv**: a lenti séma-vázlatok a 2026-08-04-i állapotot tükrözik,
+nem a mait. A friss séma: `db/01-schema.sql` és `docs/technikai-dokumentacio.md`.
+(Azóta például a `workshops.eloado` oszlop megszűnt — az előadókat az `eloadok` +
+`program_eloadok` táblák tartják nyilván.)
+Utolsó frissítés: 2026-09-30.
 **Környezet:** fejlesztői (dev). Nincs éles működés, az adat szabadon törölhető.
 
 ---

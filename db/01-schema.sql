@@ -25,7 +25,6 @@ create table if not exists public.workshops (
   cim                text        not null,
   rovid_leiras       text,                    -- rövid leírás a kártyára (kötelező az adminban)
   leiras             text,                    -- részletes leírás (OPCIONÁLIS), a „Részletek" ablakban
-  eloado             text,                    -- előadó(k) neve; akár több név vesszővel („Szabó Zoltán, Nagy Andrea")
   varhato_idotartam  text,                    -- pl. "~4 óra"; opcionális
   foto_url           text,                    -- Storage-link; opcionális
   statusz            text not null default 'aktiv'
@@ -165,6 +164,34 @@ create table if not exists public.email_log (
 create index if not exists email_log_booking_idx on public.email_log (booking_id);
 
 -- ---------------------------------------------------------------------
+-- 4/a) ELŐADÓK — a csapattagok, akik a programokat tartják
+--   A főoldal „Rólunk" szakaszában kattintható névsorként jelennek meg,
+--   a program-kártyán pedig az adott alkalom előadói.
+--   Egy programhoz több előadó tartozhat (program_eloadok kapcsolótábla).
+-- ---------------------------------------------------------------------
+create table if not exists public.eloadok (
+  id            uuid primary key default gen_random_uuid(),
+  nev           text not null check (char_length(nev) <= 100),
+  bemutatkozas  text,
+  foto_url      text,                               -- a PUBLIKUS program-fotok bucketben
+  sorrend       integer not null default 0,         -- kézi sorrend (admin húzással)
+  rejtett       boolean not null default false,     -- true = nem látszik a Rólunk névsorban
+  created_at    timestamptz not null default now()
+);
+create index if not exists eloadok_rejtett_idx on public.eloadok (rejtett);
+create index if not exists eloadok_sorrend_idx on public.eloadok (sorrend);
+
+-- A kapcsolat: egy programhoz több előadó, egy előadó több programhoz.
+--   • program törlése → a kapcsolat is megszűnik (cascade), az előadó megmarad;
+--   • programhoz kötött előadó NEM törölhető (restrict) — előbb le kell venni a programról.
+create table if not exists public.program_eloadok (
+  workshop_id uuid not null references public.workshops(id) on delete cascade,
+  eloado_id   uuid not null references public.eloadok(id)   on delete restrict,
+  primary key (workshop_id, eloado_id)
+);
+create index if not exists program_eloadok_eloado_idx on public.program_eloadok (eloado_id);
+
+-- ---------------------------------------------------------------------
 -- 4/b) EGYEDI PROGRAMOK + AJÁNLATOK — a FOGLALÁSTÓL FÜGGETLEN ág
 --   egyedi_programok: időpont nélküli egyedi program-kártyák (leánybúcsú, csapatépítő…),
 --     amikre a vendég AJÁNLATOT kér (rendszeren kívüli e-mailes egyeztetéssel).
@@ -300,9 +327,16 @@ drop view if exists public.programok;
 create view public.programok as
 select
   w.id                as workshop_id,
-  w.cim, w.rovid_leiras, w.leiras, w.eloado, w.varhato_idotartam, w.foto_url,
+  w.cim, w.rovid_leiras, w.leiras, w.varhato_idotartam, w.foto_url,
   w.archivalt, w.foglalas_felfuggesztve, w.sorrend,
   w.statusz           as program_statusz,     -- 'aktiv' / 'hamarosan'
+  -- A program előadói JSON tömbben: [{id, nev, rejtett}, …]; ha nincs előadó, NULL.
+  -- (A régi, szabad szöveges `eloado` oszlop megszűnt — az eloadok tábla az igazság forrása.)
+  (select json_agg(json_build_object('id', e.id, 'nev', e.nev, 'rejtett', e.rejtett)
+                   order by e.sorrend, e.nev)
+     from public.program_eloadok pe
+     join public.eloadok e on e.id = pe.eloado_id
+    where pe.workshop_id = w.id)            as eloadok,
   i.id                as idopont_id,          -- null, ha a programnak nincs időpontja
   i.idopont,
   i.ar, i.kedvezmenyes_ar, i.max_letszam,
@@ -534,6 +568,26 @@ create policy email_log_read on public.email_log
   for select to authenticated using (auth.uid() is not null);
 
 -- --- egyedi_programok (bárki olvas; az archiváltat app-oldalon szűrjük — mint a workshops) ---
+-- --- eloadok + program_eloadok (publikus tartalom: bárki olvashatja) ---
+alter table public.eloadok         enable row level security;
+alter table public.program_eloadok enable row level security;
+
+drop policy if exists eloadok_read on public.eloadok;
+create policy eloadok_read on public.eloadok
+  for select using (true);
+drop policy if exists eloadok_admin on public.eloadok;
+create policy eloadok_admin on public.eloadok
+  for all to authenticated
+  using (auth.uid() is not null) with check (auth.uid() is not null);
+
+drop policy if exists program_eloadok_read on public.program_eloadok;
+create policy program_eloadok_read on public.program_eloadok
+  for select using (true);
+drop policy if exists program_eloadok_admin on public.program_eloadok;
+create policy program_eloadok_admin on public.program_eloadok
+  for all to authenticated
+  using (auth.uid() is not null) with check (auth.uid() is not null);
+
 drop policy if exists egyedi_programok_read on public.egyedi_programok;
 create policy egyedi_programok_read on public.egyedi_programok
   for select using (true);

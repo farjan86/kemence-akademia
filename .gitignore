@@ -38,3 +38,6 @@ npm-debug.log*
 # --- Python ---
 __pycache__/
 *.pyc
+
+# --- Office ideiglenes zárolófájlok (Word/Excel nyitott dokumentumnál hozza létre) ---
+~$*

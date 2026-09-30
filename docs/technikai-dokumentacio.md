@@ -15,7 +15,7 @@
 
 ```
 db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_ = dev-migráció (ideiglenes) · t_ = technikai eszköz
-  01-schema.sql             A TELJES, mindig naprakész séma (üres/éles telepítéshez elég ez): workshops (program) + idopontok (alkalom) + bookings (idopont_id) + settings, RLS, „programok" nézet, túlfoglalás-trigger, 7 e-mail sablon, alap-beállítások, látogatás-számláló
+  01-schema.sql             A TELJES, mindig naprakész séma (üres/éles telepítéshez elég ez): workshops + idopontok + bookings + settings, eloadok + program_eloadok (Előadóink), egyedi_programok + ajanlatok + ajanlat_log + ajanlat_sablonok (egyedi ág), RLS, „programok" nézet, túlfoglalás- és címadat-trigger, e-mail sablonok, alap-beállítások, látogatás-számláló
   02-storage.sql            Storage bucket a program-fotókhoz (public olvasás, admin írás)
   03-auto-visszaigazolo-trigger.sql  Auto visszaigazoló + csapat-értesítő trigger + pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
   04-emlekezteto-cron.sql   Napi emlékeztető pg_cron + pg_net (másnapi jóváhagyott foglalásoknak; join az idopontok táblára; <PROJECT_REF>/<ANON_KEY> kitöltendő)
@@ -24,6 +24,8 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   m_07-tobb-idopont.sql     Dev-migráció: „több időpont" átállás (idopontok tábla, bookings.workshop_id→idopont_id, nézet/trigger/RLS). Üres dev-DB-hez; a végleges a 01-ben van. Később törölhető.
   m_08-foglalas-szunet.sql  Dev-migráció: foglalás-szünet (workshops.foglalas_felfuggesztve + settings.foglalas_szunet). Már a 01-ben is benne. Később törölhető.
   m_09-foglalasi-korlatok.sql  Dev-migráció: csoportos korlátok (idopontok.max_foglalasok + min_letszam, constraintek, foglalasok_szama() függvény, nézet + túlfoglalás-trigger frissítés). Már a 01-ben is benne. Később törölhető.
+  m_10-cimadatok-es-infosav.sql  Dev-migráció: számlázási cím (iranyitoszam/helyseg/cim_tovabbi) a bookings és az ajanlatok táblán + ellenoriz_cimadatok() trigger, valamint settings.ajanlat_infosav. Már a 01-ben is benne.
+  m_11-eloadok.sql          Dev-migráció: Előadóink — eloadok + program_eloadok tábla, RLS, a régi workshops.eloado oszlop ELDOBÁSA, a „programok" nézet újraépítése az eloadok JSON-nal. Már a 01-ben is benne.
   t_start-programok.sql     Technikai: induló (kb. éles) programok + időpontjaik (RESET-tel)
   t_seed-demo-foglalasok.sql  Technikai (CSAK dev): demó programok/időpontok/foglalások (MINDENT töröl + újratölt). Éles DB-n NE fusson.
   t_reset-ures-allapot.sql  Technikai: minden program+időpont+foglalás törlése (üres induló állapot)
@@ -35,11 +37,16 @@ web/                        Frontend (ezt szolgálja ki a szerver / Hostinger)
   js/dialog.js              Saját felugró ablak (alert/confirm helyett)
   js/util.js                Publikus segédek (dátum, HUF, tisztítók, validáció) — lásd docs/js-modulok.md
   js/app.js                 Publikus: adat + programok kirajzolása (programonként csoportosítva, időpont-csempék)
+  js/eloadok.js             Publikus: az Előadóink névsor a Rólunk szakaszban + a bemutatkozó ablak; a kártyák „Előadó: …" sora
   js/foglalas.js            Publikus: foglalási ablak (foglalás a kiválasztott időpontra)
-  kepek/                    Főoldali képek: logo-mark.png (logó, favicon), hero-1..3.jpg (hero-slideshow), csapat.jpg (Rólunk), *_workshop.jpg + leanybucsu.jpg (workshop-boxok)
+  js/ajanlat.js             Publikus: egyedi programok + ajánlatkérő űrlap
+  js/szikrak.js             Publikus: parázs-szikra háttéranimáció (canvas) — prefers-reduced-motion esetén el sem indul
+  js/reveal.js              Publikus: szekciók beúszása görgetéskor (IntersectionObserver)
+  kepek/                    Főoldali képek: logo-mark.png (logó, favicon), hero-1..3.jpg (hero-slideshow), csapat.jpg (Rólunk), buza.svg (búza-motívum a szekciósarkokban), *_workshop.jpg + leanybucsu.jpg (workshop-boxok)
+  .htaccess                 Hostinger: 301 átirányítás a régi aloldalakról, könyvtárlistázás tiltása, cache-szabályok
   admin/index.html          Admin oldal (belépés + fülek + modalok)
   admin/admin.css           Admin stílus
-  admin/js/                 Admin logika 6 modulra bontva (util, core, foglalasok, programok, naptar, beallitasok) — lásd docs/js-modulok.md
+  admin/js/                 Admin logika 10 modulra bontva (util, core, foglalasok, programok, egyediprogramok, ajanlatok, naptar, eloadok, partnerek, beallitasok) — lásd docs/js-modulok.md
 supabase/functions/send-email/index.ts  E-mail küldő Edge Function (Deno + RESEND → email_log). Beállítás: docs/email.md, install.html
 docs/                       Élő dokumentáció (ez a mappa: funkcio-, technikai-dokumentacio, email.md)
 fejlesztesi-terv.md         A terv / roadmap
@@ -54,7 +61,8 @@ start-szerver.bat           Helyi szerver indító (localhost:5500)
 ### Táblák
 
 **`workshops`** — programok (a program KÖZÖS adatai, minden időpontra)
-`id` (uuid, PK) · `cim` · `rovid_leiras` (rövid, a kártyán, kötelező) · `leiras` (részletes, **opcionális**, a „Részletek" ablakban) · `eloado` (előadó(k), opcionális; a kártyán „Előadó: …") · `varhato_idotartam` · `foto_url` · `statusz` (`aktiv`/`hamarosan`) · `archivalt` (bool) · `created_at`
+`id` (uuid, PK) · `cim` · `rovid_leiras` (rövid, a kártyán, kötelező) · `leiras` (részletes, **opcionális**, a „Részletek" ablakban) · `varhato_idotartam` · `foto_url` · `statusz` (`aktiv`/`hamarosan`) · `archivalt` (bool) · `foglalas_felfuggesztve` (bool — átmeneti foglalás-szünet erre a programra) · `sorrend` (kézi sorrend a főoldalon) · `created_at`
+**Előadó itt NINCS:** a régi, szabad szöveges `eloado` oszlopot az `m_11` migráció ejtette; az előadókat a `program_eloadok` kapcsolótábla köti a programhoz.
 Az ár/időpont/létszám NEM itt van, hanem **időpontonként** az `idopontok` táblában.
 
 **`idopontok`** — egy program meghirdetett alkalmai (a több-időpont lelke)
@@ -63,11 +71,12 @@ Megszorítások: akciós ár < alap ár; létszám>0; `max_foglalasok is null or
 **Csoportos korlátok:** `max_foglalasok` = hány foglalás (csapat) fogadható az időpontra (null=korlátlan); `min_letszam` = egy foglalás minimális létszáma (null=nincs). Az időpont lezár, ha eléri a `max_foglalasok`-ot, vagy ha a szabad hely < `min_letszam`.
 
 **`bookings`** — foglalások (mindig egy KONKRÉT IDŐPONTRA)
-`id` (uuid, PK) · `azonosito` (bigint identity, **1-től**) · `idopont_id` (FK→idopontok, `on delete restrict`) · `nev` · `email` · `telefon` · `letszam` (>0) · `megjegyzes` · `statusz` (`jovahagyasra_var`/`jovahagyott`/`elutasitott`/`lemondott`) · `created_at`
+`id` (uuid, PK) · `azonosito` (bigint identity, **1-től**) · `idopont_id` (FK→idopontok, `on delete restrict`) · `nev` · `email` · `telefon` · `letszam` (>0) · `megjegyzes` · `iranyitoszam` (≤20) · `helyseg` (≤100) · `cim_tovabbi` (≤200) · `statusz` (`jovahagyasra_var`/`jovahagyott`/`elutasitott`/`lemondott`) · `created_at`
+**Számlázási cím:** szabad szöveg (a külföldi címek miatt), adószám nincs — számlát csak magánszemély nevére állítunk ki. A **nyilvános (anon) beküldésnél mindhárom mező kötelező**, ezt az `ellenoriz_cimadatok()` trigger tartatja be; az adminból mentett vagy importált sor maradhat cím nélkül.
 Indexek: idopont_id, statusz, azonosito (egyedi).
 
 **`settings`** — egysoros (id=1)
-`levelezesi_email` (a **csapat** címe — ide megy a `csapat_ertesito` ÉS ez a vendég-levelek Reply-To-ja; NEM a feladó, az a `MAIL_FROM` secret) · `foglalas_infosav` · `azonosito_elotag` (≤2 kar) · `azonosito_kezdo` (1–999) · `updated_at`
+`levelezesi_email` (a **csapat** címe — ide megy a `csapat_ertesito` ÉS ez a vendég-levelek Reply-To-ja; NEM a feladó, az a `MAIL_FROM` secret) · `foglalas_infosav` (a foglalási űrlap info-sávja) · `ajanlat_infosav` (az ajánlatkérő űrlap info-sávja) · `azonosito_elotag` (≤2 kar) · `azonosito_kezdo` (1–999) · `ajanlat_azonosito_elotag` / `ajanlat_azonosito_kezdo` (külön számozás az ajánlatoknak) · `naptar_nezet` (`lista`/`racs`) · `foglalas_szunet` (globális foglalás-szünet) · `updated_at`
 
 **`email_sablonok`** — e-mail sablonok
 `tipus` (PK: `visszaigazolas`/`csapat_ertesito`/`jovahagyas`/`elutasitas`/`lemondas`/`program_elmarad`/`emlekezteto`) · `targy` · `torzs` · `updated_at`
@@ -76,14 +85,36 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {idopont} {letsza
 **`email_log`** — kiküldött levelek naplója (tartalom nélkül)
 `id` (bigint, PK) · `booking_id` (FK→bookings, `on delete cascade`) · `tipus` · `cimzett` · `elkuldve`
 
+**`eloadok`** — az előadók (csapattagok), akiket a főoldal bemutat
+`id` (uuid, PK) · `nev` (≤100) · `bemutatkozas` (formázott, tisztított HTML) · `foto_url` (a publikus `program-fotok` bucketben) · `sorrend` (kézi, az admin húzza) · `rejtett` (bool — nem látszik a Rólunk névsorban) · `created_at`
+
+**`program_eloadok`** — melyik programot ki tartja (N:N kapcsolótábla)
+`workshop_id` (FK→workshops, `on delete cascade`) + `eloado_id` (FK→eloadok, **`on delete restrict`**) — összetett PK.
+A `restrict` miatt **programhoz kötött előadó nem törölhető**; az admin ezért csak kapcsolat nélküli előadónál mutatja a Törlés gombot (elrejteni bármikor lehet).
+
+**`egyedi_programok`** — az EGYEDI ág kínálata (leánybúcsú, csapatépítő…), időpont és ár nélkül
+`id` (uuid, PK) · `cim` · `rovid_leiras` · `leiras` · `foto_url` · `sorrend` · `archivalt` (bool) · `created_at`
+
+**`ajanlatok`** — ajánlatkérések és a rájuk adott ajánlat
+`id` (uuid, PK) · `azonosito` (bigint identity) · `egyedi_program_id` (FK→egyedi_programok, `on delete set null` — NULL = általános kérés) · `nev` · `email` · `telefon` · `letszam` · `kivant_idopont` · `keres_szoveg` · `iranyitoszam`/`helyseg`/`cim_tovabbi` (számlázási cím, mint a bookings-nál) · `statusz` (`ajanlatra_var`/`ajanlat_kikuldve`/`elfogadva`/`elutasitva`/`lemondva`) · `belso_jegyzet` (**privát** admin-jegyzet, a vendég sosem látja) · `vegleges_idopont` · `vegleges_letszam` · `vegleges_ar` (**összár** a rendezvényre, nem fő/ár) · `ajanlat_szoveg` · `csatolmany_url` (a privát bucket objektum-kulcsa) · `valasz_elkuldve` · `created_at`
+Megszorítás: **`elfogadva` státuszban a négy végleges mező kötelező** (`ajanlat_elfogadva_kotelezo`) — DB-védelem az app-validáción túl.
+
+**`ajanlat_log`** — az ajánlat-levelek naplója (külön az `email_log`-tól, ami `booking_id`-hoz kötött)
+`id` · `ajanlat_id` (FK→ajanlatok, `on delete cascade`) · `tipus` · `cimzett` · `elkuldve`
+
+**`ajanlat_sablonok`** — az ajánlat-ág levélsablonjai (külön az `email_sablonok`-tól)
+`tipus` (PK: `ajanlat_visszaigazolas`/`ajanlat_csapat_ertesito`/`ajanlat_megerosites`/`ajanlat_elutasitas`/`ajanlat_lemondas`) · `targy` · `torzs` · `updated_at`
+Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {azonosito} {letszam} {kivant_idopont} {keres_szoveg} {vegleges_idopont} {vegleges_letszam} {vegleges_ar} {ajanlat_szoveg}`.
+
 **`oldal_statisztika`** — látogatás-számláló, egysoros (id=1)
 `id` · `latogatasok` (bigint) · `updated_at`. RLS mögött, közvetlenül nem érhető el — csak a lenti függvényeken át.
 
 ### Nézet, függvények, triggerek
-- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, `rovid_leiras`, `leiras`, `eloado`, `varhato_idotartam`, `foto_url`, `archivalt`, `program_statusz`, `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `max_foglalasok`, `min_letszam`, `idopont_statusz`, `szabad_helyek`, `foglalasok_szama`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
+- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, `rovid_leiras`, `leiras`, `varhato_idotartam`, `foto_url`, `archivalt`, `foglalas_felfuggesztve`, `sorrend`, `program_statusz`, **`eloadok`** (JSON tömb: `[{id, nev, rejtett}, …]` a `program_eloadok` + `eloadok` táblákból, `sorrend`/`nev` szerint rendezve; NULL, ha a programhoz nincs előadó), `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `max_foglalasok`, `min_letszam`, `idopont_statusz`, `szabad_helyek`, `foglalasok_szama`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
 - **`foglalt_helyek(uuid)`** (függvény, `security definer`): egy **IDŐPONT** foglalt helyeinek száma (a `jovahagyasra_var` + `jovahagyott` foglalások létszám-összege). Anon is hívhatja, de a foglalási sorokat nem látja.
 - **`foglalasok_szama(uuid)`** (függvény, `security definer`): egy **IDŐPONT** élő **foglalásainak (rekordjainak) száma** — a `max_foglalasok` korláthoz (nem a létszám-összeg, hanem a foglalások darabszáma). A nézet is ezt adja vissza `foglalasok_szama` oszlopként, hogy a publikus oldal el tudja dönteni, betelt-e a csoportos alkalom.
 - **`ellenoriz_szabad_hely()`** + **`trg_szabad_hely`** trigger (bookings, before insert/update): túlfoglalás elleni védelem **időpont-szinten**; **elmaradt** időpontra vagy nem-aktív/archivált programra nem enged foglalni; a **publikus (anon) foglalást múltbéli időpontra elutasítja** (a mai nap még OK; az admin/seed rögzíthet historikusat). **Csoportos korlátok (csak anon INSERT-nél):** elutasítja a `min_letszam` alatti létszámot, és ha az élő foglalások száma elérte a `max_foglalasok`-ot. Az **admin** (nem-anon) e két korlátot felülbírálhatja.
+- **`ellenoriz_cimadatok()`** + **`trg_cimadatok_booking`** / **`trg_cimadatok_ajanlat`** trigger (bookings és ajanlatok, before insert): ha a beszúró szerepe **`anon`**, mindhárom címmező (`iranyitoszam`, `helyseg`, `cim_tovabbi`) kötelező. Az adminból (authenticated) vagy importból mentett sor maradhat cím nélkül.
 - **`latogatas_rogzites()` / `latogatas_szam()`** (`security definer`): a látogatásszám növelése ill. olvasása. Anon is hívhatja (a tábla RLS-e miatt csak ezeken át).
 - **`trg_uj_foglalas_email()`** + **`trg_uj_foglalas_email`** trigger (bookings, after insert) — **külön fájl (`db/03-auto-visszaigazolo-trigger.sql`), projekt-specifikus értékkel:** új `jovahagyasra_var` foglaláskor `pg_net`-tel meghívja a `send-email` függvényt (auto visszaigazoló + csapat-értesítő). A Supabase Database Webhook SQL-alternatívája; ugyanazt a `{type:INSERT, record}` payloadot küldi.
 - **`pg_cron` napi feladat** (`kemence-napi-emlekezteto`, `db/04-emlekezteto-cron.sql`) — `pg_net`-tel a másnapi jóváhagyott foglalásoknak emlékeztetőt küld.
@@ -94,7 +125,8 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {idopont} {letsza
 - **Megjelenített azonosító:** `azonosito_elotag + (bookings.azonosito + azonosito_kezdo − 1)`. Alap: `F-` + 100 → `F-100`.
 
 ### Storage
-- **`program-fotok`** bucket (publikus olvasás, admin írás) — ide töltődnek a program-fotók; a `workshops.foto_url` a publikus URL-t tárolja.
+- **`program-fotok`** bucket (**publikus** olvasás, admin írás) — ide töltődnek a program-fotók, az egyedi programok képei és az **előadók fényképei** is; a `foto_url` mezők a publikus URL-t tárolják.
+- **`ajanlat-csatolmanyok`** bucket (**privát**) — az ajánlathoz csatolt pdf/docx/kép. Publikus URL nincs: az admin aláírt (signed) linken át nyitja meg. Az `ajanlatok.csatolmany_url` az objektum-kulcsot tárolja, nem URL-t.
 
 ### Biztonság (RLS)
 | Tábla | Publikus (anon) | Admin (authenticated) |
@@ -106,6 +138,12 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {idopont} {letsza
 | email_sablonok | — | mindent |
 | email_log | — | olvas (írás service-role-lal) |
 | oldal_statisztika | — (csak függvényen át) | — (csak függvényen át) |
+| eloadok | olvas | mindent |
+| program_eloadok | olvas | mindent |
+| egyedi_programok | olvas | mindent |
+| ajanlatok | csak beküld (`ajanlatra_var`) | olvas/módosít/töröl |
+| ajanlat_sablonok | — | mindent |
+| ajanlat_log | — | olvas (írás service-role-lal) |
 
 Egyetlen admin fiók (Supabase Auth), **önregisztráció nincs** — a fiókot a gépházban hozzuk létre. Jelenleg minden bejelentkezett = admin.
 
