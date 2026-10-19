@@ -41,3 +41,10 @@ __pycache__/
 
 # --- Office ideiglenes zárolófájlok (Word/Excel nyitott dokumentumnál hozza létre) ---
 ~$*
+
+# --- Mentések: az ügyfél régi oldala és a tárhely-mentések (nem a mi kódunk) ---
+regi-oldal-mentes/
+backup/
+
+# --- Generált telepítési csomag (a build.bat gyártja, nem verziókövetendő) ---
+deploy_web/

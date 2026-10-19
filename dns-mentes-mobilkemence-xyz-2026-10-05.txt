@@ -1,0 +1,102 @@
+======================================================================
+  DNS-ZONA PILLANATKEP
+  Domain : mobilkemence.xyz
+  Keszult: 2026-10-05 10:54
+  Forras : nyilvanos DNS-lekerdezes (8.8.8.8)
+======================================================================
+
+--- A DOMAIN SAJAT REKORDJAI ---
+
+[SOA]
+mobilkemence.xyz
+	primary name server = ns1.dns-parking.com
+	responsible mail addr = dns.hostinger.com
+	serial  = 2026100101
+	refresh = 10000 (2 hours 46 mins 40 secs)
+	retry   = 2400 (40 mins)
+	expire  = 604800 (7 days)
+	default TTL = 3600 (1 hour)
+
+[NS]
+mobilkemence.xyz	nameserver = ns2.dns-parking.com
+mobilkemence.xyz	nameserver = ns1.dns-parking.com
+
+[A]
+Name:    mobilkemence.xyz
+Addresses:  217.65.159.245
+	  217.65.156.91
+
+[AAAA]
+Name:    mobilkemence.xyz
+Addresses:  2a02:4780:80:d349:f8e9:e801:a130:a86a
+	  2a02:4780:7f:de79:3cf0:1797:87ab:4fde
+
+[MX]
+mobilkemence.xyz	MX preference = 1, mail exchanger = aspmx.l.google.com
+mobilkemence.xyz	MX preference = 10, mail exchanger = alt3.aspmx.l.google.com
+mobilkemence.xyz	MX preference = 5, mail exchanger = alt2.aspmx.l.google.com
+mobilkemence.xyz	MX preference = 10, mail exchanger = alt4.aspmx.l.google.com
+mobilkemence.xyz	MX preference = 5, mail exchanger = alt1.aspmx.l.google.com
+
+[TXT]
+mobilkemence.xyz	text =
+	"google-site-verification=4vF6vGdgXc9lD6cnOk0nWuILYUtrc4XFAq7wMWA-P78"
+mobilkemence.xyz	text =
+	"v=spf1 include:_spf.google.com ~all"
+
+[CAA]
+  (a Windows nslookup nem tud CAA-t lekerdezni - kezzel ellenorizd)
+
+
+--- ALDOMAINEK (ismert nevek vegigprobalva) ---
+
+[A] www.mobilkemence.xyz
+Name:    www.mobilkemence.xyz.cdn.hstgr.net
+Addresses:  217.65.159.129
+	  217.65.156.227
+Aliases:  www.mobilkemence.xyz
+
+[CNAME] www.mobilkemence.xyz
+www.mobilkemence.xyz	canonical name = www.mobilkemence.xyz.cdn.hstgr.net
+
+[A] ftp.mobilkemence.xyz
+Name:    ftp.mobilkemence.xyz
+Address:  145.14.153.247
+
+[A] autodiscover.mobilkemence.xyz
+Name:    autodiscover.mail.hostinger.com
+Address:  34.120.251.119
+Aliases:  autodiscover.mobilkemence.xyz
+
+[CNAME] autodiscover.mobilkemence.xyz
+autodiscover.mobilkemence.xyz	canonical name = autodiscover.mail.hostinger.com
+
+[A] autoconfig.mobilkemence.xyz
+Name:    autoconfig.mail.hostinger.com
+Address:  34.120.251.119
+Aliases:  autoconfig.mobilkemence.xyz
+
+[CNAME] autoconfig.mobilkemence.xyz
+autoconfig.mobilkemence.xyz	canonical name = autoconfig.mail.hostinger.com
+
+[A] _dmarc.mobilkemence.xyz
+Name:    _dmarc.mobilkemence.xyz
+
+[TXT] _dmarc.mobilkemence.xyz
+_dmarc.mobilkemence.xyz	text =
+	"v=DMARC1; p=none; rua=mailto:info@mobilkemence.xyz;"
+
+[A] google._domainkey.mobilkemence.xyz
+Name:    google._domainkey.mobilkemence.xyz
+
+[TXT] google._domainkey.mobilkemence.xyz
+google._domainkey.mobilkemence.xyz	text =
+	"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvVA2oIOmuNPZi7/v/Ae+OB9xk+5WjBjzT/H97gJyN+WcWGJziflW5N7KsWuWrovLFaE4y33nyTwvEeZywJiQ1s/cy9MIQ83Mc+ENA7cil6pzRakgSk40JMKjxw4Pj+YpdmwMdwZkGuyL3X1DZl5WYhIuOr+Mrq1B0RDUVGgHsuexJ2wVVCEC7qBz4tn83haVV"
+	"A+2nauReDRQ84Hk09RxRCFwMGsf+1A5YxLA9JWxSj09N9KWDu8A1plrM4OLFCknttsgeJ2KFZyfwNSlVg9wNZ/BzJ+NiMa98n/01VSOvck6TsRSkhjEwuM8D/Eh0dOMRu550eo4x2uTFzppnV/mPQIDAQAB"
+
+
+======================================================================
+  MEGJEGYZES: ez NEM teljes zonaexport. Csak a lekerdezett neveket
+  tartalmazza. A hitelesen teljes listat a Hostinger hPanel
+  Domains -> DNS / Nameservers kepernyoje mutatja.
+======================================================================

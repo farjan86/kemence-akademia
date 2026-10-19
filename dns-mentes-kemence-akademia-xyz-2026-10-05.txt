@@ -1,0 +1,64 @@
+======================================================================
+  DNS-ZONA PILLANATKEP
+  Domain : kemence-akademia.xyz
+  Keszult: 2026-10-05 10:54
+  Forras : nyilvanos DNS-lekerdezes (8.8.8.8)
+======================================================================
+
+--- A DOMAIN SAJAT REKORDJAI ---
+
+[SOA]
+kemence-akademia.xyz
+	primary name server = ns1.dns-parking.com
+	responsible mail addr = dns.hostinger.com
+	serial  = 2026100101
+	refresh = 10000 (2 hours 46 mins 40 secs)
+	retry   = 2400 (40 mins)
+	expire  = 604800 (7 days)
+	default TTL = 600 (10 mins)
+
+[NS]
+kemence-akademia.xyz	nameserver = ns2.dns-parking.com
+kemence-akademia.xyz	nameserver = ns1.dns-parking.com
+
+[A]
+Name:    kemence-akademia.xyz
+Addresses:  217.65.156.14
+	  217.65.159.39
+
+[AAAA]
+Name:    kemence-akademia.xyz
+Addresses:  2a02:4780:80:d666:fdc0:229:acf6:4d41
+	  2a02:4780:7f:a5fd:8a93:dc87:b2b7:52ac
+
+[MX]
+  (nincs ilyen rekord)
+
+[TXT]
+  (nincs ilyen rekord)
+
+[CAA]
+  (a Windows nslookup nem tud CAA-t lekerdezni - kezzel ellenorizd)
+
+
+--- ALDOMAINEK (ismert nevek vegigprobalva) ---
+
+[A] www.kemence-akademia.xyz
+Name:    www.kemence-akademia.xyz.cdn.hstgr.net
+Addresses:  217.65.156.136
+	  217.65.159.6
+Aliases:  www.kemence-akademia.xyz
+
+[CNAME] www.kemence-akademia.xyz
+www.kemence-akademia.xyz	canonical name = www.kemence-akademia.xyz.cdn.hstgr.net
+
+[A] ftp.kemence-akademia.xyz
+Name:    ftp.kemence-akademia.xyz
+Address:  46.202.172.152
+
+
+======================================================================
+  MEGJEGYZES: ez NEM teljes zonaexport. Csak a lekerdezett neveket
+  tartalmazza. A hitelesen teljes listat a Hostinger hPanel
+  Domains -> DNS / Nameservers kepernyoje mutatja.
+======================================================================

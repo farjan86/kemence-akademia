@@ -168,11 +168,12 @@ window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
   <div class="callout warn">
     <b>⚠️ Ne keverd össze:</b> az <b>Edge Functions</b> menü kell (TypeScript), NEM a <b>Database → Functions</b> (SQL). Ott csak <b>név + kód-szerkesztő + Deploy</b> van.
   </div>
-  <p>A rendszernek <b>két, egymástól teljesen független</b> levélküldő függvénye van — <b>mindkettőt</b> deployold (külön-külön, „Deploy a new function"):</p>
+  <p>A rendszernek <b>három, egymástól teljesen független</b> függvénye van — <b>mindet</b> deployold (külön-külön, „Deploy a new function"):</p>
   <table>
     <tr><th>Függvény neve (PONTOSAN ez legyen)</th><th>Mit küld</th><th>Mit másolj be</th></tr>
     <tr><td><code>send-email</code></td><td>foglalási levelek</td><td><code>supabase/functions/send-email/index.ts</code> teljes tartalma</td></tr>
     <tr><td><code>send-ajanlat-email</code></td><td>ajánlati levelek (egyedi programok)</td><td><code>supabase/functions/send-ajanlat-email/index.ts</code> teljes tartalma</td></tr>
+    <tr><td><code>backup-export</code></td><td>heti adatmentés (CSV-csatolmányok a csapat-címre; lásd 3.5)</td><td><code>supabase/functions/backup-export/index.ts</code> teljes tartalma</td></tr>
   </table>
   <ol>
     <li>Supabase → <b>Edge Functions → Deploy a new function</b> (Via Editor).</li>
@@ -180,7 +181,7 @@ window.SUPABASE_ANON_KEY = "<span class="repl">&lt;ANON_KEY&gt;</span>";</pre>
     <li>Másold be a hozzá tartozó <code>index.ts</code> teljes tartalmát → <b>Deploy</b>. Ismételd meg a másik függvényre is.</li>
     <li>Hívási URL: <code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co/functions/v1/<b>&lt;függvény-neve&gt;</b></code>. Hibák: a függvény <b>Logs</b> fülén.</li>
   </ol>
-  <div class="callout ok"><b>A két függvény KÖZÖS secreteket használ</b> (a 2.3-ban beállított <code>RESEND_API_KEY</code>, <code>MAIL_FROM</code>, <code>DEV_REDIRECT_TO</code>) — nem kell újra beállítani. A <code>send-ajanlat-email</code> a privát <code>ajanlat-csatolmanyok</code> bucketből mellékeli a csatolmányt (base64).</div>
+  <div class="callout ok"><b>A három függvény KÖZÖS secreteket használ</b> (a 2.3-ban beállított <code>RESEND_API_KEY</code>, <code>MAIL_FROM</code>, <code>DEV_REDIRECT_TO</code>) — nem kell újra beállítani. A <code>send-ajanlat-email</code> a privát <code>ajanlat-csatolmanyok</code> bucketből mellékeli a csatolmányt (base64). A <code>backup-export</code>-nak <b>egy plusz secret</b> kell: <code>BACKUP_SECRET</code> — egy hosszú, véletlen szöveg (32+ karakter), ami a 3.5-ös cron SQL-be is bekerül; ez védi, hogy kívülről ne lehessen mentés-levelet kiváltani.</div>
 
   <h3>2.5 — Limitek (Resend ingyenes csomag)</h3>
   <p><b>3 000 levél/hó</b>, <b>100/nap</b>, <b>1 domain</b>, 30 napos napló. Ehhez a projekthez bőven elég. (Pro: $20/hó, 50 000 — nem kell.) A saját <code>email_log</code> táblánk korlátlanul őrzi a küldéseket.</p>
@@ -283,22 +284,47 @@ create trigger trg_uj_ajanlat_email
 after insert on public.ajanlatok
 for each row execute function public.trg_uj_ajanlat_email();</pre>
   <p><small>Előfeltétel: a <code>send-ajanlat-email</code> deployolva (2.4), a <code>pg_net</code> bekapcsolva (3.1). Kikapcsolás: <code>drop trigger trg_uj_ajanlat_email on public.ajanlatok;</code></small></p>
+
+  <h3>3.5 — Heti adatmentés e-mailben</h3>
+  <p>Minden <b>hétfőn reggel</b> egy levél érkezik a csapat-címre, csatolva egy ZIP, benne táblánként egy CSV az adatbázis <b>teljes</b> tartalmával (programok, időpontok, előadók, foglalások, ajánlatok, naplók, beállítások). A képfájlok nincsenek benne. Visszaállítás, részletek: <code>docs/heti-mentes.md</code>.</p>
+
+  <p><b>Telepítés — 4 lépés, mind a Supabase felületén:</b></p>
+  <ol>
+    <li><b>Titok.</b> Edge Functions → <b>Secrets</b> → új: <code>BACKUP_SECRET</code> = egy hosszú, véletlen szöveg (32+ karakter). Írd fel, a 3. lépésben kell.</li>
+    <li><b>Függvény.</b> Edge Functions → <b>Deploy a new function</b> → név: <code>backup-export</code> → a <code>supabase/functions/backup-export/index.ts</code> teljes tartalma → Deploy.</li>
+    <li><b>Időzítés.</b> SQL Editor → a <code>db/05-heti-mentes-cron.sql</code> teljes tartalma, a tetején ezt az öt sort kitöltve → Run:
+      <pre>project_ref    := '<span class="repl">&lt;PROJECT_REF&gt;</span>';     -- a projekt azonosítója
+anon_key       := '<span class="repl">&lt;ANON_KEY&gt;</span>';        -- Project Settings → API → anon key
+backup_secret  := '<span class="repl">&lt;BACKUP_SECRET&gt;</span>';   -- az 1. lépés titka
+utemezes       := '0 4 * * 1';         -- hétfő reggel (UTC; 6:00 nyári / 5:00 téli idő) — felépítés + példák a fájl fejlécében
+azonnali_teszt := true;                -- első futásnál: rögtön küld is egyet</pre></li>
+    <li><b>Ellenőrzés.</b> Pár másodperc múlva megjön az első levél a csapat-címre. Ha nem: <code>select status_code, content::text from net._http_response order by created desc limit 3;</code> — <code>401</code>: a titok nem egyezik; <code>500</code>: a függvény <b>Logs</b> fülén az ok (tipikusan üres csapat-cím az admin Beállításokban).</li>
+  </ol>
+  <p><small>Más időpont: átírod az <code>utemezes</code>-t, és újrafuttatod a 3. lépést. Kikapcsolás: <code>select cron.unschedule('kemence-heti-mentes');</code> Előfeltétel a 3.1 (pg_cron + pg_net) — a napi emlékeztető miatt már be van kapcsolva.</small></p>
+  <div class="callout warn"><b>⚠️ Személyes adat:</b> a mentés a vendégek nevét, címét, telefonját tartalmazza. A csapat-postafiók legyen a cég saját, védett fiókja; a leveleket ne továbbítsd privát címre.</div>
 </div>
 
 <!-- ============================ 4. HOSTING / ÉLESÍTÉS ============================ -->
 <div class="card" id="hosting">
   <h2><span class="num">4.</span> Hosting és élesítés (Hostinger)</h2>
-  <p>A frontend <b>statikus</b> (nincs szerveroldali kód, nincs build), ezért bármelyik tárhely kiszolgálja. <b>Élesben a Hostinger</b> — az ügyfélnek úgyis van ott csomagja (a <code>mobilkemence.xyz</code> + webshop miatt), és a domain + DNS is ott van, így a <code>kemence-akademia.xyz</code> is oda kerül, egy helyre. Így a telepítés <b>nem függ a fejlesztő GitHub- vagy Netlify-fiókjától</b> sem — az oldal fájljai az ügyfél tárhelyén vannak. (A <b>demó</b> ettől külön, a Cloudflare-en fut — lásd 4.5.)</p>
+  <p>A frontend <b>statikus</b> (nincs szerveroldali kód, nincs build), ezért bármelyik tárhely kiszolgálja. <b>Élesben a Hostinger</b> — az ügyfélnek úgyis van ott csomagja, és a domain + DNS is ott van. Így a telepítés <b>nem függ a fejlesztő GitHub- vagy Netlify-fiókjától</b> sem: az oldal fájljai az ügyfél tárhelyén vannak. (A <b>demó</b> ettől külön, a Cloudflare-en fut — lásd 4.5.)</p>
+  <div class="callout"><b>A kiindulási helyzet:</b> a <code>kemence-akademia.xyz</code> <b>már fent van</b> a Hostingeren, egy működő régi oldallal. Tehát <b>nem új webhelyet veszünk fel</b>, hanem a meglévő <code>public_html</code> tartalmát cseréljük ki. A domainhez, a DNS-hez és a tanúsítványhoz <b>nem kell hozzányúlni</b>.</div>
 
-  <h3>4.1 — Frontend fel a Hostingerre (éles)</h3>
+  <h3>4.1 — A fájlok cseréje a meglévő webhelyen</h3>
   <ol>
-    <li><b>hPanel → Websites → Add website</b> → <code>kemence-akademia.xyz</code> (a meglévő tárhely-csomagon belül, a többi oldal mellé). Ez létrehoz egy webgyökér-mappát (pl. <code>.../kemence-akademia.xyz/public_html</code>). <i>(Ha a domain már ott van egy régi oldallal, ez a lépés kimarad — lásd 4.2.)</i></li>
-    <li><b>ELŐBB a <code>config.js</code>:</b> a <code>web/js/config.js</code>-ben az <b>éles</b> Supabase projekt URL-je + anon kulcsa legyen (nem a fejlesztőié). Ezt még a csomagolás előtt írd át.</li>
-    <li><b>Fájlfeltöltés:</b> a <code>web/</code> mappa <b>TARTALMÁT</b> (nem magát a <code>web</code> mappát) töltsd fel a webgyökérbe. Így az <code>index.html</code> a gyökérbe kerül, az admin a <code>/admin/</code>-ra. Három mód (lásd alább).</li>
-    <li>A <code>web/.htaccess</code> is menjen fel (átirányítások, gyorsítótár, mappalistázás tiltása). A fájlkezelőben kapcsold be a <b>rejtett fájlok</b> megjelenítését, hogy lásd.</li>
-    <li><b>SSL (HTTPS):</b> hPanel-ben kapcsold be az <b>ingyenes SSL-t</b> (Let's Encrypt) a domainre, és a <b>Force HTTPS</b> kapcsolót.</li>
-    <li><b>www átirányítás:</b> állítsd be, hogy a <code>www.kemence-akademia.xyz</code> a fő címre menjen (hPanel beépített opció).</li>
+    <li><b>Ellenőrizd az éles <code>config.js</code>-t.</b> A feltöltendő mappában a <code>js/config.js</code> az <b>éles</b> Supabase projekt URL-jét és anon kulcsát tartalmazza — nem a fejlesztőiét. Ezt még a csomagolás előtt nézd meg.</li>
+    <li><b>Mentsd le a régi oldalt</b> — a lépéseket lásd a 4.2-ben. Enélkül ne kezdj hozzá.</li>
+    <li><b>Ürítsd ki a <code>public_html</code>-t.</b> Ha csak fölé másolsz, a régi fájlok egy része ott ragad (régi aloldalak, CSS, képek).</li>
+    <li><b>Töltsd fel az új fájlokat:</b> a <code>web/</code> mappa <b>TARTALMÁT</b> (nem magát a <code>web</code> mappát) a <code>public_html</code> gyökerébe. Így az <code>index.html</code> a gyökérbe kerül, az admin a <code>/admin/</code>-ra. A három feltöltési mód lent.</li>
+    <li><b>A <code>.htaccess</code> is menjen fel</b> (átirányítások, gyorsítótár, mappalistázás tiltása). <b>Rejtett fájl</b>, ezért a fájlkezelőben kapcsold be a rejtett fájlok megjelenítését, és feltöltés után ellenőrizd, hogy tényleg ott van.</li>
+    <li><b>Ürítsd a gyorsítótárat.</b> A Hostinger CDN-je a régi oldalt szolgálhatja ki még a csere után is. hPanel → a weboldal → <b>Performance</b> (vagy <b>Cache Manager</b>) → <b>Purge / Clear cache</b>. Enélkül azt hiheted, hogy nem sikerült a feltöltés.</li>
+    <li><b>www átirányítás.</b> hPanel → a weboldal → <b>Advanced → Redirects</b>: <code>www.kemence-akademia.xyz</code> → <code>https://kemence-akademia.xyz</code>, <b>301 (permanent)</b>. Enélkül a két cím két külön oldalnak számít a keresőknél.</li>
   </ol>
+
+  <div class="callout ok"><b>A HTTPS már készen van</b> (ellenőrizve: 2026-10-05). A <code>http://</code> magától átirányít <code>https://</code>-re, és a Let's Encrypt tanúsítvány érvényes a fő címre és a <code>www</code>-re is. <b>Nem kell bekapcsolnod semmit</b> — csak akkor nyúlj hozzá, ha a lenti ellenőrzés mást mutat.</div>
+
+  <div class="callout warn"><b>⚠️ Melyik <code>public_html</code>?</b> Az ügyfél tárhelyén <b>több webhely</b> van, tehát több <code>public_html</code> mappa is létezik. A biztos út: hPanel → <b>Websites</b> → a <code>kemence-akademia.xyz</code> sorából nyisd a <b>File Manager</b>-t — az mindig a jó mappába visz. A fájlkezelő címsorában ellenőrizd az útvonalat (<code>.../domains/kemence-akademia.xyz/public_html</code>), nehogy a másik két oldal valamelyikét írd felül.</div>
+
   <table>
     <tr><th>Feltöltési mód</th><th>Hogyan</th><th>Mikor ezt</th></tr>
     <tr>
@@ -317,21 +343,34 @@ for each row execute function public.trg_uj_ajanlat_email();</pre>
       <td>Ha automatikus telepítést szeretnél. <b>Figyelem:</b> ez GitHub-fiókhoz köti az ügyfél oldalát.</td>
     </tr>
   </table>
+
+  <p><b>Feltöltés után ellenőrizd</b> (böngészőben, frissítés <code>Ctrl</code>+<code>F5</code>-tel):</p>
+  <table>
+    <tr><th>Mit</th><th>Jó, ha</th></tr>
+    <tr><td><code>kemence-akademia.xyz</code></td><td>az ÚJ oldal jön be (ha a régi, a gyorsítótár nem ürült)</td></tr>
+    <tr><td><code>kemence-akademia.xyz/admin/</code></td><td>megjelenik a belépőképernyő, és be tudsz lépni</td></tr>
+    <tr><td><code>.../pizza-akademia.html</code> és a másik kettő</td><td>mindhárom a főoldalra irányít (ha 404, a <code>.htaccess</code> nincs fent)</td></tr>
+    <tr><td><code>www.kemence-akademia.xyz</code></td><td>átirányít a fő címre</td></tr>
+    <tr><td>A programkártyák megjelennek</td><td>akkor él a Supabase-kapcsolat (ha üres, a <code>config.js</code> a hibás)</td></tr>
+  </table>
+
   <div class="callout ok"><b>A backend független a hostingtól:</b> a Supabase, a Resend és a trigger/cron ugyanúgy megy, akárhol vannak a statikus fájlok — a böngésző a <code>config.js</code> alapján csatlakozik a Supabase-hez.</div>
 
   <h3>4.2 — A RÉGI oldal lecserélése (a domain már foglalt!)</h3>
   <p>A <code>kemence-akademia.xyz</code> címen <b>már van egy működő oldal</b> a Hostingeren: egy statikus HTML (nincs mögötte WordPress), egy főoldallal és három aloldallal. Nem kell átirányítás egy másik címre — <b>ugyanazon a domainen cserélődik a tartalom</b>. A DNS-hez, a domainhez, a tanúsítványhoz nem kell nyúlni.</p>
   <ol>
-    <li><b>Mentsd le a régit.</b> Töltsd le a <code>public_html</code> tartalmát a gépedre, <b>vagy</b> tedd a <code>public_html</code>-en <b>KÍVÜLRE</b> (eggyel feljebb, pl. <code>backup-regi-oldal</code>).</li>
-    <li><b>Ürítsd ki a <code>public_html</code>-t.</b> Ha csak fölé másolsz, a régi fájlok egy része ott ragad (régi aloldalak, régi CSS és képek).</li>
-    <li><b>Töltsd fel az újat</b> a 4.1 szerint.</li>
+    <li><b>Töltsd le a <code>public_html</code> tartalmát.</b> Fájlkezelőben jelöld ki a teljes tartalmat (a <b>rejtett fájlokat is</b> — előbb kapcsold be a megjelenítésüket) → <b>Compress</b> → a kész ZIP-et <b>töltsd le a gépedre</b>, és tedd a projekten kívülre vagy egy mentés-mappába.</li>
+    <li><b>Nézd meg, van-e automatikus mentés:</b> hPanel → <b>Files → Backups</b>. Ha a csomag ad automatikus (heti) mentést, az plusz biztosíték — de ne erre építs, mert nem te időzíted.</li>
   </ol>
+  <div class="callout warn"><b>⚠️ A kézi mentés (<i>Manual backups</i>) a kisebb csomagokban ZÁROLT.</b> Ezért a <b>letöltött ZIP maga a mentés</b>, nem valami kiegészítés. Amíg nincs meg a gépeden, ne kezdj a <code>public_html</code> ürítésébe.</div>
+  <p><small>A régi oldal kívülről látható része a fejlesztői gépen már megvan: <code>regi-oldal-mentes/</code> (4 HTML-oldal + <code>css/</code>, <code>js/</code>, <code>img/</code>) — kívülről letöltve. Ez csak azt tartalmazza, amire hivatkozás mutat; a <code>public_html</code> ZIP-je ennél teljesebb (rejtett fájlok, nem hivatkozott maradványok).</small></p>
   <div class="callout warn"><b>⚠️ A mentés NE a <code>public_html</code>-ben maradjon!</b> Egy <code>public_html/regi-oldal/</code> mappa az interneten is elérhető lenne (<code>kemence-akademia.xyz/regi-oldal/</code>), és a Google is indexelhetné.</div>
   <p><b>A megszűnő aloldalak átirányítása.</b> A régi oldal három aloldala az új rendszerben nem létezik, ezért 404-et adna. A <code>web/.htaccess</code> ezt már tartalmazza:</p>
   <pre>Redirect 301 /pizza-akademia.html  /
 Redirect 301 /burek-akademia.html  /
 Redirect 301 /kenyer-akademia.html /</pre>
-  <p><small>Ugyanez kattintgatva is beállítható: hPanel → a weboldal → <b>Advanced → Redirects</b>. <b>Mielőtt kiürítenéd a <code>public_html</code>-t, nézd végig a fájllistát</b> — ha több régi <code>.html</code> van, vedd fel azokat is.</small></p>
+  <p><small>Ugyanez kattintgatva is beállítható: hPanel → a weboldal → <b>Advanced → Redirects</b>.</small></p>
+  <div class="callout ok"><b>Ellenőrizve (2026-10-05):</b> az élő oldal pontosan erre a három aloldalra hivatkozik, más <code>.html</code> nincs rajta — tehát a három átirányítás <b>teljes</b>. Ha a <code>public_html</code> fájllistájában mégis találsz további <code>.html</code>-t, vedd fel azokat is.</div>
 
   <h3>4.3 — Átállás a Minupról</h3>
   <p>A régi oldalon a foglalás nem is ott történt: a főoldalon egy <b>Minup</b>-naptár volt beágyazva (<code>app.minup.io/embed/kemence-akademia/events</code>), az aloldalakon pedig egy gomb a <code>app.minup.io/book/kemence-akademia</code> címre. Ezt váltja ki az új rendszer, ezért a váltásnak van négy teendője:</p>
@@ -343,7 +382,13 @@ Redirect 301 /kenyer-akademia.html /</pre>
   </ol>
 
   <h3>4.4 — Domain / DNS</h3>
-  <p>A <code>kemence-akademia.xyz</code> domain a Hostingeren van. Amikor a 4.1-ben hozzáadod a website-ot, a Hostinger jellemzően <b>magától a saját szerverére állítja</b> az A-rekordot. Ha nem: a <b>DNS Zone Editor</b>-ban az <code>A</code> rekord (<code>@</code>) a Hostinger tárhely IP-jére mutasson. Az e-mail (Resend) <code>send.</code> rekordjait (2.2) <b>ne bántsd</b>.</p>
+  <div class="callout ok"><b>A fájlcseréhez DNS-t nem kell módosítani.</b> A domain már a Hostingerre mutat, és ugyanazon a kiszolgálón cserélődik a tartalom. Ellenőrizve 2026-10-05-én: az <code>A</code> rekord Hostinger-IP-kre megy, a <code>www</code> pedig a Hostinger CDN-jére (<code>cdn.hstgr.net</code>).</div>
+  <p>DNS-hez csak két esetben nyúlunk, és egyik sem a fájlcsere:</p>
+  <ul>
+    <li><b>A Resend levél-rekordjai</b> (2.2) — ezek <b>új</b> rekordok a <code>send</code>, <code>rsend</code>, <code>resend._domainkey</code> és <code>_dmarc</code> neveken. A weboldal rekordjait nem érintik.</li>
+    <li><b>Ha más tárhelyre költözne</b> az oldal (Netlify, Cloudflare) — akkor az <code>A</code> és a <code>www</code> változna. Ez jelenleg nem terv.</li>
+  </ul>
+  <p><b>Zóna-mentés.</b> A <code>dns-mentes.py</code> szkript kívülről lekérdezi és dátumozott szövegfájlba menti a zónát (<code>python dns-mentes.py kemence-akademia.xyz</code>). Hasznos az átállás előtt — de <b>nem teljes export</b>: a hiteles, teljes listát a hPanel <b>Domains → DNS / Nameservers</b> képernyője mutatja, arról érdemes képernyőképet is tenni.</p>
 
   <h3>4.5 — Demó a Cloudflare-en (az élestől külön)</h3>
   <p>A bemutató verzió a <b>Cloudflare</b>-en fut, a <code>kemence-demo</code> GitHub-repóból (<code>farjan86/kemence-demo</code>), automatikus telepítéssel: ami felkerül a repóba, az pár perc múlva élesedik a demó címén. Ez az éles telepítést nem érinti.</p>
@@ -359,9 +404,11 @@ Redirect 301 /kenyer-akademia.html /</pre>
     <li>A trigger (3.2) és a cron (3.3) a <b>kliens</b> <code>&lt;PROJECT_REF&gt;</code>/<code>&lt;ANON_KEY&gt;</code> értékével fusson.</li>
     <li>A <code>web/js/config.js</code> a <b>kliens</b> Supabase URL-jét + anon kulcsát tartalmazza (nem a fejlesztőit).</li>
     <li>A demó-adat (<code>db/t_seed-demo-foglalasok.sql</code>) NE fusson éles adatbázison.</li>
-    <li>A domain a <b>Hostingerre</b> mutat, HTTPS zöld, és a <code>www</code> is elérhető.</li>
+    <li>A domain a <b>Hostingerre</b> mutat, HTTPS zöld (ez már adott), és a <code>www</code> <b>átirányít</b> a fő címre (4.1).</li>
+    <li>A <b>Hostinger gyorsítótára kiürítve</b> a feltöltés után — különben a régi oldal jön be (4.1).</li>
     <li>A <b>régi oldal lementve</b> a <code>public_html</code>-en kívülre, a mappa kiürítve (4.2).</li>
-    <li>A <code>.htaccess</code> fent van, és a három régi aloldal a főoldalra irányít (4.2).</li>
+    <li>A <code>.htaccess</code> fent van (<b>rejtett fájl!</b>), és a három régi aloldal a főoldalra irányít (4.2).</li>
+    <li>A <b>jó <code>public_html</code>-be</b> töltöttél fel — a tárhelyen több webhely van (4.1).</li>
     <li>A <b>Minupban lévő élő foglalások átemelve</b> (<code>db/t_minup-import.sql</code>), a Minupra mutató külső linkek átírva (4.3).</li>
     <li><b>Próbafoglalás végig:</b> megjön-e a vendég visszaigazolója és a csapat-értesítő — utána a próbafoglalást töröld (Elutasítás → 🗑 Törlés).</li>
     <li><b>Keep-alive</b> beállítva az ÉLES Supabase-projektre is (5.2).</li>
@@ -372,25 +419,8 @@ Redirect 301 /kenyer-akademia.html /</pre>
 <div class="card" id="keepalive">
   <h2><span class="num">5.</span> Keep-alive (a Supabase ne aludjon el)</h2>
   <p>Az <b>ingyenes</b> Supabase projekt ~<b>7 nap inaktivitás</b> után szünetel. Egy periodikus, <b>kívülről</b> érkező API-kérés aktivitásnak számít, és nullázza az inaktivitás-számlálót. Már az <b>oldal megnyitása is aktivitás</b> (a főoldal betölti a programokat + a látogatás-számlálót a Supabase-ből), tehát rendszeres forgalomnál gyakran nem is aludna el, de <b>alacsony forgalmú / szezonális</b> oldalnál kell a biztosíték.</p>
-  <p><b>Két út:</b> <b>fejlesztéshez</b> a repóban lévő GitHub Actions (5.1); <b>élesben</b> a <b>cron-job.org</b> (5.2), mert az nem függ a fejlesztő GitHub-jától (és a kliensnek nincs is GitHub-ja).</p>
-
-  <h3>5.1 — Dev / demó: GitHub Actions (2 secret)</h3>
-  <ol>
-    <li>GitHub → a repo → <b>Settings → Secrets and variables → Actions → New repository secret</b>, vegyél fel kettőt:</li>
-  </ol>
-  <table>
-    <tr><th>Secret neve</th><th>Érték</th></tr>
-    <tr><td><code>SUPABASE_URL</code></td><td><code>https://<span class="repl">&lt;PROJECT_REF&gt;</span>.supabase.co</code> (a <code>config.js</code> <code>SUPABASE_URL</code>-je)</td></tr>
-    <tr><td><code>SUPABASE_ANON_KEY</code></td><td>az <b>anon public</b> kulcs (publikus, RLS védi)</td></tr>
-  </table>
-  <p><b>Teszt:</b> GitHub → <b>Actions</b> fül → <b>Supabase keep-alive</b> → <b>Run workflow</b>. Zöld pipa = működik.</p>
-
-  <div class="callout warn"><b>Két korlát:</b>
-    <ul>
-      <li>A GitHub <b>letiltja az ütemezett workflow-t 60 nap repó-inaktivitás után</b> (ha nincs commit). Aktív fejlesztésnél nem gond; bármelyik commit újraaktiválja. Teljesen „magára hagyott" éles repónál buktató lehet.</li>
-      <li><b>Fizetős</b> Supabase-csomagon a projekt nem alszik el — akkor a keep-alive fölösleges.</li>
-    </ul>
-  </div>
+  <h3>5.1 — Dev / demó: nem kell</h3>
+  <p>A fejlesztői projektet a fejlesztő rendszeresen használja, ezért nem alszik el. A korábbi GitHub Actions-os keep-alive (<code>.github/workflows/keepalive.yml</code>) <b>2026-10-19-én törölve</b> lett: hibajelző leveleket küldött, és nem volt rá szükség. Ha egy projekt mégis elaludna, a Supabase felületén egy kattintással („Restore") felébreszthető.</p>
 
   <h3>5.2 — Éles / kliens: cron-job.org (ingyenes, GitHub nélkül) — AJÁNLOTT</h3>
   <p>Élesben a keep-alive NE a fejlesztő GitHub-jától függjön (a kliensnek nincs is GitHub-ja). Erre a legjobb ingyenes megoldás a <b>cron-job.org</b>: a <b>felhőben fut 24/7</b>, nem függ egyetlen géptől/telefontól sem, és a fiók a <b>kliensé</b> lehet (átadható). Tud egyedi fejlécet küldeni (kell az anon kulcs), így tiszta 200-as választ kapunk.</p>

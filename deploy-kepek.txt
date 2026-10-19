@@ -1,0 +1,25 @@
+# =====================================================================
+#  Kemence Akademia - a telepitesi csomagba kerulo kepek
+#
+#  A build.bat ezt a listat hasznalja: a web\kepek mappabol CSAK az itt
+#  felsorolt fajlok kerulnek a deploy_web\kepek mappaba.
+#
+#  Miert nem az egesz mappa? A tobbi kep forraskep a fejlesztoi gepen:
+#  a programok es az eloadok fotoi a Supabase Storage-bol jonnek
+#  (program-fotok bucket), nem a kepek mappabol. Igy a telepitesi csomag
+#  nem visz fel feleslegesen par megabajtot, es nem kerul a szerverre
+#  szokozos/ekezetes fajlnev (azok FTP-n el tudnak romlani).
+#
+#  Szabalyok:
+#    - soronkent egy fajlnev, utvonal nelkul (pl. hero-1.jpg)
+#    - a # jellel kezdodo sorok megjegyzesek
+#    - ha a kodba UJ kepet teszel, ide is vedd fel. Ha elfelejted, a
+#      build.bat figyelmeztet ra (ellenorzi a hivatkozasokat).
+# =====================================================================
+buza.svg
+csapat.jpg
+hero-1.jpg
+hero-2.jpg
+hero-3.jpg
+logo-mark.png
+parazs.jpg

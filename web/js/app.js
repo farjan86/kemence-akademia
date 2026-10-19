@@ -8,6 +8,22 @@
 // Kapcsolat a Supabase-hez (a config.js adataival)
 const db = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
+// -------------------- Linkelt program-nézet (?program=…) --------------------
+// Megosztott linkkel érkező látogatónak csak a fejléc, a program és a lábléc
+// marad: a többi szakaszt a CSS rejti a body „program-nezet" osztálya alapján,
+// a kártya pedig nagyobb. Az osztályt már a betöltés elején felrakjuk, hogy a
+// rejtett szakaszok fel se villanjanak az adat megérkezéséig.
+const kertProgram = (new URLSearchParams(location.search).get("program") || "").trim();
+if(kertProgram){
+  document.body.classList.add("program-nezet");
+  // A menü lapon belüli ugrásai rejtett szakaszokra mutatnának — ezek a
+  // teljes oldalt nyissák meg. A programokhoz és a lábléchez vivők maradnak.
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    const cel = a.getAttribute("href");
+    if(cel !== "#programok-szekcio" && cel !== "#kapcsolat") a.setAttribute("href", "./" + cel);
+  });
+}
+
 // A betöltött programok (csoportosítva) + időpont-index a foglaláshoz.
 // (A foglalas.js ezt olvassa futásidőben.)
 let programLista = [];
@@ -70,6 +86,15 @@ function kartya(p){
   const reszlet = p.leiras ? `<button class="reszlet-btn" data-reszlet="${p.workshop_id}">Részletek →</button>` : "";
   const eloadoHtml = eloadoSorHtml(p);   // eloadok.js — kattintható nevek
 
+  // „Link másolása" — a program saját, megosztható címe. Fix helyen, a
+  // „Részletek" sorában, hogy minden kártyán ugyanott legyen.
+  const megoszt = p.slug
+    ? `<button class="megoszt-btn" data-megoszt="${escapeHtml(p.slug)}"
+         title="A program megosztható linkje">Link másolása</button>`
+    : "";
+  const muveletek = (reszlet || megoszt)
+    ? `<div class="kartya-muveletek">${reszlet}${megoszt}</div>` : "";
+
   // Csak a JÖVŐBELI időpontokat mutatjuk (a múltat elrejtjük), időrendben.
   const jovo = p.idopontok
     .filter(i => !lezarultNap(i.idopont))
@@ -82,14 +107,18 @@ function kartya(p){
     const ujProgram = (p.program_statusz === "hamarosan");
     // A rövid „Hamarosan" elfér jelvényként a cím mellett; a hosszabb üzenet
     // a kártya alján fut végig (mint a szünet-sáv), hogy ne nyomja szét a címet.
-    const jelveny = ujProgram ? `<span class="badge soon">Hamarosan</span>` : "";
-    const sav     = ujProgram ? "" : `<div class="szunet-sav">Új időpontok egyeztetés alatt</div>`;
+    // A státusz a kártya TETEJÉN fut végig, teljes szélességben. Korábban
+    // jelvényként a cím mellett volt, de hosszú címnél elvette tőle a helyet,
+    // és szétesett a tördelés.
+    const felsoSav = ujProgram ? `<div class="allapot-sav">Hamarosan</div>` : "";
+    const sav      = ujProgram ? "" : `<div class="szunet-sav">Új időpontok egyeztetés alatt</div>`;
     return `<article class="card">
+      ${felsoSav}
       ${kep}
-      <div class="card-top"><h3>${p.cim}</h3>${jelveny}</div>
+      <div class="card-top"><h3>${p.cim}</h3></div>
       ${eloadoHtml}
       <p class="desc">${rovid}</p>
-      ${reszlet}
+      ${muveletek}
       ${sav}
     </article>`;
   }
@@ -103,7 +132,7 @@ function kartya(p){
       <div class="card-top"><h3>${p.cim}</h3></div>
       ${eloadoHtml}
       <p class="desc">${rovid}</p>
-      ${reszlet}
+      ${muveletek}
       ${idotartam}
       <div class="idopont-lista">${jovo.map(i => csempe(i, true)).join("")}</div>
       <div class="szunet-sav">Foglalás átmenetileg felfüggesztve</div>
@@ -115,7 +144,7 @@ function kartya(p){
     <div class="card-top"><h3>${p.cim}</h3></div>
     ${eloadoHtml}
     <p class="desc">${rovid}</p>
-    ${reszlet}
+    ${muveletek}
     ${idotartam}
     <div class="idopont-cimke">Válassz időpontot</div>
     <div class="idopont-lista">${jovo.map(i => csempe(i)).join("")}</div>
@@ -141,7 +170,8 @@ async function betoltProgramok(){
     let p = map.get(r.workshop_id);
     if(!p){
       p = {
-        workshop_id: r.workshop_id, cim: r.cim, rovid_leiras: r.rovid_leiras, leiras: r.leiras,
+        workshop_id: r.workshop_id, cim: r.cim, slug: r.slug,
+        rovid_leiras: r.rovid_leiras, leiras: r.leiras,
         eloadok: r.eloadok || null,   // [{id, nev, rejtett}, …] a nézetből
         varhato_idotartam: r.varhato_idotartam, foto_url: r.foto_url,
         program_statusz: r.program_statusz, foglalas_felfuggesztve: r.foglalas_felfuggesztve,
@@ -169,12 +199,91 @@ async function betoltProgramok(){
   };
   programLista.sort((a, b) => ((a.sorrend || 0) - (b.sorrend || 0)) || (kulcs(a) - kulcs(b)));
 
-  cel.innerHTML = programLista.map(kartya).join("");
+  // --- Megosztott link (?program=…): csak a kért programot mutatjuk ---
+  // A lista csak a NEM archivált programokat tartalmazza, ezért az archivált,
+  // a törölt és az elgépelt azonosító egyaránt ide, a „nincs meghirdetve"
+  // ágra fut — a látogató mindhárom esetben értelmes oldalt kap. Görgetni
+  // nem kell: a program-nézetben a szakasz közvetlenül a fejléc alatt van.
+  const kert = kertProgram;
+  let lista = programLista;
+
+  if(kert){
+    const egy = programLista.find(p => p.slug === kert);
+    if(egy){
+      lista = [egy];
+      szurtSav("Egy kiemelt programot látsz.");
+    } else {
+      szurtSav("Ez a program jelenleg nem meghirdetett.");
+      cel.innerHTML = "";
+      return;
+    }
+  }
+
+  cel.innerHTML = lista.map(kartya).join("");
   cel.querySelectorAll(".idopont-btn[data-idopont]").forEach(b =>
     b.addEventListener("click", () => nyitFoglalas(b.dataset.idopont)));   // nyitFoglalas: foglalas.js
   cel.querySelectorAll(".reszlet-btn[data-reszlet]").forEach(b =>
     b.addEventListener("click", () => mutatReszletek(b.dataset.reszlet)));
+  cel.querySelectorAll(".megoszt-btn[data-megoszt]").forEach(b =>
+    b.addEventListener("click", () => masolLink(b, b.dataset.megoszt)));
   kotProgramEloadok();          // eloadok.js — a kártyákon lévő előadó-nevek
+}
+
+// A szűrt nézet sávja a programlista fölött: rövid magyarázat + visszaút.
+function szurtSav(uzenet){
+  const el = document.getElementById("programSzurt");
+  if(!el) return;
+  el.innerHTML = `<p>${escapeHtml(uzenet)}</p>
+    <a class="szurt-vissza" href="./#programok-szekcio">Összes programunk →</a>`;
+  el.hidden = false;
+}
+
+// -------------------- „Link másolása" --------------------
+// A program megosztható címe a vágólapra. A modern út a Clipboard API;
+// régi böngészőn / nem biztonságos kapcsolaton a rejtett mezős megoldás.
+function programLink(slug){
+  return `${location.origin}${location.pathname}?program=${encodeURIComponent(slug)}`;
+}
+
+function masolRegiModon(szoveg){
+  const el = document.createElement("textarea");
+  el.value = szoveg;
+  el.setAttribute("readonly", "");
+  el.style.cssText = "position:fixed; top:-1000px; opacity:0";
+  document.body.appendChild(el);
+  el.select();
+  let sikerult = false;
+  try { sikerult = document.execCommand("copy"); } catch { sikerult = false; }
+  document.body.removeChild(el);
+  return sikerult;
+}
+
+async function masolLink(gomb, slug){
+  const url = programLink(slug);
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(url);
+    ok = true;
+  } catch {
+    ok = masolRegiModon(url);
+  }
+
+  if(ok){
+    // Az eredeti feliratot egyszer jegyezzük meg: gyors dupla kattintásnál
+    // különben a „Link másolva" szöveget mentenénk el eredetiként, és a gomb
+    // abban ragadna. A futó visszaállítást is újraindítjuk.
+    if(!gomb.dataset.felirat) gomb.dataset.felirat = gomb.textContent;
+    gomb.textContent = "Link másolva";
+    gomb.classList.add("masolva");
+    clearTimeout(gomb._visszaallit);
+    gomb._visszaallit = setTimeout(() => {
+      gomb.textContent = gomb.dataset.felirat;
+      gomb.classList.remove("masolva");
+    }, 2000);
+  } else {
+    // Végső tartalék: megmutatjuk, hogy a látogató kijelölhesse.
+    dialog.uzen(url, { cim: "A program linkje" });
+  }
 }
 
 // -------------------- Részletek ablak --------------------

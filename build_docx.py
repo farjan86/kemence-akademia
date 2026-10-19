@@ -189,6 +189,28 @@ TARTALOM = [
 ("tipp", "Ha **egyetlen előadót sem** pipálsz be, a kártyán egyszerűen nincs „Előadó:” sor — a program ettől még teljesen működik."),
 ("tipp", "Egy program **egy kártya** a főoldalon, akárhány időponttal. Ha ugyanazt a workshopot többször tartod, ne vegyél fel új programot — adj hozzá időpontot."),
 
+("h2", "Megosztható link egy programhoz"),
+("p", "Minden programnak van **saját linkje**. Aki megnyitja, **csak azt az egy programot** látja, és rögtön foglalhat is rá. Ez főleg az **előadóknak** hasznos: a saját workshopjuk linkjét kitehetik a Facebookra vagy elküldhetik ismerősöknek."),
+("lepesek", [
+    "Nyisd meg a **főoldalt** (nem az admint).",
+    "Keresd meg a program kártyáját.",
+    "Kattints a **„Link másolása”** feliratra — a link a vágólapra kerül.",
+    "Illeszd be oda, ahová szánod (üzenet, bejegyzés, e-mail).",
+]),
+("tipp", "**Az adminban nincs ezzel teendőd.** A link magától elkészül, amikor felveszel egy programot, és a gomb a nyilvános oldalon van — így az **előadó maga is elhozhatja**, nem kell tőletek kérnie."),
+("lista", [
+    "**Átnevezed a programot?** A link **változatlan marad**, a korábbi megosztások tovább működnek.",
+    "**Archiválod?** Aki a régi linkre kattint, azt látja: „Ez a program jelenleg nem meghirdetett.” — alatta a visszaúttal az összes programhoz. Ha később **visszaállítod**, a link **újra él**.",
+    "**Törlöd?** Ugyanez az üzenet fogadja — de ez végleges.",
+]),
+("figyelem", "Amikor a linket **Facebookon** osztják meg, az előnézeti kép és szöveg az **oldal általános bemutatkozása** lesz, nem az adott programé. Maga a link jól működik, csak az előnézet egységes."),
+("pelda", "Az előadó kiteszi a saját workshopját", [
+    "Az előadó megnyitja a **kemence-akademia.xyz** oldalt.",
+    "Megkeresi a „Kortárs Nápolyi Pizza Workshop” kártyát, és rákattint a **Link másolása** feliratra.",
+    "Beilleszti a saját Facebook-bejegyzésébe.",
+    "Aki rákattint, egyből azt az egy workshopot látja, és ott helyben foglal.",
+]),
+
 ("h2", "Új időpontot adnék hozzá, vagy módosítanék"),
 ("lepesek", [
     "A programnál **Szerkesztés**.",

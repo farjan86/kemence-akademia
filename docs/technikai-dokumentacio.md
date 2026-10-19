@@ -7,7 +7,7 @@
 
 - **Frontend:** statikus HTML/CSS/JS (nincs build lépés, nincs framework). A böngésző a `@supabase/supabase-js` CDN-klienssel beszél a Supabase-szel.
 - **Backend:** **Supabase** (PostgreSQL + Auth + RLS + Storage + **Edge Functions**).
-- **Levélküldés:** **Resend** (a `send-email` Edge Function-ön át). Automatika: **Database Webhook / trigger** (foglaláskori auto-levél) és **pg_cron** (napi emlékeztető). Részletek: `docs/email.md`, `install.html`.
+- **Levélküldés:** **Resend** (a `send-email` Edge Function-ön át). Automatika: **Database Webhook / trigger** (foglaláskori auto-levél) és **pg_cron** (napi emlékeztető, **heti adatmentés** CSV-csatolmányokkal — `docs/heti-mentes.md`). Részletek: `docs/email.md`, `install.html`.
 - **Hoszting:** fejlesztéskor helyi Python szerver (localhost:5500); élesben **Hostinger** (statikus fájlok). Az adat mindig a Supabase-ből jön.
 - **Tulajdon:** a Supabase-projekt az ügyfélé, a fejlesztő meghívott közreműködő. Demó a fejlesztő saját fiókján.
 
@@ -19,6 +19,7 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   02-storage.sql            Storage bucket a program-fotókhoz (public olvasás, admin írás)
   03-auto-visszaigazolo-trigger.sql  Auto visszaigazoló + csapat-értesítő trigger + pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
   04-emlekezteto-cron.sql   Napi emlékeztető pg_cron + pg_net (másnapi jóváhagyott foglalásoknak; join az idopontok táblára; <PROJECT_REF>/<ANON_KEY> kitöltendő)
+  05-heti-mentes-cron.sql   Heti adatmentés pg_cron + pg_net: hétfő 04:00 UTC meghívja a backup-export függvényt (<PROJECT_REF>/<ANON_KEY>/<BACKUP_SECRET> kitöltendő). Részletek: docs/heti-mentes.md
   m_05-rovid-leiras.sql     Dev-migráció: rovid_leiras mező (már a 01-ben is benne)
   m_06-naptar-nezet.sql     Dev-migráció: settings.naptar_nezet (már a 01-ben is benne)
   m_07-tobb-idopont.sql     Dev-migráció: „több időpont" átállás (idopontok tábla, bookings.workshop_id→idopont_id, nézet/trigger/RLS). Üres dev-DB-hez; a végleges a 01-ben van. Később törölhető.
@@ -26,6 +27,7 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   m_09-foglalasi-korlatok.sql  Dev-migráció: csoportos korlátok (idopontok.max_foglalasok + min_letszam, constraintek, foglalasok_szama() függvény, nézet + túlfoglalás-trigger frissítés). Már a 01-ben is benne. Később törölhető.
   m_10-cimadatok-es-infosav.sql  Dev-migráció: számlázási cím (iranyitoszam/helyseg/cim_tovabbi) a bookings és az ajanlatok táblán + ellenoriz_cimadatok() trigger, valamint settings.ajanlat_infosav. Már a 01-ben is benne.
   m_11-eloadok.sql          Dev-migráció: Előadóink — eloadok + program_eloadok tábla, RLS, a régi workshops.eloado oszlop ELDOBÁSA, a „programok" nézet újraépítése az eloadok JSON-nal. Már a 01-ben is benne.
+  m_12-program-slug.sql     Dev-migráció: megosztható program-link — workshops.slug oszlop, egyedi index, slug-képző függvények + beszúrási trigger, a meglévő programok feltöltése, nézet-frissítés. Már a 01-ben is benne.
   t_start-programok.sql     Technikai: induló (kb. éles) programok + időpontjaik (RESET-tel)
   t_seed-demo-foglalasok.sql  Technikai (CSAK dev): demó programok/időpontok/foglalások (MINDENT töröl + újratölt). Éles DB-n NE fusson.
   t_reset-ures-allapot.sql  Technikai: minden program+időpont+foglalás törlése (üres induló állapot)
@@ -48,12 +50,14 @@ web/                        Frontend (ezt szolgálja ki a szerver / Hostinger)
   admin/admin.css           Admin stílus
   admin/js/                 Admin logika 10 modulra bontva (util, core, foglalasok, programok, egyediprogramok, ajanlatok, naptar, eloadok, partnerek, beallitasok) — lásd docs/js-modulok.md
 supabase/functions/send-email/index.ts  E-mail küldő Edge Function (Deno + RESEND → email_log). Beállítás: docs/email.md, install.html
-docs/                       Élő dokumentáció (ez a mappa: funkcio-, technikai-dokumentacio, email.md)
+supabase/functions/send-ajanlat-email/index.ts  Ajánlati levelek Edge Function (csatolmány a privát bucketből)
+supabase/functions/backup-export/index.ts  Heti adatmentés Edge Function: mind a 13 adattábla minden sora táblánként CSV-ben, egy ZIP-ben (fflate), 1 levélben a csapat-címre; BACKUP_SECRET fejléc védi. Részletek: docs/heti-mentes.md
+docs/                       Élő dokumentáció (ez a mappa: funkcio-, technikai-dokumentacio, email.md, heti-mentes.md)
 fejlesztesi-terv.md         A terv / roadmap
 foglalasi-rendszer-terv.html  Ügyfél-facing áttekintő (bemutató)
 felmeres-kerdessor.html/.pdf  Az ügyféligény-felmérés
 start-szerver.bat           Helyi szerver indító (localhost:5500)
-.github/workflows/keepalive.yml  GitHub Actions: 3 naponta pingeli a Supabase REST-et (az ingyenes projekt ne aludjon el); 2 secret kell: SUPABASE_URL, SUPABASE_ANON_KEY
+build.bat + build_deploy.py Éles telepítési csomag (deploy_web/) gyártása: config.js és .htaccess nélkül, csak a használt képekkel, szivárgás-ellenőrzéssel; a képlista a deploy-kepek.txt
 ```
 
 ## 3. Adatbázis
@@ -63,6 +67,7 @@ start-szerver.bat           Helyi szerver indító (localhost:5500)
 **`workshops`** — programok (a program KÖZÖS adatai, minden időpontra)
 `id` (uuid, PK) · `cim` · `rovid_leiras` (rövid, a kártyán, kötelező) · `leiras` (részletes, **opcionális**, a „Részletek" ablakban) · `varhato_idotartam` · `foto_url` · `statusz` (`aktiv`/`hamarosan`) · `archivalt` (bool) · `foglalas_felfuggesztve` (bool — átmeneti foglalás-szünet erre a programra) · `sorrend` (kézi sorrend a főoldalon) · `created_at`
 **Előadó itt NINCS:** a régi, szabad szöveges `eloado` oszlopot az `m_11` migráció ejtette; az előadókat a `program_eloadok` kapcsolótábla köti a programhoz.
+**`slug`** — a megosztható program-link azonosítója (`?program=kortars-napolyi-pizza-workshop`). A `trg_workshop_slug` trigger képzi a **címből, beszúráskor**; egyedi index védi. **`update`-re szándékosan nem fut**: átnevezéskor nem változhat, különben a már megosztott linkek némán elromlanának. Az adminban nincs hozzá mező.
 Az ár/időpont/létszám NEM itt van, hanem **időpontonként** az `idopontok` táblában.
 
 **`idopontok`** — egy program meghirdetett alkalmai (a több-időpont lelke)
@@ -110,10 +115,11 @@ Behelyettesíthető mezők: `{nev} {email} {telefon} {program} {azonosito} {lets
 `id` · `latogatasok` (bigint) · `updated_at`. RLS mögött, közvetlenül nem érhető el — csak a lenti függvényeken át.
 
 ### Nézet, függvények, triggerek
-- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, `rovid_leiras`, `leiras`, `varhato_idotartam`, `foto_url`, `archivalt`, `foglalas_felfuggesztve`, `sorrend`, `program_statusz`, **`eloadok`** (JSON tömb: `[{id, nev, rejtett}, …]` a `program_eloadok` + `eloadok` táblákból, `sorrend`/`nev` szerint rendezve; NULL, ha a programhoz nincs előadó), `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `max_foglalasok`, `min_letszam`, `idopont_statusz`, `szabad_helyek`, `foglalasok_szama`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
+- **`programok`** (nézet): **program × időpont** (LEFT JOIN, hogy az időpont nélküli „hamarosan" program is látsszon), időpontonkénti `szabad_helyek`-kel. Oszlopok: `workshop_id`, `cim`, **`slug`** (a megosztható link azonosítója), `rovid_leiras`, `leiras`, `varhato_idotartam`, `foto_url`, `archivalt`, `foglalas_felfuggesztve`, `sorrend`, `program_statusz`, **`eloadok`** (JSON tömb: `[{id, nev, rejtett}, …]` a `program_eloadok` + `eloadok` táblákból, `sorrend`/`nev` szerint rendezve; NULL, ha a programhoz nincs előadó), `idopont_id`, `idopont`, `ar`, `kedvezmenyes_ar`, `max_letszam`, `max_foglalasok`, `min_letszam`, `idopont_statusz`, `szabad_helyek`, `foglalasok_szama`. Ezt olvassa a publikus oldal, majd **programonként csoportosítja** (egy kártya, több időpont-csempe).
 - **`foglalt_helyek(uuid)`** (függvény, `security definer`): egy **IDŐPONT** foglalt helyeinek száma (a `jovahagyasra_var` + `jovahagyott` foglalások létszám-összege). Anon is hívhatja, de a foglalási sorokat nem látja.
 - **`foglalasok_szama(uuid)`** (függvény, `security definer`): egy **IDŐPONT** élő **foglalásainak (rekordjainak) száma** — a `max_foglalasok` korláthoz (nem a létszám-összeg, hanem a foglalások darabszáma). A nézet is ezt adja vissza `foglalasok_szama` oszlopként, hogy a publikus oldal el tudja dönteni, betelt-e a csoportos alkalom.
 - **`ellenoriz_szabad_hely()`** + **`trg_szabad_hely`** trigger (bookings, before insert/update): túlfoglalás elleni védelem **időpont-szinten**; **elmaradt** időpontra vagy nem-aktív/archivált programra nem enged foglalni; a **publikus (anon) foglalást múltbéli időpontra elutasítja** (a mai nap még OK; az admin/seed rögzíthet historikusat). **Csoportos korlátok (csak anon INSERT-nél):** elutasítja a `min_letszam` alatti létszámot, és ha az élő foglalások száma elérte a `max_foglalasok`-ot. Az **admin** (nem-anon) e két korlátot felülbírálhatja.
+- **`slug_keszit(text)`** / **`slug_egyedi(text, uuid)`** + **`trg_workshop_slug`** trigger (workshops, **before insert**): a megosztható link azonosítóját képzi a címből (ékezet-átírás, kisbetűsítés, kötőjelezés, max. 80 karakter), ütközésnél `-2`, `-3`, … toldalékkal. Csak akkor fut, ha a `slug` üres — és csak beszúráskor.
 - **`ellenoriz_cimadatok()`** + **`trg_cimadatok_booking`** / **`trg_cimadatok_ajanlat`** trigger (bookings és ajanlatok, before insert): ha a beszúró szerepe **`anon`**, mindhárom címmező (`iranyitoszam`, `helyseg`, `cim_tovabbi`) kötelező. Az adminból (authenticated) vagy importból mentett sor maradhat cím nélkül.
 - **`latogatas_rogzites()` / `latogatas_szam()`** (`security definer`): a látogatásszám növelése ill. olvasása. Anon is hívhatja (a tábla RLS-e miatt csak ezeken át).
 - **`trg_uj_foglalas_email()`** + **`trg_uj_foglalas_email`** trigger (bookings, after insert) — **külön fájl (`db/03-auto-visszaigazolo-trigger.sql`), projekt-specifikus értékkel:** új `jovahagyasra_var` foglaláskor `pg_net`-tel meghívja a `send-email` függvényt (auto visszaigazoló + csapat-értesítő). A Supabase Database Webhook SQL-alternatívája; ugyanazt a `{type:INSERT, record}` payloadot küldi.

@@ -106,7 +106,24 @@ Minden ajánlatkérés kap egy azonosítót, pl. **`A-100`** — a foglalásét�
 - **„Részletek" gomb:** a hosszú leírás külön ablakban nyílik meg (nem terheli a kártyát).
 - **Időpont-csempék:** a kártya alján minden **jövőbeli** időpont egy **kattintható csempe** — rajta a **dátum, az ár és a szabad helyek**. A betelt/elmaradt csempe letiltva („Betelt" / „Elmarad"); a **múltbeli** időpontok nem jelennek meg.
 - **Kedvezményes ár:** a csempén az eredeti áthúzva, a kedvezményes kiemelve.
-- **„Hamarosan" program:** ha nincs jövőbeli, aktív időpontja, csak cím + leírás + „Hamarosan" jelvény, csempe nélkül.
+- **„Hamarosan" program:** ha nincs jövőbeli, aktív időpontja, csak cím + leírás + „Hamarosan" felirat a kártya tetején, csempe nélkül.
+- **„Link másolása" gomb:** minden kártyán, a „Részletek" sorában — a program **megosztható linkjét** teszi a vágólapra (lásd 2.2b).
+
+### 2.2b Megosztható program-link
+
+Minden programnak van **saját linkje**, amivel külön megosztható:
+
+```
+https://kemence-akademia.xyz/?program=kortars-napolyi-pizza-workshop
+```
+
+- A linkre kattintva **csak az az egy program** jelenik meg, és onnan **azonnal foglalni is lehet**. Fölötte egy sáv jelzi a szűrést, benne **„Összes programunk →"** hivatkozással.
+- A link **magától elkészül** a program felvételekor, a címéből. Az adminban nincs vele teendő, és nem is látszik ott.
+- **Átnevezéskor nem változik** — a korábban megosztott linkek életben maradnak.
+- **Archivált, törölt vagy elgépelt** link esetén a látogató azt látja, hogy *„Ez a program jelenleg nem meghirdetett."*, alatta a visszaúttal. Az archiválás visszafordítható: visszaállításkor a régi link **újra működik**.
+- Az igény az **előadóktól** jött: ők a saját programjuk linkjét szeretnék megosztani. Mivel nincs admin-hozzáférésük, a másoló gomb a **nyilvános** kártyán van — így maguk is elérik.
+
+> **Közösségi előnézet:** a megosztott program-linkek alatt az **oldal általános előnézete** jelenik meg (nem programonkénti kép és cím). Ennek oka, hogy a közösségi oldalak robotjai nem futtatnak JavaScriptet. Programonkénti előnézethez más típusú tárhely kellene.
 
 ### 2.3 Hogyan foglal a vendég?
 1. A programnál **rákattint a kívánt időpont-csempére** (dátum · **ár/fő** · állapot). A csempe állapota: „N/M foglalt", csoportos alkalomnál „Min. N fő" / „Csoportos", betelt esetén „Betelt".

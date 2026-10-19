@@ -4,7 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kemence Akadémia, Kézműves sütő-workshopok Pécsen</title>
+<meta name="description" content="Kemencés workshop-foglalkozások Pécsen: kenyértől a bureken át a nápolyi pizzáig. Kis csoportban, fatüzelésű kemencében, a Mobilkemence.xyz szervezésében.">
 <link rel="icon" type="image/png" href="kepek/logo-mark.png">
+
+<!-- Megosztási előnézet (Facebook, Messenger, LinkedIn…). Oldal-szintű: a
+     közösségi robotok nem futtatnak JavaScriptet, ezért a megosztott
+     program-linkek alatt is EZ az előnézet jelenik meg. -->
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Kemence Akadémia">
+<meta property="og:locale"      content="hu_HU">
+<meta property="og:url"         content="https://kemence-akademia.xyz/">
+<meta property="og:title"       content="Kemence Akadémia — kemencés workshop-foglalkozások">
+<meta property="og:description" content="Kenyértől a bureken át a nápolyi pizzáig. Kis csoportban, fatüzelésű kemencében, Pécsen.">
+<meta property="og:image"       content="https://kemence-akademia.xyz/kepek/hero-1.jpg">
+<meta name="twitter:card"       content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -128,6 +141,9 @@
         <h2>Aktuális programok</h2>
         <p class="section-sub">Foglalj időpontot a kiszemelt programra most! A meghirdetett időpontokat és árakat a kártyák alján találod!</p>
       </div>
+
+      <!-- Megosztott program-link (?program=…) esetén ide kerül a szűrt nézet sávja -->
+      <div id="programSzurt" role="status" hidden></div>
 
       <div id="programok" class="courses-grid" aria-live="polite">
         <p class="status">Programok betöltése…</p>

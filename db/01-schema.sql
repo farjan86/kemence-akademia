@@ -23,6 +23,7 @@
 create table if not exists public.workshops (
   id                 uuid primary key default gen_random_uuid(),
   cim                text        not null,
+  slug               text,                    -- megosztható link azonosítója; a címből képződik (trigger), átnevezéskor NEM változik
   rovid_leiras       text,                    -- rövid leírás a kártyára (kötelező az adminban)
   leiras             text,                    -- részletes leírás (OPCIONÁLIS), a „Részletek" ablakban
   varhato_idotartam  text,                    -- pl. "~4 óra"; opcionális
@@ -89,6 +90,7 @@ create table if not exists public.bookings (
 
 create index if not exists workshops_archivalt_idx on public.workshops (archivalt);
 create index if not exists workshops_sorrend_idx    on public.workshops (sorrend);
+create unique index if not exists workshops_slug_uniq on public.workshops (slug);
 create index if not exists idopontok_workshop_idx   on public.idopontok (workshop_id);
 create index if not exists idopontok_idopont_idx     on public.idopontok (idopont);
 create index if not exists bookings_idopont_idx      on public.bookings (idopont_id);
@@ -320,6 +322,69 @@ as $$
     and statusz in ('jovahagyasra_var','jovahagyott');
 $$;
 
+-- ---------------------------------------------------------------------
+--  MEGOSZTHATÓ PROGRAM-LINK (slug)
+--  A `slug` a program CÍMÉBŐL képződik, BESZÚRÁSKOR. Átnevezéskor NEM
+--  változik — különben a már megosztott linkek némán elromlanának.
+--  Ezért a trigger csak `before insert`. Az adminban nincs hozzá mező.
+-- ---------------------------------------------------------------------
+create or replace function public.slug_keszit(szoveg text)
+returns text language plpgsql immutable as $$
+declare
+  s text;
+begin
+  -- Ékezetek átírása kis- és nagybetűs párral, a lower() ELŐTT: nem függ az
+  -- adatbázis nyelvi beállításától. (A from és a to AZONOS karakterszámú!)
+  s := translate(coalesce(szoveg, ''), 'áéíóöőúüűÁÉÍÓÖŐÚÜŰ', 'aeiooouuuAEIOOOUUU');
+  s := lower(s);
+  s := regexp_replace(s, '[^a-z0-9]+', '-', 'g');
+  s := btrim(s, '-');
+  -- Legfeljebb 80 karakter, szóhatáron vágva (a csonka utolsó szó elmarad).
+  if length(s) > 80 then
+    if substr(s, 81, 1) = '-' then s := left(s, 80);
+    else s := regexp_replace(left(s, 80), '-[^-]*$', '');
+    end if;
+    s := btrim(s, '-');
+  end if;
+  return nullif(s, '');
+end; $$;
+
+-- Ütközésnél -2, -3, … ; a `sajat_id` megakadályozza az önmagával ütközést.
+create or replace function public.slug_egyedi(alap text, sajat_id uuid default null)
+returns text language plpgsql as $$
+declare
+  jelolt text := alap;
+  n      integer := 1;
+begin
+  while exists (select 1 from public.workshops
+                 where slug = jelolt and (sajat_id is null or id <> sajat_id)) loop
+    n := n + 1;
+    jelolt := alap || '-' || n;
+  end loop;
+  return jelolt;
+end; $$;
+
+create or replace function public.trg_workshop_slug()
+returns trigger language plpgsql as $$
+declare
+  alap text;
+begin
+  if new.slug is null or btrim(new.slug) = '' then
+    alap := public.slug_keszit(new.cim);
+    -- Ha a címből nem képezhető azonosító (pl. csupa írásjel): az id első 8 jegye.
+    if alap is null then
+      alap := left(replace(new.id::text, '-', ''), 8);
+    end if;
+    new.slug := public.slug_egyedi(alap, new.id);
+  end if;
+  return new;
+end; $$;
+
+drop trigger if exists trg_workshop_slug on public.workshops;
+create trigger trg_workshop_slug
+  before insert on public.workshops
+  for each row execute function public.trg_workshop_slug();
+
 -- Publikus programlista nézet: program-mezők × időpontok + szabad helyek,
 -- foglalási sorok kiszivárgása nélkül. LEFT JOIN, hogy az időpont nélküli
 -- ('hamarosan') program is megjelenjen (idopont_id = null sorral).
@@ -327,7 +392,7 @@ drop view if exists public.programok;
 create view public.programok as
 select
   w.id                as workshop_id,
-  w.cim, w.rovid_leiras, w.leiras, w.varhato_idotartam, w.foto_url,
+  w.cim, w.slug, w.rovid_leiras, w.leiras, w.varhato_idotartam, w.foto_url,
   w.archivalt, w.foglalas_felfuggesztve, w.sorrend,
   w.statusz           as program_statusz,     -- 'aktiv' / 'hamarosan'
   -- A program előadói JSON tömbben: [{id, nev, rejtett}, …]; ha nincs előadó, NULL.
