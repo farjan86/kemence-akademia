@@ -53,8 +53,8 @@ git push -u origin main
 if errorlevel 1 (
   echo.
   echo [FIGYELEM] A push nem sikerult. Lehetseges okok:
-  echo   1) Elso alkalommal be kell jelentkezni a GitHubra (bongeszo / GitHub bejelentkezes).
-  echo   2) A tavoli repoban mar van commit (pl. README/LICENSE). Ez esetben EGYSZER futtasd:
+  echo   1. Elso alkalommal be kell jelentkezni a GitHubra - bongeszo / GitHub bejelentkezes.
+  echo   2. A tavoli repoban mar van commit, pl. README vagy LICENSE. Ez esetben EGYSZER futtasd:
   echo        git pull origin main --allow-unrelated-histories --no-edit
   echo      majd inditsd ujra ezt a bat-ot.
   echo.

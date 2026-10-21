@@ -28,6 +28,7 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   m_10-cimadatok-es-infosav.sql  Dev-migráció: számlázási cím (iranyitoszam/helyseg/cim_tovabbi) a bookings és az ajanlatok táblán + ellenoriz_cimadatok() trigger, valamint settings.ajanlat_infosav. Már a 01-ben is benne.
   m_11-eloadok.sql          Dev-migráció: Előadóink — eloadok + program_eloadok tábla, RLS, a régi workshops.eloado oszlop ELDOBÁSA, a „programok" nézet újraépítése az eloadok JSON-nal. Már a 01-ben is benne.
   m_12-program-slug.sql     Dev-migráció: megosztható program-link — workshops.slug oszlop, egyedi index, slug-képző függvények + beszúrási trigger, a meglévő programok feltöltése, nézet-frissítés. Már a 01-ben is benne.
+  m_13-data-api-jogok.sql   Dev-migráció: Data API grant-ok a public séma tábláira/sorozataira + default privileges a jövőbeli táblákra (a Supabase 2026-10-30-tól nem adja automatikusan). Egyszer futtatandó dev/demó/éles. Már a 01-ben is benne (10. pont).
   t_start-programok.sql     Technikai: induló (kb. éles) programok + időpontjaik (RESET-tel)
   t_seed-demo-foglalasok.sql  Technikai (CSAK dev): demó programok/időpontok/foglalások (MINDENT töröl + újratölt). Éles DB-n NE fusson.
   t_reset-ures-allapot.sql  Technikai: minden program+időpont+foglalás törlése (üres induló állapot)

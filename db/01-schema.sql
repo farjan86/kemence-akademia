@@ -720,6 +720,25 @@ $$;
 grant execute on function public.latogatas_rogzites() to anon, authenticated;
 grant execute on function public.latogatas_szam()     to anon, authenticated;
 
+-- ---------------------------------------------------------------------
+-- 10) DATA API JOGOK — a táblák „külső kapuja"
+--     Egy táblát az API (supabase-js / PostgREST) csak akkor ér el, ha a
+--     szerepnek (anon = látogató, authenticated = belépett admin,
+--     service_role = szerver) GRANT-ja van rá. 2026-10-30-ig ezt a Supabase
+--     minden új táblára magától megadta; azóta NEM (changelog #45329), ezért
+--     itt mondjuk ki — pontosan azt, amit eddig magától csinált. Hogy a
+--     szerep MELY SOROKAT láthatja/írhatja, azt továbbra is a fenti
+--     RLS-szabályok döntik el; ez a blokk csak a kaput nyitja.
+-- ---------------------------------------------------------------------
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on all tables    in schema public to anon, authenticated, service_role;
+grant usage, select                  on all sequences in schema public to anon, authenticated, service_role;
+-- A JÖVŐBEN létrehozott táblákra/sorozatokra is (ez az, amit a Supabase kikapcsolt):
+alter default privileges for role postgres in schema public
+  grant select, insert, update, delete on tables to anon, authenticated, service_role;
+alter default privileges for role postgres in schema public
+  grant usage, select on sequences to anon, authenticated, service_role;
+
 -- =====================================================================
 --  Kész. A "workshops" (program) + "idopontok" (alkalmak) + "bookings"
 --  (foglalás egy időpontra) + "settings" táblák állnak, a publikus
@@ -734,6 +753,7 @@ grant execute on function public.latogatas_szam()     to anon, authenticated;
 --   • Storage bucketek (program-fotok publikus + ajanlat-csatolmanyok privát) → db/02-storage.sql
 --   • Automatikus visszaigazolók (foglalás ÉS ajánlat) + csapat-értesítők      → db/03-auto-visszaigazolo-trigger.sql
 --   • Napi emlékeztető (pg_cron)                                               → db/04-emlekezteto-cron.sql
+--   • Heti adatmentés e-mailben (pg_cron)                                      → db/05-heti-mentes-cron.sql
 --  A trigger/cron pg_net/pg_cron + <PROJECT_REF>/<ANON_KEY> értéket igényel
 --  (Supabase → Project Settings → API). Éles telepítés: lásd install.html.
 -- =====================================================================
