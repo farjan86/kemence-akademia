@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kemence Akadémia — Éles telepítés: heti adatmentés + biztonsági javítások</title>
+<style>
+  :root{
+    --bg:#faf6f0; --card:#fff; --ink:#241a12; --muted:#7a6a58; --line:#e7ddd0;
+    --accent:#e4571b; --accent-2:#b8430f; --ok:#2f7d4f; --warn:#b8860b; --code:#f3ece2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif; line-height:1.6; font-size:16px}
+  .wrap{max-width:900px; margin:0 auto; padding:32px 22px 80px}
+  header h1{font-size:26px; margin:0 0 6px}
+  header p.sub{color:var(--muted); margin:0 0 4px}
+  .updated{color:var(--muted); font-size:13px}
+  .callout{border-left:4px solid var(--accent); background:#fff4ee; padding:12px 16px; border-radius:8px; margin:20px 0}
+  .callout.warn{border-color:var(--warn); background:#fdf7e3}
+  .callout.ok{border-color:var(--ok); background:#eef7f0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin:18px 0;
+    box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:21px; margin:0 0 4px; padding-bottom:8px; border-bottom:2px solid var(--line)}
+  h2 .num{color:var(--accent); font-weight:800}
+  h3{font-size:16px; margin:18px 0 6px}
+  code,kbd{background:var(--code); padding:2px 6px; border-radius:5px; font-family:"Cascadia Code",Consolas,monospace; font-size:13.5px}
+  pre{background:var(--code); padding:12px 14px; border-radius:8px; overflow:auto; font-size:13px; line-height:1.5}
+  pre .repl{background:#ffe3d3; color:#a3350c; font-weight:700; border-radius:3px; padding:0 2px}
+  table{border-collapse:collapse; width:100%; margin:10px 0}
+  th,td{border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top}
+  th{background:#f6efe6; font-size:14px}
+  ol,ul{margin:8px 0 8px 4px; padding-left:22px}
+  li{margin:4px 0}
+  a{color:var(--accent-2)}
+  .tag{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em}
+  .tag.kesz{background:#eef7f0; color:var(--ok)} .tag.terv{background:#f3ece2; color:var(--muted)}
+  .step{display:flex; gap:12px; align-items:flex-start; margin:14px 0}
+  .step .n{flex:0 0 28px; height:28px; border-radius:50%; background:var(--accent); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px}
+  .step .body{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🔥 Kemence Akadémia — éles telepítés</h1>
+  <p class="sub">Két korábban csak a <b>fejlesztői</b> rendszeren tesztelt dolog kivitele az <b>élesre</b> (<code>gtpdqbqxkzodbantdeqk</code>): a <b>heti adatmentés e-mailben</b>, és a <b>2026-10-22-i penteszt</b> nyomán készült 6 biztonsági javítás. Fentről lefelé haladj.</p>
+  <p class="updated">Készült: 2026-10-26. Mindkét funkció a fejlesztőin már igazoltan, hibátlanul működik — ez csak a kivitel.</p>
+</header>
+
+<div class="callout warn">
+  <b>⚠️ Titkok:</b> ez a fájl <b>felkerülhet a GitHubra</b>, ezért <b>nem tartalmaz tényleges kulcsokat</b> — csak a lépéseket és <span class="repl">&lt;helykitöltőket&gt;</span>. A valódi értékeket (project ref, anon kulcs, az új titkos szavak) csak a Supabase felületére írd be, ide/sehova máshova ne.
+</div>
+
+<div class="callout">
+  <b>Hol találod az éles projekt azonosítóit?</b>
+  <ul>
+    <li><b>PROJECT_REF</b> — a <code>gtpdqbqxkzodbantdeqk</code> (ez az ÉLES projekt; <b>ne</b> a fejlesztőit vagy a demóét használd). Supabase → Project Settings → Data API → „API URL": <code>https://<b>gtpdqbqxkzodbantdeqk</b>.supabase.co</code>.</li>
+    <li><b>ANON_KEY</b> — Supabase → Project Settings → API Keys → „Legacy anon, service_role API keys" → <b>„anon public"</b> mező. (Publikus, nem titok — ugyanaz, mint a szerveren lévő <code>js/config.js</code>-ben.)</li>
+  </ul>
+</div>
+
+<div class="callout ok">
+  <b>A sorrend logikája (1 perc)</b>
+  <p>Előbb a <b>heti adatmentést</b> kötjük be — ennek egyik mellékhatása, hogy <b>rögtön az első lépésnél kapsz egy friss, teljes mentést e-mailben</b>, mielőtt a biztonsági javításokhoz hozzáérnénk. Így ha valami a B) részben mégsem úgy menne, mint a fejlesztőin, van nálad egy aznapi, teljes visszaállítási alap. Ezután jön a 6 biztonsági javítás (adatbázis → 2 függvény → a te feltöltésed), a végén egy közös ellenőrző lista mindkettőre.</p>
+</div>
+
+<!-- ============================ ÁTTEKINTÉS ============================ -->
+<div class="card">
+  <h2><span class="num">0.</span> Áttekintés — mi történik, milyen sorrendben</h2>
+  <table>
+    <tr><th>#</th><th>Lépés</th><th>Hol</th><th>Fájl</th></tr>
+    <tr><td>A.1</td><td>Új titkos szó: <code>BACKUP_SECRET</code></td><td>Supabase → Edge Functions → Secrets</td><td>—</td></tr>
+    <tr><td>A.2</td><td><code>backup-export</code> függvény telepítése</td><td>Supabase → Edge Functions</td><td><code>supabase/functions/backup-export/index.ts</code></td></tr>
+    <tr><td>A.3</td><td>Heti ütemezés + azonnali teszt-mentés</td><td>Supabase → SQL Editor</td><td><code>db/05-heti-mentes-cron.sql</code></td></tr>
+    <tr><td>A.4</td><td>Ellenőrzés: megjött a mentés-levél?</td><td>postafiók + SQL Editor</td><td>—</td></tr>
+    <tr><td>B.1</td><td>4 adatbázis-javítás egy menetben</td><td>Supabase → SQL Editor</td><td><code>db/j_01-biztonsagi-javitasok.sql</code></td></tr>
+    <tr><td>B.2</td><td><code>send-email</code> frissítése</td><td>Supabase → Edge Functions</td><td><code>supabase/functions/send-email/index.ts</code></td></tr>
+    <tr><td>B.3</td><td><code>send-ajanlat-email</code> frissítése</td><td>Supabase → Edge Functions</td><td><code>supabase/functions/send-ajanlat-email/index.ts</code></td></tr>
+    <tr><td>B.4</td><td>Frontend csere (XSS-javítás is benne)</td><td>Hostinger File Manager</td><td><code>build.bat</code> → <code>deploy_web/</code> tartalma</td></tr>
+    <tr><td>C</td><td>Végső, közös ellenőrző lista</td><td>SQL Editor + böngésző</td><td>—</td></tr>
+  </table>
+</div>
+
+<!-- ============================ RÉSZ A ============================ -->
+<div class="card">
+  <h2><span class="num">A.</span> Heti adatmentés e-mailben</h2>
+  <p>Mit kapsz: minden hétfőn (és most, rögtön, egyszer azonnal is) egy levél a csapat-címre, csatolva egy ZIP, benne táblánként egy CSV az adatbázis <b>teljes</b> tartalmával. Részletek: <code>docs/heti-mentes.md</code>.</p>
+
+  <div class="step"><div class="n">1</div><div class="body">
+    <b>Új titkos szó.</b> Supabase (ÉLES projekt) → <b>Edge Functions → Secrets → Add new</b> → név: <code>BACKUP_SECRET</code>, érték: egy <b>hosszú, véletlen</b> szöveg (32+ karakter).
+    <div class="callout warn" style="margin:10px 0 0">⚠️ <b>Ne a fejlesztőin használt titkot írd be újra.</b> Generálj egy ÚJAT, kizárólag az élesnek. Írd fel egy jelszókezelőbe — a 3. lépésben kell még egyszer.</div>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="body">
+    <b><code>backup-export</code> függvény telepítése.</b> Edge Functions → <b>Deploy a new function</b> → név <b>pontosan</b> <code>backup-export</code> → a <code>supabase/functions/backup-export/index.ts</code> <b>teljes</b> tartalma → Deploy.
+    <div class="callout" style="margin:10px 0 0">A függvény a <code>send-email</code>-lel közös <code>RESEND_API_KEY</code> / <code>MAIL_FROM</code> titkot használja — ezt nem kell újra beállítani, már megvan.</div>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="body">
+    <b>Ütemezés + azonnali teszt-mentés.</b> SQL Editor → a <code>db/05-heti-mentes-cron.sql</code> <b>teljes</b> tartalma, a tetején ezt az öt sort kitöltve:
+<pre>project_ref    := 'gtpdqbqxkzodbantdeqk';   -- az ÉLES projekt
+anon_key       := '<span class="repl">&lt;ANON_KEY&gt;</span>';
+backup_secret  := '<span class="repl">&lt;az 1. lépésben beállított BACKUP_SECRET&gt;</span>';
+utemezes       := '0 4 * * 1';               -- hétfő reggel (6:00 nyári / 5:00 téli idő)
+azonnali_teszt := true;                      -- MOST rögtön is küldjön egyet</pre>
+    → Run. A lefutás végén két <code>NOTICE</code> sort látsz; pár másodperc múlva jön a levél.
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div class="body">
+    <b>Ellenőrzés.</b> Nézd meg, hogy megjött-e a levél a csapat-címre (ZIP csatolva, benne ~13 CSV). Ha nem:
+<pre>select status_code, content::text from net._http_response order by created desc limit 3;</pre>
+    <code>200</code> + <code>{"ok":true,…}</code> = minden rendben. <code>401</code> = a <code>backup_secret</code> nem egyezik a secrettel. <code>500</code> = a <code>backup-export</code> függvény <b>Logs</b> füle mondja meg, miért (tipikusan: a Beállítások fülön nincs kitöltve a csapat e-mail cím).
+  </div></div>
+
+  <div class="callout warn">
+    <b>⚠️ A mentés személyes adatot tartalmaz</b> (vendégek neve, címe, elérhetősége). A fogadó postafiók legyen a cég saját, védett fiókja; a levelet ne továbbítsd tovább.
+  </div>
+</div>
+
+<!-- ============================ RÉSZ B ============================ -->
+<div class="card">
+  <h2><span class="num">B.</span> A 6 biztonsági javítás</h2>
+  <p>A 2026-10-22-i penteszt 6 leletét javítja: tárolt XSS az admin foglalás-listájában, rejtett admin-mezők befecskendezése ajánlatkérésbe, nyitott levélküldő mindkét e-mail-függvényben, a csapat e-mail címének nyilvános kiszivárgása, az azonosító-sorszám felülírhatósága, és a feltöltött fájlok szerveroldali méret-/típus-korlátjának hiánya. Mindegyik <b>a fejlesztőin élőben leellenőrizve</b>, regresszió nélkül.</p>
+
+  <div class="step"><div class="n">1</div><div class="body">
+    <b>4 adatbázis-javítás egy menetben.</b> SQL Editor → a <code>db/j_01-biztonsagi-javitasok.sql</code> <b>teljes</b> tartalma, változtatás nélkül → Run. Egy tranzakció; semmilyen meglévő adatot nem ír felül, nem töröl.
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="body">
+    <b><code>send-email</code> frissítése.</b> Edge Functions → <code>send-email</code> → Code → a <b>teljes régi tartalmat töröld</b>, illeszd be a <code>supabase/functions/send-email/index.ts</code> <b>új</b> tartalmát → Deploy.
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="body">
+    <b><code>send-ajanlat-email</code> frissítése.</b> Ugyanígy a <code>supabase/functions/send-ajanlat-email/index.ts</code> új tartalmával → Deploy.
+    <div class="callout" style="margin:10px 0 0">Nincs új titok, amit be kell állítani ehhez a két function-höz. Az eddigi „nyers teszt" mód ezután <b>alapból zárva</b> van — csak akkor nyitható meg, ha <b>külön</b> beállítasz egy <code>RAW_TESZT_KULCS</code> secretet is. <b>Élesen ezt NE állítsd be.</b></div>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div class="body">
+    <b>Frontend csere.</b> Ezt te intézed: futtasd a <code>build.bat</code>-ot → a <code>deploy_web/</code> mappa tartalmát töltsd fel a Hostinger <code>public_html</code> gyökerébe, a régi fájlokat felülírva (ez hozza a <code>js/config.js</code>-t és a <code>.htaccess</code>-t <b>nem</b> érinti, ahogy eddig sem). Ez a lépés viszi ki a tárolt XSS javítását (<code>admin/js/foglalasok.js</code>).
+    <div class="callout warn" style="margin:10px 0 0">⚠️ Ürítsd a Hostinger gyorsítótárát feltöltés után (hPanel → Performance/Cache Manager → Purge), különben a régi, javítás előtti <code>foglalasok.js</code>-t kaphatja vissza a böngésző.</div>
+  </div></div>
+</div>
+
+<!-- ============================ RÉSZ C ============================ -->
+<div class="card">
+  <h2><span class="num">C.</span> Végső ellenőrzés</h2>
+  <table>
+    <tr><th>#</th><th>Mit nézz meg</th><th>Hogyan</th><th>Mit kell látnod</th></tr>
+    <tr><td>A</td><td>Heti mentés</td><td>postafiók</td><td>Megjött a ZIP-es levél</td></tr>
+    <tr><td>B1</td><td>XSS</td><td>admin „Foglalások" — hozz létre egy foglalást <code>&lt;b&gt;teszt&lt;/b&gt;</code> névvel</td><td>A szó szerinti <code>&lt;b&gt;teszt&lt;/b&gt;</code> szöveg jelenik meg, NEM félkövér „teszt"</td></tr>
+    <tr><td>B2</td><td>Ajánlat rejtett mezői</td><td><code>select tgname from pg_trigger where tgrelid='public.ajanlatok'::regclass;</code></td><td>Szerepel <code>trg_ajanlat_privat_mezok</code></td></tr>
+    <tr><td>B3</td><td>Email-relay</td><td>curl/Postman: <code>POST .../functions/v1/send-email</code> <code>{"to":"...","subject":"..."}</code>, titkos fejléc nélkül</td><td><b>Ne</b> legyen <code>{"ok":true,"mode":"raw"}</code> — hibát kell adjon</td></tr>
+    <tr><td>B4</td><td>Csapat e-mail cím</td><td>a publikus oldal böngészőjében (F12 → Console): <code>fetch(window.SUPABASE_URL+'/rest/v1/settings?select=levelezesi_email',{headers:{apikey:window.SUPABASE_ANON_KEY}}).then(r=>r.json()).then(console.log)</code></td><td>Hibát ad (<code>permission denied</code>), NEM az e-mail címet</td></tr>
+    <tr><td>B5</td><td>Azonosító</td><td><code>select column_name, identity_generation from information_schema.columns where table_name in ('bookings','ajanlatok') and column_name='azonosito';</code></td><td>Mindkettő <code>ALWAYS</code></td></tr>
+    <tr><td>B6</td><td>Fájlkorlát</td><td><code>select id, file_size_limit, allowed_mime_types from storage.buckets;</code></td><td><code>program-fotok</code>: 10485760 · <code>ajanlat-csatolmanyok</code>: 20971520</td></tr>
+  </table>
+
+  <h3>Ami után mehet a takarítás</h3>
+  <p>Ha a B1-es teszthez létrehoztál egy próba-foglalást, töröld az admin felületen (elutasítás/lemondás → Törlés gomb), hogy ne maradjon a listában.</p>
+</div>
+
+<div class="callout ok">
+  <b>Ha mind a 7 sor rendben van a C) táblában</b> — a heti adatmentés és mind a 6 biztonsági javítás élesben is pontosan úgy működik, mint a fejlesztőin.
+</div>
+
+</div>
+</body>
+</html>
