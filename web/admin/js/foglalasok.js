@@ -88,9 +88,9 @@ function sorHtml(b){
     </td>
     <td data-cim="Időállapot">${m ? `<span class="ido ${m.kulcs}">${m.szoveg}</span>` : "—"}</td>
     <td class="kontakt" data-cim="Vendég">
-      ${b.nev}
-      <small>${b.telefon}</small>
-      <small>${b.email}</small>
+      ${escapeHtml(b.nev)}
+      <small>${escapeHtml(b.telefon)}</small>
+      <small>${escapeHtml(b.email)}</small>
       <button class="loglink" data-log="${b.id}">✉ ${(emailLogMap.get(b.id) || []).length} kiment levél</button>
     </td>
     <td data-cim="Fő">${b.letszam}</td>

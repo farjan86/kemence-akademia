@@ -5,7 +5,11 @@
 //
 //  HÁROMFÉLE hívás (POST, JSON body):
 //   1) NYERS teszt-mód:   { "to": "cim@pl.hu", "subject": "Teszt", "text": "Szia" }
+//        + fejléc: x-raw-teszt-kulcs: <RAW_TESZT_KULCS secret>
 //        → csak elküldi; nem olvas adatbázist, nem naplóz. A küldés tesztelésére.
+//        BIZTONSÁG: a RAW_TESZT_KULCS secret NÉLKÜL ez az ág használhatatlan —
+//        alapesetben (ha a secretet nem állítod be) senki sem tud vele
+//        tetszőleges címre levelet kiváltani, még a publikus anon kulccsal sem.
 //   2) WEBHOOK-mód (Supabase Database Webhook a bookings INSERT-re):
 //        { "type":"INSERT", "table":"bookings", "record": { ... új foglalás ... } }
 //        → új, „jóváhagyásra vár" foglalásnál AUTO kiküldi a visszaigazolót (vendég)
@@ -25,7 +29,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-raw-teszt-kulcs",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -38,6 +42,14 @@ const SERVICE_ROLE   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 // erre az egy címre megy (a valós címzettet a tárgy elejébe tesszük: [TESZT → ...]).
 // Így fejlesztés közben valós/éles címre SOHA nem megy semmi. Élesben töröld / hagyd üresen.
 const DEV_REDIRECT_TO = Deno.env.get("DEV_REDIRECT_TO") ?? "";
+
+// BIZTONSÁG: a "nyers teszt" mód (lásd lent) a publikus anon kulccsal is
+// elérhető, mert a Data API-n ennek a function-nek nincs más beléptetése.
+// E titok NÉLKÜL ez az ág használhatatlan — alapállapotban (ha nem állítasz
+// be RAW_TESZT_KULCS secretet) senki, az anon kulcs ismerője sem tud vele
+// tetszőleges címre levelet kiváltani. Csak akkor állítsd be, ha a Resend-
+// küldést manuálisan, curl-lel akarod tesztelni.
+const RAW_TESZT_KULCS = Deno.env.get("RAW_TESZT_KULCS") ?? "";
 
 // {mezo} behelyettesítése a sablon szövegébe
 function behelyettesit(sablon: string, mezok: Record<string, unknown>): string {
@@ -151,8 +163,9 @@ Deno.serve(async (req) => {
     if (!RESEND_API_KEY) throw new Error("Hiányzik a RESEND_API_KEY secret.");
     const body = await req.json().catch(() => ({}));
 
-    // --- 1) NYERS teszt-mód ---
-    if (body.to && body.subject) {
+    // --- 1) NYERS teszt-mód — CSAK a RAW_TESZT_KULCS fejléccel ---
+    if (RAW_TESZT_KULCS && req.headers.get("x-raw-teszt-kulcs") === RAW_TESZT_KULCS
+        && body.to && body.subject) {
       let to = body.to, subject = body.subject;
       if (DEV_REDIRECT_TO) { subject = `[TESZT → ${to}] ${subject}`; to = DEV_REDIRECT_TO; }
       await kuld(to, subject, body.text ?? "");

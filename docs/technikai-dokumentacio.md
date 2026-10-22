@@ -14,7 +14,7 @@
 ## 2. Projektstruktúra
 
 ```
-db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_ = dev-migráció (ideiglenes) · t_ = technikai eszköz
+db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_ = dev-migráció (ideiglenes) · t_ = technikai eszköz · j_ = meglévő projekten futtatandó javítás (biztonsági/hibajavítás, nem új funkció)
   01-schema.sql             A TELJES, mindig naprakész séma (üres/éles telepítéshez elég ez): workshops + idopontok + bookings + settings, eloadok + program_eloadok (Előadóink), egyedi_programok + ajanlatok + ajanlat_log + ajanlat_sablonok (egyedi ág), RLS, „programok" nézet, túlfoglalás- és címadat-trigger, e-mail sablonok, alap-beállítások, látogatás-számláló
   02-storage.sql            Storage bucket a program-fotókhoz (public olvasás, admin írás)
   03-auto-visszaigazolo-trigger.sql  Auto visszaigazoló + csapat-értesítő trigger + pg_net (a Database Webhook SQL-alternatívája; <PROJECT_REF>/<ANON_KEY> kitöltendő)
@@ -29,6 +29,7 @@ db/                         SQL — adatbázis. Elnevezés: base (01–04) · m_
   m_11-eloadok.sql          Dev-migráció: Előadóink — eloadok + program_eloadok tábla, RLS, a régi workshops.eloado oszlop ELDOBÁSA, a „programok" nézet újraépítése az eloadok JSON-nal. Már a 01-ben is benne.
   m_12-program-slug.sql     Dev-migráció: megosztható program-link — workshops.slug oszlop, egyedi index, slug-képző függvények + beszúrási trigger, a meglévő programok feltöltése, nézet-frissítés. Már a 01-ben is benne.
   m_13-data-api-jogok.sql   Dev-migráció: Data API grant-ok a public séma tábláira/sorozataira + default privileges a jövőbeli táblákra (a Supabase 2026-10-30-tól nem adja automatikusan). Egyszer futtatandó dev/demó/éles. Már a 01-ben is benne (10. pont).
+  j_01-biztonsagi-javitasok.sql  Javítás (2026-10-22-i penteszt nyomán): ajánlat admin-privát mezőinek zárolása anon beküldésnél, settings.levelezesi_email elzárása anontól, azonosito oszlopok GENERATED ALWAYS-re váltása, Storage fájlméret/típus-korlát. Egyszer futtatandó a MEGLÉVŐ dev/demó/éles adatbázisokon. Már a 01/02-ben is benne.
   t_start-programok.sql     Technikai: induló (kb. éles) programok + időpontjaik (RESET-tel)
   t_seed-demo-foglalasok.sql  Technikai (CSAK dev): demó programok/időpontok/foglalások (MINDENT töröl + újratölt). Éles DB-n NE fusson.
   t_reset-ures-allapot.sql  Technikai: minden program+időpont+foglalás törlése (üres induló állapot)

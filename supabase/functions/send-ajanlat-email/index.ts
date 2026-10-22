@@ -6,6 +6,9 @@
 //
 //  HÁROMFÉLE hívás (POST, JSON body):
 //   1) NYERS teszt:  { "to":"cim@pl.hu", "subject":"Teszt", "text":"Szia" }
+//        + fejléc: x-raw-teszt-kulcs: <RAW_TESZT_KULCS secret>
+//        BIZTONSÁG: a RAW_TESZT_KULCS secret NÉLKÜL ez az ág használhatatlan —
+//        lásd a send-email/index.ts azonos megjegyzését.
 //   2) WEBHOOK (az ajanlatok INSERT trigger hívja):
 //        { "type":"INSERT", "table":"ajanlatok", "record": { ... új ajánlat ... } }
 //        → új ajánlatkérésnél AUTO: visszaigazoló (vendég) + csapat-értesítő (csapat).
@@ -23,7 +26,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-raw-teszt-kulcs",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -32,6 +35,9 @@ const MAIL_FROM      = Deno.env.get("MAIL_FROM") ?? "Kemence Akadémia <onboardi
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const DEV_REDIRECT_TO = Deno.env.get("DEV_REDIRECT_TO") ?? "";
+
+// BIZTONSÁG: lásd a send-email/index.ts azonos nevű konstansának megjegyzését.
+const RAW_TESZT_KULCS = Deno.env.get("RAW_TESZT_KULCS") ?? "";
 
 const CSATOLMANY_BUCKET = "ajanlat-csatolmanyok";
 
@@ -167,8 +173,9 @@ Deno.serve(async (req) => {
     if (!RESEND_API_KEY) throw new Error("Hiányzik a RESEND_API_KEY secret.");
     const body = await req.json().catch(() => ({}));
 
-    // --- 1) NYERS teszt ---
-    if (body.to && body.subject) {
+    // --- 1) NYERS teszt — CSAK a RAW_TESZT_KULCS fejléccel ---
+    if (RAW_TESZT_KULCS && req.headers.get("x-raw-teszt-kulcs") === RAW_TESZT_KULCS
+        && body.to && body.subject) {
       let to = body.to, subject = body.subject;
       if (DEV_REDIRECT_TO) { subject = `[TESZT → ${to}] ${subject}`; to = DEV_REDIRECT_TO; }
       await kuld(to, subject, body.text ?? "");

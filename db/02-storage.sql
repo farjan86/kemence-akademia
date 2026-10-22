@@ -8,8 +8,11 @@
 -- =====================================================================
 
 -- A bucket (publikus)
-insert into storage.buckets (id, name, public)
-values ('program-fotok', 'program-fotok', true)
+-- file_size_limit (bájt) + allowed_mime_types: SZERVEROLDALI korlát — a kliens
+-- JS-ben lévő ellenőrzés csak kényelmi, API-n keresztül megkerülhető lenne.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('program-fotok', 'program-fotok', true, 10485760,   -- 10 MB
+        array['image/jpeg','image/png','image/webp','image/gif'])
 on conflict (id) do nothing;
 
 -- Feltöltés / módosítás / törlés: csak bejelentkezett admin ehhez a buckethez
@@ -38,8 +41,13 @@ create policy "program_fotok_read" on storage.objects
 --  Ha a policy-k jogosultsági hibát adnak, hozd létre a Storage felületen:
 --    New bucket → név: ajanlat-csatolmanyok → PRIVATE (public KIKAPCSOLVA) → Create.
 -- =====================================================================
-insert into storage.buckets (id, name, public)
-values ('ajanlat-csatolmanyok', 'ajanlat-csatolmanyok', false)   -- PRIVÁT
+-- file_size_limit (bájt) + allowed_mime_types: lásd a program-fotok megjegyzését.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('ajanlat-csatolmanyok', 'ajanlat-csatolmanyok', false, 20971520,   -- PRIVÁT, 20 MB
+        array['application/pdf','image/jpeg','image/png',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'text/plain'])
 on conflict (id) do nothing;
 
 drop policy if exists "ajanlat_csat_admin_ins" on storage.objects;
